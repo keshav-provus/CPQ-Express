@@ -1,13 +1,72 @@
 {
-  "orgName": "admin company",
-  "edition": "Developer",
-  "features": ["EnableSetPasswordInApi"],
+  "orgName": "CPQ Express Dev Org",
+  "edition": "enterprise",
+  "description": "Scratch org for CPQ Express — custom Salesforce CPQ with Apex service layer, LWC components, role-based access control, approval workflows, CSV import, phase-based quoting, and AI features (Einstein + External API).",
+
+  "features": [
+    "EnableSetPasswordInApi",
+    "AddCustomApps:10",
+    "Einstein1AIPlatform"
+  ],
+
   "settings": {
     "lightningExperienceSettings": {
       "enableS1DesktopEnabled": true
     },
     "mobileSettings": {
       "enableS1EncryptedStoragePref2": false
+    },
+    "securitySettings": {
+      "sessionSettings": {
+        "enableClickjackNonsetupSFDC": true,
+        "enableClickjackNonsetupUser": true,
+        "enableClickjackNonsetupUserHeaderless": true,
+        "enableClickjackSetup": true
+      },
+      "passwordPolicies": {
+        "enableSetPasswordInApi": true
+      }
+    },
+    "apexSettings": {
+      "enableAggregateCodeCoverageOnly": false,
+      "enableApexAccessRightsCruc": false,
+      "enableDisableParallelApexTesting": false,
+      "enableGaplessTestAutoNum": false
+    },
+    "chatterSettings": {
+      "enableChatter": false
+    },
+    "emailAdministrationSettings": {
+      "enableEnhancedEmailEnabled": true
+    },
+    "approvalSettings": {
+      "enableFlowApproval": true
+    },
+    "userManagementSettings": {
+      "enableEnhancedPermsetMgmt": true
+    },
+    "myDomainSettings": {
+      "useStabilizedMyDomain": true,
+      "useStabilizedHostnames": true
+    },
+    "recordPageSettings": {
+      "enableActivityRelatedList": true
+    },
+    "fileUploadAndDownloadSecuritySettings": {
+      "noHtmlUpload": false
+    },
+    "contentSettings": {
+      "enableContent": true,
+      "enableContentWorkspaces": true
+    },
+    "einsteinGptSettings": {
+      "enableEinsteinGptPlatform": true
+    },
+    "agentPlatformSettings": {
+      "enableAgentPlatform": true
+    },
+    "industrySettings": {
+      "enableHttpCallout": true
     }
   }
 }
