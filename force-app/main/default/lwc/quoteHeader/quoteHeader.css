@@ -1,0 +1,45 @@
+/* Styling to mimic the provided design */
+:host {
+    display: block;
+    background-color: white;
+}
+
+.header-container {
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.quote-name {
+    font-weight: 700;
+}
+
+.description-row {
+    margin-bottom: 1rem;
+}
+
+.metrics-ribbon {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.metric-item {
+    display: flex;
+    align-items: baseline;
+}
+
+.metric-value {
+    font-weight: 400;
+}
+
+.bold-metric {
+    font-weight: 600;
+}
+
+.header-tabs {
+    --sds-c-tabs-default-nav-border-bottom-color: #c9c9c9;
+}

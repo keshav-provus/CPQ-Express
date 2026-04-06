@@ -1,0 +1,72 @@
+<template>
+    <div class="header-container slds-card slds-p-around_medium slds-m-bottom_small">
+        <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_medium">
+            <!-- Breadcrumbs / Title -->
+            <div class="slds-col slds-grow slds-grid slds-grid_vertical-align-center">
+                <p class="slds-text-body_regular slds-text-color_weak slds-m-right_x-small">Quotes</p>
+                <lightning-icon icon-name="utility:chevronright" size="xx-small" class="slds-m-right_x-small"></lightning-icon>
+                <h1 class="slds-text-heading_medium slds-m-right_small slds-truncate quote-name" title={quoteName}>{quoteName}</h1>
+                <span class="slds-badge slds-badge_lightest slds-m-right_small">{quoteStatus}</span>
+            </div>
+            
+            <!-- Actions -->
+            <div class="slds-col slds-no-flex">
+                <lightning-button-group>
+                    <lightning-button-menu alternative-text="Generate PDF" label="Generate PDF" variant="brand" icon-name="utility:down" icon-position="right">
+                        <lightning-menu-item label="Standard Template" value="standard"></lightning-menu-item>
+                    </lightning-button-menu>
+                    <lightning-button label="Save" variant="brand-outline"></lightning-button>
+                    <lightning-button label="Refresh" icon-name="utility:refresh"></lightning-button>
+                    <lightning-button label="AI Assistant" icon-name="utility:magicwand"></lightning-button>
+                </lightning-button-group>
+            </div>
+        </div>
+
+        <div class="slds-m-bottom_medium slds-grid slds-grid_vertical-align-center slds-text-color_weak description-row">
+            <lightning-icon icon-name="utility:edit" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+            <p class="slds-text-body_small"><em>Click to edit description</em></p>
+        </div>
+
+        <div class="metrics-ribbon slds-grid slds-wrap slds-grid_vertical-align-center slds-border_top slds-p-top_small slds-p-bottom_small slds-border_bottom">
+            <div class="metric-item slds-m-right_large">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Total amount</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value bold-metric"><lightning-formatted-number value={totalAmount} format-style="currency" currency-code="USD"></lightning-formatted-number></span>
+            </div>
+            <div class="metric-item slds-m-right_large">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Subtotal</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockSubtotal} format-style="currency" currency-code="USD"></lightning-formatted-number></span>
+            </div>
+            <div class="metric-item slds-m-right_large slds-grid slds-grid_vertical-align-center">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Margin</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value slds-m-right_xx-small"><lightning-formatted-number value={mockMarginValue} format-style="currency" currency-code="USD"></lightning-formatted-number> (<lightning-formatted-number value={marginPercent} format-style="percent"></lightning-formatted-number>)</span>
+                <lightning-icon icon-name="utility:info_alt" size="xx-small" class="slds-icon-text-light"></lightning-icon>
+            </div>
+            <div class="metric-item slds-m-right_large">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Discount</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockDiscountValue} format-style="currency" currency-code="USD"></lightning-formatted-number> (<lightning-formatted-number value={mockDiscountPercent} format-style="percent"></lightning-formatted-number>)</span>
+            </div>
+            <div class="metric-item slds-m-right_large">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Start date</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value">{mockStartDate}</span>
+            </div>
+            <div class="metric-item slds-m-right_large">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">End date</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value">{mockEndDate}</span>
+            </div>
+        </div>
+        <div class="metrics-ribbon slds-grid slds-wrap slds-grid_vertical-align-center slds-p-top_small">
+            <div class="metric-item">
+                <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Quote time period</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value">{mockTimePeriod}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs placeholder below the header -->
+    <lightning-tabset class="slds-tabs_default header-tabs">
+        <lightning-tab label="Summary"></lightning-tab>
+        <lightning-tab label="Line Items"></lightning-tab>
+        <lightning-tab label="Timeline"></lightning-tab>
+        <lightning-tab label="Generated PDFs"></lightning-tab>
+    </lightning-tabset>
+</template>
