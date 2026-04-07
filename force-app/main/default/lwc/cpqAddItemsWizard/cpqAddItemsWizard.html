@@ -1,58 +1,45 @@
 <template>
-    <div class="wizard-overlay" onclick={closeWizard}></div>
-    <div class="wizard-panel">
-        <div class="wizard-header">
-            <div class="header-top">
-                <h2>Add Items to {targetPhase}</h2>
-                <button class="close-btn" onclick={closeWizard}>&times;</button>
+    <div class="wizard-overlay" onclick={handleOverlayClick}>
+        <div class="wizard-panel">
+            <div class="wizard-header">
+                <h2>Add Quote Line Items</h2>
+                <p>Select Products, Add-ons, Resource Roles to add to your quote.</p>
+                <button class="wizard-close" onclick={closeWizard}>✕</button>
             </div>
-            
-            <!-- Filter Tabs -->
-            <div class="filter-tabs">
-                <button class={roleTabClass} data-type="Resource Role" onclick={handleTabChange}>Resource Roles</button>
-                <button class={prodTabClass} data-type="Product" onclick={handleTabChange}>Products</button>
-                <button class={addonTabClass} data-type="Add-on" onclick={handleTabChange}>Add-on</button>
+            <div class="wizard-tabs">
+                <div class={rolesTabClass} data-tab="roles" onclick={switchWizardTab}>👤 Resource Roles ({rolesCount})</div>
+                <div class={productsTabClass} data-tab="products" onclick={switchWizardTab}>📦 Products ({productsCount})</div>
+                <div class={addonsTabClass} data-tab="addons" onclick={switchWizardTab}>➕ Add-ons ({addonsCount})</div>
             </div>
-
-            <!-- Search Bar -->
-            <div class="search-bar">
-                <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search items..." oninput={handleSearch}/>
+            <div class="wizard-search">
+                <input type="text" placeholder="Search by name, description, or ID..." oninput={handleSearch} value={searchQuery}>
             </div>
-        </div>
-
-        <div class="wizard-content">
-            <template if:true={isLoading}>
-                <lightning-spinner alternative-text="Loading items..."></lightning-spinner>
-            </template>
-            
-            <template if:false={isLoading}>
-                <div class="item-list">
-                    <template for:each={filteredProducts} for:item="prod">
-                        <div key={prod.Id} class="item-card">
-                            <div class="check-box">
-                                <input type="checkbox" onchange={handleToggleSelection} data-id={prod.Id}/>
-                            </div>
-                            <div class="item-info">
-                                <p class="item-name">{prod.Name}</p>
-                                <p class="item-code">{prod.Product_Code__c}</p>
-                            </div>
-                            <div class="item-price">
-                                <lightning-formatted-number value={prod.Price__c} format-style="currency"></lightning-formatted-number>
-                            </div>
+            <div class="wizard-filter-bar">
+                <button class="filter-btn active">Name ↑</button>
+                <button class="filter-btn">Price</button>
+                <button class="filter-btn">⊕ Price Filter</button>
+            </div>
+            <div class="wizard-list">
+                <template for:each={filteredCatalog} for:item="item">
+                    <div key={item.Id} class={item.itemClass} data-id={item.Id} onclick={toggleWizardItem}>
+                        <div class="check">
+                            <template if:true={item.isSelected}>✓</template>
                         </div>
-                    </template>
-                </div>
-            </template>
-        </div>
-
-        <div class="wizard-footer">
-            <div class="selection-count">
-                {selectedCount} Items Selected
+                        <div class="item-info">
+                            <div class="item-name">{item.displayName}</div>
+                            <div class="item-desc">No description available</div>
+                        </div>
+                        <div class="item-price">{item.displayPrice}</div>
+                    </div>
+                </template>
+                <div if:false={filteredCatalog.length} style="padding:24px;text-align:center;color:#9ca3af;font-size:13px;">No items found</div>
             </div>
-            <button class="btn btn-primary" onclick={handleAddItems} disabled={noSelected}>
-                Add to Phase
-            </button>
+            <div class="wizard-footer">
+                <button class="cancel-btn" onclick={closeWizard}>Cancel</button>
+                <button class="add-btn" onclick={addSelectedItems}>
+                    Add {totalSelected} Items to {targetPhase}
+                </button>
+            </div>
         </div>
     </div>
 </template>

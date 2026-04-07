@@ -9,38 +9,45 @@
 
         <!-- Main Content -->
         <div class="content-area">
-            <lightning-tabset variant="scoped" active-tab-value={activeTab}>
-                <lightning-tab label="Summary" value="summary">
+            <div class="tabs">
+                <div class={summaryTabClass} data-tab="summary" onclick={switchTab}>Summary</div>
+                <div class={lineitemsTabClass} data-tab="lineitems" onclick={switchTab}>Line Items</div>
+                <div class={timelineTabClass} data-tab="timeline" onclick={switchTab}>Timeline</div>
+                <div class={pdfsTabClass} data-tab="pdfs" onclick={switchTab}>Generated PDFs</div>
+            </div>
+
+            <div class="tab-content">
+                <template if:true={isSummary}>
                     <c-cpq-quote-summary 
                         record-id={recordId}
                         quote-data={quoteData}
                         line-items={lineItems}>
                     </c-cpq-quote-summary>
-                </lightning-tab>
+                </template>
                 
-                <lightning-tab label="Line Items" value="lineitems">
+                <template if:true={isLineItems}>
                     <c-cpq-quote-line-editor 
                         record-id={recordId}
                         line-items={lineItems}
                         onrefresh={handleRefresh}
                         onopenwizard={handleOpenWizard}>
                     </c-cpq-quote-line-editor>
-                </lightning-tab>
+                </template>
 
-                <lightning-tab label="Timeline" value="timeline">
+                <template if:true={isTimeline}>
                     <div class="empty-state">
                         <div class="icon">📅</div>
                         <p>Timeline view will be implemented soon.</p>
                     </div>
-                </lightning-tab>
+                </template>
 
-                <lightning-tab label="Generated PDFs" value="pdfs">
+                <template if:true={isPdfs}>
                     <div class="empty-state">
                         <div class="icon">📑</div>
                         <p>Generated PDFs view will be implemented soon.</p>
                     </div>
-                </lightning-tab>
-            </lightning-tabset>
+                </template>
+            </div>
         </div>
 
         <!-- Right Side Wizard Panel -->

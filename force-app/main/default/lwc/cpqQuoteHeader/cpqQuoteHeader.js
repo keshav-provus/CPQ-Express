@@ -1,40 +1,42 @@
 import { LightningElement, api } from 'lwc';
-import { getFieldValue } from 'lightning/uiRecordApi';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-const NAME_FIELD = 'Quote__c.Name';
-const TOTAL_FIELD = 'Quote__c.Total_Amount__c';
-const MARGIN_FIELD = 'Quote__c.Margin_Percent__c';
-const STATUS_FIELD = 'Quote__c.Status__c';
-const START_DATE_FIELD = 'Quote__c.Start_Date__c';
-const DURATION_FIELD = 'Quote__c.Duration_Months__c';
 
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
     @api quoteData;
 
     get quoteName() {
-        return getFieldValue(this.quoteData, NAME_FIELD);
+        return this.quoteData?.Name || 'N/A';
     }
 
     get totalAmount() {
-        return getFieldValue(this.quoteData, TOTAL_FIELD) || 0;
+        return this.quoteData?.Total_Amount__c || 0;
     }
 
     get margin() {
-        return getFieldValue(this.quoteData, MARGIN_FIELD) || 0;
+        return this.quoteData?.Margin_Percent__c || 0;
+    }
+
+    get marginAmount() {
+        return this.quoteData?.Margin_Amount__c || 0;
     }
 
     get status() {
-        return getFieldValue(this.quoteData, STATUS_FIELD);
+        return this.quoteData?.Status__c || 'Draft';
     }
 
     get startDate() {
-        return getFieldValue(this.quoteData, START_DATE_FIELD);
+        if (!this.quoteData?.Start_Date__c) return '-';
+        return new Date(this.quoteData.Start_Date__c).toLocaleDateString();
     }
 
-    get duration() {
-        return getFieldValue(this.quoteData, DURATION_FIELD) || 0;
+    get endDate() {
+        if (!this.quoteData?.End_Date__c) return '-';
+        return new Date(this.quoteData.End_Date__c).toLocaleDateString();
+    }
+
+    get timePeriod() {
+        return this.quoteData?.Time_Period_Metric__c || 'Months';
     }
 
     handleRefresh() {

@@ -1,34 +1,39 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import { getRecord, getFieldValue, refreshApex } from 'lightning/uiRecordApi';
-import getQuoteLinesByQuoteId from '@salesforce/apex/QuoteController.getQuoteLines';
+import { refreshApex } from '@salesforce/apex';
+import getQuoteById from '@salesforce/apex/QuoteController.getQuoteById';
+import getLineItems from '@salesforce/apex/QuoteLineItemController.getLineItems';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-const QUOTE_FIELDS = [
-    'Quote__c.Name',
-    'Quote__c.Total_Amount__c',
-    'Quote__c.Total_Cost__c',
-    'Quote__c.Margin_Percent__c',
-    'Quote__c.Status__c',
-    'Quote__c.Start_Date__c',
-    'Quote__c.Duration_Months__c'
-];
 
 export default class CpqQuoteRecordPage extends LightningElement {
     @api recordId;
 
     @track activeTab = 'summary';
     @track isWizardOpen = false;
+
+    get isSummary() { return this.activeTab === 'summary'; }
+    get isLineItems() { return this.activeTab === 'lineitems'; }
+    get isTimeline() { return this.activeTab === 'timeline'; }
+    get isPdfs() { return this.activeTab === 'pdfs'; }
+
+    get summaryTabClass() { return `tab ${this.isSummary ? 'active' : ''}`; }
+    get lineitemsTabClass() { return `tab ${this.isLineItems ? 'active' : ''}`; }
+    get timelineTabClass() { return `tab ${this.isTimeline ? 'active' : ''}`; }
+    get pdfsTabClass() { return `tab ${this.isPdfs ? 'active' : ''}`; }
+
+    switchTab(event) {
+        this.activeTab = event.target.dataset.tab;
+    }
     @track targetPhase = 'Default';
 
     wiredQuoteResult;
     wiredLinesResult;
 
-    @wire(getRecord, { recordId: '$recordId', fields: QUOTE_FIELDS })
+    @wire(getQuoteById, { recordId: '$recordId' })
     wiredQuote(result) {
         this.wiredQuoteResult = result;
     }
 
-    @wire(getQuoteLinesByQuoteId, { quoteId: '$recordId' })
+    @wire(getLineItems, { quoteId: '$recordId' })
     wiredLines(result) {
         this.wiredLinesResult = result;
     }

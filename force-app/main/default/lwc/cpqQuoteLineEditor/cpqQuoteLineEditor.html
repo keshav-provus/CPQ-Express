@@ -1,81 +1,62 @@
 <template>
-    <div class="editor-container">
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="btn-group">
-                <button class="btn btn-icon" title="Collapse All">
-                    <span class="icon">⬩</span>
-                </button>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick={handleAddPhase}>Add Phase</button>
-                <button class="btn btn-primary" onclick={handleSaveAll}>Save All Changes</button>
-            </div>
+    <div class="line-items-tab">
+        <div class="line-items-toolbar">
+            <button class="btn" onclick={handleCollapseAll}>⊟ Collapse All</button>
+            <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
+            <button class="btn btn-primary" data-phase="Default" onclick={handleOpenWizard}>+ Add Item</button>
         </div>
-
-        <!-- Grouped Table -->
-        <div class="table-wrapper">
-            <template for:each={groupedPhases} for:item="phase">
-                <div key={phase.name} class="phase-group">
-                    <div class="phase-header">
-                        <div class="phase-title">
-                            <span class="chevron">▼</span>
-                            <h3>{phase.name}</h3>
-                            <span class="badge">{phase.itemCount} Items</span>
-                        </div>
-                        <div class="phase-actions">
-                            <button class="btn btn-text" onclick={handleOpenWizard} data-phase={phase.name}>+ Add Item</button>
-                        </div>
-                    </div>
-
-                    <div class="phase-content">
-                        <table class="grid-table">
-                            <thead>
-                                <tr>
-                                    <th class="cell-icon"></th>
-                                    <th class="cell-name">Item Name</th>
-                                    <th class="cell-task">Task</th>
-                                    <th class="cell-date">Start Date</th>
-                                    <th class="cell-date">End Date</th>
-                                    <th class="cell-qty">Qty</th>
-                                    <th class="cell-rate">Base Rate</th>
-                                    <th class="cell-price">Unit Price</th>
-                                    <th class="cell-disc">Disc %</th>
-                                    <th class="cell-total">Total Price</th>
-                                    <th class="cell-actions"></th>
+        <div class="line-items-table-wrap">
+            <table class="li-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px;"></th>
+                        <th style="width:220px;">Name</th>
+                        <th style="width:120px;">Task</th>
+                        <th style="width:100px;">Start Date</th>
+                        <th style="width:100px;">End Date</th>
+                        <th style="width:80px;">Quantity</th>
+                        <th style="width:90px;">Base Rate</th>
+                        <th style="width:90px;">Unit Price</th>
+                        <th style="width:80px;">Discount %</th>
+                        <th style="width:100px;">Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={groupedPhases} for:item="phase">
+                        <tr key={phase.name} class="phase-row">
+                            <td colspan="10">
+                                <span class="phase-toggle" data-phase={phase.name} onclick={togglePhase}>{phase.toggleIcon}</span>
+                                {phase.name} &nbsp;
+                                <a class="add-item-link" data-phase={phase.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
+                            </td>
+                        </tr>
+                        <template if:false={phase.isCollapsed}>
+                            <template for:each={phase.items} for:item="item">
+                                <tr key={item.Id} data-id={item.Id}>
+                                    <td>{item.icon}</td>
+                                    <td><a class="li-link">{item.Name}</a></td>
+                                    <td><span class="add-task-link" data-msg="Task assignment will be implemented soon" onclick={handleToast}>Add task...</span></td>
+                                    <td>{item.startDateFormatted}</td>
+                                    <td>{item.endDateFormatted}</td>
+                                    <td class="editable-cell">
+                                        <input type="number" value={item.Quantity__c} min="0" step="0.5" data-id={item.Id} data-field="Quantity__c" onchange={handleUpdateItem}>
+                                    </td>
+                                    <td>{item.formattedBaseRate}</td>
+                                    <td><a class="li-link">{item.formattedUnitPrice}</a></td>
+                                    <td class="editable-cell">
+                                        <input type="number" value={item.Discount_Percent__c} min="0" max="100" data-id={item.Id} data-field="Discount_Percent__c" onchange={handleUpdateItem}>%
+                                    </td>
+                                    <td><a class="li-link">{item.formattedNetTotal}</a></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <template for:each={phase.items} for:item="item">
-                                    <tr key={item.Id} class="row">
-                                        <td class="cell-icon"><span class="icon-sm">📦</span></td>
-                                        <td class="cell-name">{item.Product__r.Name}</td>
-                                        <td class="cell-task">
-                                            <input type="text" class="input-text" placeholder="Add task..."/>
-                                        </td>
-                                        <td class="cell-date">--</td>
-                                        <td class="cell-date">--</td>
-                                        <td class="cell-qty">
-                                            <input type="number" class="input-number" value={item.Quantity__c} 
-                                                   onchange={handleQtyChange} data-id={item.Id}/>
-                                        </td>
-                                        <td class="cell-rate">--</td>
-                                        <td class="cell-price"><lightning-formatted-number value={item.Unit_Price__c} format-style="currency"></lightning-formatted-number></td>
-                                        <td class="cell-disc">
-                                            <input type="number" class="input-number" value={item.Discount_Percent__c} 
-                                                   onchange={handleDiscountChange} data-id={item.Id}/>
-                                        </td>
-                                        <td class="cell-total"><lightning-formatted-number value={item.Net_Total__c} format-style="currency"></lightning-formatted-number></td>
-                                        <td class="cell-actions">
-                                            <button class="btn btn-icon-sm" onclick={handleDeleteItem} data-id={item.Id}>🗑️</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </template>
+                            </template>
+                        </template>
+                    </template>
+                    <tr class="total-row">
+                        <td colspan="9" style="text-align:right;">Total</td>
+                        <td>{grandTotal}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </template>
