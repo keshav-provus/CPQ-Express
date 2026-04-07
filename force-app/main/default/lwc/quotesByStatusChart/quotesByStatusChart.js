@@ -1,7 +1,6 @@
-import { LightningElement, wire, track } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import chartjs from '@salesforce/resourceUrl/chartjs';
-import getQuotesByStatus from '@salesforce/apex/DashboardController.getQuotesByStatus';
 
 const STATUS_COLORS = {
     'Draft': '#818cf8',

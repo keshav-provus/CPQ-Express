@@ -1,5 +1,4 @@
-import { LightningElement, wire, track } from 'lwc';
-import getTeamQuoteStats from '@salesforce/apex/DashboardController.getTeamQuoteStats';
+import { LightningElement, api, track } from 'lwc';
 
 export default class TeamQuotesPipeline extends LightningElement {
     @track totalPipeline = 0;
@@ -8,17 +7,23 @@ export default class TeamQuotesPipeline extends LightningElement {
     @track thisMonthQuotes = 0;
     @track isLoading = true;
 
-    @wire(getTeamQuoteStats)
-    wiredStats({ data, error }) {
-        this.isLoading = false;
-        if (data) {
-            this.totalPipeline = data.totalPipeline || 0;
-            this.avgMargin = data.avgMargin || 0;
-            this.pendingApproval = data.pendingApproval || 0;
-            this.thisMonthQuotes = data.thisMonthQuotes || 0;
-        } else if (error) {
-            console.error('Error loading team stats:', error);
+    @api 
+    set dashboardData(value) {
+        if (value) {
+            this.totalPipeline = value.totalPipeline || 0;
+            this.avgMargin = value.avgMargin || 0;
+            this.pendingApproval = value.pendingApproval || 0;
+            this.thisMonthQuotes = value.thisMonthQuotes || 0;
+            this.isLoading = false;
         }
+    }
+    get dashboardData() {
+        return {
+            totalPipeline: this.totalPipeline,
+            avgMargin: this.avgMargin,
+            pendingApproval: this.pendingApproval,
+            thisMonthQuotes: this.thisMonthQuotes
+        };
     }
 
     get formattedPipeline() {

@@ -1,0 +1,55 @@
+<template>
+    <div class="dashboard-wrapper">
+        <template if:true={isLoading}>
+            <div class="skeleton-hud">
+                <!-- Skeleton for top HUD -->
+                <div class="skeleton-card header-skeleton"></div>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <!-- Top Section: Welcome Banner and Global Stats -->
+            <div class="top-section slds-m-bottom_medium">
+                <c-cpq-welcome-banner role="manager" 
+                                    stat-label="active quotes" 
+                                    stat-value={dashboardData.kpis.activeQuotes}>
+                </c-cpq-welcome-banner>
+                
+                <c-team-quotes-pipeline dashboard-data={dashboardData.kpis}>
+                </c-team-quotes-pipeline>
+            </div>
+
+            <!-- Bottom Grid -->
+            <template if:true={isReady}>
+                <div class="slds-grid slds-wrap slds-gutters">
+                    <!-- Left Column: Recent Activity/Quotes -->
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3 slds-m-bottom_medium">
+                        <c-team-recent-quotes dashboard-data={dashboardData.recentQuotes}>
+                        </c-team-recent-quotes>
+                        
+                        <!-- Map Location Component (fetching its own data if unique, or shared) -->
+                        <div class="slds-m-top_medium">
+                             <c-cpq-quote-map></c-cpq-quote-map>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Analytics & Leaderboard -->
+                    <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3">
+                        <c-quotes-by-status-chart dashboard-data={dashboardData.quotesByStatus}>
+                        </c-quotes-by-status-chart>
+                        
+                        <div class="slds-m-top_medium">
+                            <c-top-rep-leaderboard dashboard-data={dashboardData.topReps}>
+                            </c-top-rep-leaderboard>
+                        </div>
+                        
+                        <!-- Actions Card -->
+                        <div class="slds-m-top_medium">
+                            <c-cpq-quote-actions></c-cpq-quote-actions>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </template>
+    </div>
+</template>

@@ -1,18 +1,18 @@
-import { LightningElement, wire, track } from 'lwc';
-import getTopReps from '@salesforce/apex/DashboardController.getTopReps';
+import { LightningElement, api, track } from 'lwc';
 
 export default class TopRepLeaderboard extends LightningElement {
     @track reps = [];
     @track isLoading = true;
 
-    @wire(getTopReps)
-    wiredReps({ data, error }) {
-        this.isLoading = false;
-        if (data) {
-            this.reps = data;
-        } else if (error) {
-            console.error('Error loading leaderboard:', error);
+    @api 
+    set dashboardData(value) {
+        if (value) {
+            this.reps = value;
+            this.isLoading = false;
         }
+    }
+    get dashboardData() {
+        return this.reps;
     }
 
     get hasReps() {

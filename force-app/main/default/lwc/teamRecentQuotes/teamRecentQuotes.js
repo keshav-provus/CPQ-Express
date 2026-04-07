@@ -1,5 +1,4 @@
-import { LightningElement, wire, track } from 'lwc';
-import getTeamRecentQuotes from '@salesforce/apex/DashboardController.getTeamRecentQuotes';
+import { LightningElement, api, track } from 'lwc';
 
 const COLUMNS = [
     {
@@ -20,19 +19,20 @@ export default class TeamRecentQuotes extends LightningElement {
     @track isLoading = true;
     columns = COLUMNS;
 
-    @wire(getTeamRecentQuotes)
-    wiredQuotes({ data, error }) {
-        this.isLoading = false;
-        if (data) {
-            this.quotes = data.map(q => ({
+    @api 
+    set dashboardData(value) {
+        if (value) {
+            this.quotes = value.map(q => ({
                 ...q,
                 OwnerName: q.CreatedBy ? q.CreatedBy.Name : '—',
                 AccountName: q.Account__r ? q.Account__r.Name : '—',
                 QuoteUrl: `/lightning/r/Quote__c/${q.Id}/view`
             }));
-        } else if (error) {
-            console.error('Error loading team quotes:', error);
+            this.isLoading = false;
         }
+    }
+    get dashboardData() {
+        return this.quotes;
     }
 
     get hasQuotes() {
