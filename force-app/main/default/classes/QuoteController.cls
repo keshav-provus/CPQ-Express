@@ -148,31 +148,21 @@ public with sharing class QuoteController {
     public static void recalculateQuoteTotals(Id quoteId) {
         try {
             List<Quote_Line_Item__c> qlis = [
-                SELECT Net_Total__c, Total_Line_Cost__c, Quantity__c, End_Date__c
+                SELECT Net_Total__c, Total_Line_Cost__c
                 FROM Quote_Line_Item__c
                 WHERE Quote__c = :quoteId
             ];
 
             Decimal revenue = 0;
             Decimal totalCost = 0;
-            Date maxEnd = null;
 
             for(Quote_Line_Item__c item : qlis) {
                 if(item.Net_Total__c != null) revenue += item.Net_Total__c;
                 if(item.Total_Line_Cost__c != null) totalCost += item.Total_Line_Cost__c;
-                if(item.End_Date__c != null) {
-                    if(maxEnd == null || item.End_Date__c > maxEnd) maxEnd = item.End_Date__c;
-                }
             }
 
-            Quote__c q = [SELECT Id, End_Date__c FROM Quote__c WHERE Id = :quoteId LIMIT 1];
-
+            Quote__c q = new Quote__c(Id = quoteId);
             q.Margin_Amount__c = revenue - totalCost;
-            q.Margin_Percent__c = (revenue > 0) ? (q.Margin_Amount__c / revenue) * 100 : 0;
-
-            if (maxEnd != null && (q.End_Date__c == null || maxEnd > q.End_Date__c)) {
-                q.End_Date__c = maxEnd;
-            }
 
             update q;
         } catch (Exception e) {

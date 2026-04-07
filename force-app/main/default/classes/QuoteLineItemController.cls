@@ -80,7 +80,6 @@ public with sharing class QuoteLineItemController {
             for (Resource_Role__c role : roles) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
-                item.Name                = role.Name__c;
                 item.Item_Type__c        = 'Resource Role';
                 item.Resource_Role__c    = role.Id;
                 item.Base_Rate__c        = role.Price__c;
@@ -104,7 +103,6 @@ public with sharing class QuoteLineItemController {
             for (Product__c product : products) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
-                item.Name                = product.Name;
                 item.Item_Type__c        = 'Product';
                 item.Product__c          = product.Id;
                 item.Base_Rate__c        = product.Price__c;
@@ -128,7 +126,6 @@ public with sharing class QuoteLineItemController {
             for (Add_On__c addon : addons) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
-                item.Name                = addon.Name__c;
                 item.Item_Type__c        = 'Add-on';
                 item.Add_On__c           = addon.Id;
                 item.Base_Rate__c        = addon.Price__c;
