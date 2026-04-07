@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+body{background:#f3f4f6;font-size:13px;color:#111;}
+.app{display:flex;flex-direction:column;height:100vh;min-height:600px;overflow:hidden;}
+
+/* Header */
+.header{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 16px;}
+.breadcrumb{display:flex;align-items:center;gap:6px;padding:8px 0 4px;font-size:12px;color:#6b7280;}
+.breadcrumb a{color:#0176d3;text-decoration:none;}
+.breadcrumb span{color:#6b7280;}
+.badge{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:4px;padding:1px 8px;font-size:11px;font-weight:500;}
+
+/* Highlight bar */
+.highlight-bar{display:flex;align-items:center;gap:24px;padding:8px 0;flex-wrap:wrap;}
+.highlight-bar .total{font-size:18px;font-weight:700;color:#111;}
+.highlight-val{font-size:13px;color:#374151;}
+.highlight-val strong{font-weight:600;color:#111;}
+.highlight-val .label{color:#6b7280;font-size:12px;margin-right:4px;}
+
+/* Top actions */
+.top-actions{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:4px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#374151;transition:background 0.15s;}
+.btn:hover{background:#f9fafb;}
+.btn-primary{background:#0176d3;color:#fff;border-color:#0176d3;}
+.btn-primary:hover{background:#0165b8;}
+.btn-split{display:inline-flex;align-items:center;}
+.btn-split .main{padding:5px 10px;background:#0176d3;color:#fff;border:1px solid #0176d3;border-right:none;border-radius:4px 0 0 4px;cursor:pointer;font-size:13px;font-weight:500;}
+.btn-split .main:hover{background:#0165b8;}
+.btn-split .caret{padding:5px 8px;background:#0176d3;color:#fff;border:1px solid #0176d3;border-left:1px solid rgba(255,255,255,0.3);border-radius:0 4px 4px 0;cursor:pointer;}
+.btn-split .caret:hover{background:#0165b8;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-top:4px;}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+.tab.active{color:#0176d3;border-bottom-color:#0176d3;}
+.tab:hover:not(.active){color:#374151;}
+
+/* Main content area */
+.content{flex:1;overflow:auto;background:#f3f4f6;}
+
+/* Summary Tab */
+.summary-tab{padding:16px;display:grid;grid-template-columns:1fr 300px;gap:16px;}
+.left-col{display:flex;flex-direction:column;gap:12px;}
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+/* Detail card */
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;}
+.card h3{font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;}
+
+/* Details grid */
+.detail-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+.detail-item label{font-size:11px;color:#6b7280;display:block;margin-bottom:2px;}
+.detail-item .val{font-size:13px;color:#111;font-weight:500;}
+.detail-item .val a{color:#0176d3;text-decoration:none;}
+.detail-item .last-modified{grid-column:1/-1;}
+
+/* Revenue cards row */
+.revenue-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.rev-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;}
+.rev-card .rev-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.rev-card .rev-label{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:4px;}
+.rev-card .rev-pct{font-size:12px;color:#6b7280;}
+.rev-card .rev-amount{font-size:22px;font-weight:700;color:#111;margin:4px 0 8px;}
+.rev-card .rev-meta{font-size:12px;color:#6b7280;}
+.rev-card .rev-sub{font-size:12px;color:#6b7280;margin-top:2px;}
+
+/* Charts row */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.chart-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;}
+.chart-card h4{font-size:13px;font-weight:600;color:#111;margin-bottom:2px;}
+.chart-card .chart-sub{font-size:11px;color:#6b7280;margin-bottom:12px;}
+
+/* Simple bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:80px;}
+.bar-group{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.bars{display:flex;gap:3px;align-items:flex-end;height:72px;}
+.bar{width:14px;border-radius:2px 2px 0 0;min-height:2px;}
+.bar.cost{background:#93c5fd;}
+.bar.margin{background:#2563eb;}
+.bar-label{font-size:10px;color:#6b7280;text-align:center;}
+.chart-legend{display:flex;gap:12px;margin-top:8px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:#6b7280;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+
+/* Phase table */
+.phase-table{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;}
+.phase-table table{width:100%;border-collapse:collapse;}
+.phase-table th{padding:8px 16px;text-align:left;font-size:12px;font-weight:600;color:#6b7280;background:#f9fafb;border-bottom:1px solid #e5e7eb;}
+.phase-table td{padding:8px 16px;font-size:13px;color:#374151;border-bottom:1px solid #f3f4f6;}
+.phase-table td.link{color:#0176d3;}
+.phase-table tr:last-child td{border-bottom:none;}
+
+/* Approval history card */
+.approval-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;}
+.approval-card h3{font-size:13px;font-weight:600;color:#111;margin-bottom:4px;}
+.approval-card .sub{font-size:12px;color:#6b7280;margin-bottom:16px;}
+.approval-empty{display:flex;flex-direction:column;align-items:center;padding:24px 0;gap:8px;}
+.approval-empty .icon{font-size:32px;color:#d1d5db;}
+.approval-empty p{font-size:12px;color:#9ca3af;text-align:center;}
+
+/* Cost audit */
+.cost-audit{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;}
+.cost-audit h3{font-size:13px;font-weight:600;color:#111;margin-bottom:4px;}
+.cost-audit .sub{font-size:12px;color:#6b7280;margin-bottom:12px;}
+.cost-audit .history-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid #f3f4f6;}
+.cost-audit .history-label{font-size:13px;font-weight:500;color:#374151;}
+.cost-audit .history-caret{color:#9ca3af;cursor:pointer;}
+
+/* Line Items Tab */
+.line-items-tab{padding:0;display:flex;flex-direction:column;height:100%;}
+.line-items-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid #e5e7eb;}
+.line-items-table-wrap{flex:1;overflow-x:auto;overflow-y:auto;background:#fff;}
+table.li-table{width:100%;border-collapse:collapse;min-width:1100px;}
+table.li-table th{padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:#6b7280;background:#f9fafb;border-bottom:1px solid #e5e7eb;white-space:nowrap;position:sticky;top:0;z-index:2;}
+table.li-table td{padding:7px 10px;font-size:12px;color:#374151;border-bottom:1px solid #f3f4f6;vertical-align:middle;}
+table.li-table tr:hover td{background:#f9fafb;}
+table.li-table .phase-row td{background:#f0f4ff;font-size:12px;font-weight:600;color:#374151;padding:5px 10px;}
+table.li-table .total-row td{background:#f9fafb;font-size:13px;font-weight:700;border-top:2px solid #e5e7eb;}
+.li-icon-role{color:#7c3aed;font-size:14px;}
+.li-icon-prod{color:#0891b2;font-size:14px;}
+.li-icon-addon{color:#d97706;font-size:14px;}
+.li-link{color:#0176d3;text-decoration:none;font-weight:500;}
+.add-item-link{color:#0176d3;font-size:11px;cursor:pointer;font-weight:500;white-space:nowrap;}
+.phase-toggle{cursor:pointer;color:#6b7280;font-size:11px;margin-right:4px;}
+.editable-cell input{width:70px;border:1px solid #d1d5db;border-radius:4px;padding:2px 6px;font-size:12px;color:#111;background:#fff;}
+.editable-cell input:focus{outline:none;border-color:#0176d3;}
+
+/* Wizard Panel */
+.wizard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:100;display:flex;justify-content:flex-end;}
+.wizard-panel{width:320px;height:100%;background:#fff;border-left:1px solid #e5e7eb;display:flex;flex-direction:column;animation:slideIn 0.2s ease;}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+.wizard-header{padding:16px;border-bottom:1px solid #e5e7eb;}
+.wizard-header h2{font-size:15px;font-weight:600;color:#111;margin-bottom:2px;}
+.wizard-header p{font-size:12px;color:#6b7280;}
+.wizard-close{position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:#6b7280;font-size:18px;padding:4px;}
+.wizard-tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;padding:0 16px;}
+.wizard-tab{padding:8px 12px;font-size:12px;font-weight:500;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.wizard-tab.active{color:#0176d3;border-bottom-color:#0176d3;}
+.wizard-search{padding:10px 16px;border-bottom:1px solid #e5e7eb;}
+.wizard-search input{width:100%;padding:6px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;color:#111;}
+.wizard-search input:focus{outline:none;border-color:#0176d3;}
+.wizard-filter-bar{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid #f3f4f6;}
+.filter-btn{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#374151;}
+.filter-btn.active{background:#0176d3;color:#fff;border-color:#0176d3;}
+.wizard-list{flex:1;overflow-y:auto;padding:8px 0;}
+.wizard-item{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #f9fafb;}
+.wizard-item:hover{background:#f9fafb;}
+.wizard-item.selected{background:#eff6ff;border-left:3px solid #0176d3;}
+.wizard-item .check{width:16px;height:16px;border:1px solid #d1d5db;border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;}
+.wizard-item.selected .check{background:#0176d3;border-color:#0176d3;color:#fff;font-size:11px;}
+.wizard-item .item-info{flex:1;min-width:0;}
+.wizard-item .item-name{font-size:13px;font-weight:500;color:#111;}
+.wizard-item .item-desc{font-size:11px;color:#9ca3af;margin-top:1px;}
+.wizard-item .item-price{font-size:12px;font-weight:600;color:#374151;flex-shrink:0;text-align:right;}
+.wizard-footer{padding:12px 16px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+.wizard-footer .cancel-btn{background:none;border:none;color:#374151;font-size:13px;cursor:pointer;padding:6px 12px;}
+.wizard-footer .cancel-btn:hover{text-decoration:underline;}
+.wizard-footer .add-btn{background:#0176d3;color:#fff;border:none;border-radius:4px;padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;}
+.wizard-footer .add-btn:hover{background:#0165b8;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.hidden{display:none!important;}
+.click-desc{color:#0176d3;font-size:12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:4px;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:6px 0;">
+      <div>
+        <div class="breadcrumb">
+          <a href="#">Quotes</a><span>›</span>
+          <strong style="color:#111;">Q-00024</strong>
+          <span class="badge">Draft</span>
+        </div>
+        <a class="click-desc" onclick="toast('Description editing will be implemented soon')">✏ Click to edit description</a>
+      </div>
+      <div class="top-actions">
+        <div class="btn-split">
+          <button class="main" onclick="toast('Generating PDF...')">⬇ Generate PDF</button>
+          <button class="caret" onclick="toast('PDF options will be implemented soon')">▾</button>
+        </div>
+        <button class="btn btn-primary" onclick="saveQuote()">Save</button>
+        <button class="btn" onclick="refreshQuote()">↻ Refresh</button>
+        <button class="btn" onclick="toast('AI Assistant will be implemented soon')">✦ AI Assistant</button>
+      </div>
+    </div>
+    <div class="highlight-bar">
+      <span class="highlight-val"><span class="label">Total amount</span><strong>$32,000.00</strong></span>
+      <span class="highlight-val"><span class="label">Subtotal</span><strong>$32,000.00</strong></span>
+      <span class="highlight-val"><span class="label">Margin</span><strong>$18,400.00 (57.5%) ℹ</strong></span>
+      <span class="highlight-val"><span class="label">Discount</span><strong>$0.00 (0%)</strong></span>
+      <span class="highlight-val"><span class="label">Start date</span><strong>Apr 7, 2026</strong></span>
+      <span class="highlight-val"><span class="label">End date</span><strong>May 7, 2026</strong></span>
+      <span class="highlight-val"><span class="label">Quote time period</span><strong>Months</strong></span>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('summary',this)">Summary</div>
+      <div class="tab" onclick="switchTab('lineitems',this)">Line Items</div>
+      <div class="tab" onclick="switchTab('timeline',this)">Timeline</div>
+      <div class="tab" onclick="switchTab('pdfs',this)">Generated PDFs</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- SUMMARY TAB -->
+    <div id="tab-summary" class="summary-tab">
+      <div class="left-col">
+        <!-- Details card -->
+        <div class="card">
+          <div class="detail-grid">
+            <div class="detail-item"><label>Opportunity</label><div class="val">N/A</div></div>
+            <div class="detail-item"><label>Account</label><div class="val"><a href="#" onclick="return false;">Test</a></div></div>
+            <div class="detail-item"><label>Valid Until</label><div class="val">May 7, 2026</div></div>
+            <div class="detail-item"><label>Quote Time Period</label><div class="val">Months</div></div>
+            <div class="detail-item"><label>Created Date</label><div class="val">Apr 7, 2026</div></div>
+            <div class="detail-item"><label>Created By</label><div class="val">Karthik Provus</div></div>
+            <div class="detail-item last-modified" style="grid-column:1/-1"><label>Last Modified By</label><div class="val">Karthik Provus</div></div>
+          </div>
+        </div>
+
+        <!-- Revenue cards -->
+        <div class="revenue-row">
+          <div class="rev-card">
+            <div class="rev-header">
+              <span class="rev-label">👤 Labor Revenue</span>
+              <span class="rev-pct">↗ 57.5%</span>
+            </div>
+            <div class="rev-amount">$32,000.00</div>
+            <div class="rev-meta">Cost: $13,600.00 • Margin: $18,400.00</div>
+            <div class="rev-sub">3 Resource Roles</div>
+          </div>
+          <div class="rev-card">
+            <div class="rev-header">
+              <span class="rev-label">📦 Products Revenue</span>
+              <span class="rev-pct">↘ 0.0%</span>
+            </div>
+            <div class="rev-amount">$0.00</div>
+            <div class="rev-meta">Cost: $0.00 • Margin: $0.00</div>
+            <div class="rev-sub">0 Products</div>
+          </div>
+          <div class="rev-card">
+            <div class="rev-header">
+              <span class="rev-label">➕ Add-ons Revenue</span>
+              <span class="rev-pct">↘ 0.0%</span>
+            </div>
+            <div class="rev-amount">$0.00</div>
+            <div class="rev-meta">Cost: $0.00 • Margin: $0.00</div>
+            <div class="rev-sub">0 Add-on Items</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h4>Item Type Breakdown</h4>
+            <div class="chart-sub">Cost and margin distribution by item type</div>
+            <div class="bar-chart">
+              <div class="bar-group">
+                <div class="bars">
+                  <div class="bar cost" style="height:65px;"></div>
+                  <div class="bar margin" style="height:80px;"></div>
+                </div>
+                <div class="bar-label">Labor</div>
+              </div>
+              <div class="bar-group">
+                <div class="bars">
+                  <div class="bar cost" style="height:2px;"></div>
+                  <div class="bar margin" style="height:2px;"></div>
+                </div>
+                <div class="bar-label">Products</div>
+              </div>
+              <div class="bar-group">
+                <div class="bars">
+                  <div class="bar cost" style="height:2px;"></div>
+                  <div class="bar margin" style="height:2px;"></div>
+                </div>
+                <div class="bar-label">Add-ons</div>
+              </div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h4>Phase Breakdown</h4>
+            <div class="chart-sub">Cost and margin distribution by project phase</div>
+            <div class="bar-chart">
+              <div class="bar-group">
+                <div class="bars">
+                  <div class="bar cost" style="height:55px;"></div>
+                  <div class="bar margin" style="height:80px;"></div>
+                </div>
+                <div class="bar-label">Default</div>
+              </div>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phase table -->
+        <div class="phase-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Phase</th><th>Labor</th><th>Products</th><th>Add-ons</th><th>Total</th><th>Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Default</td>
+                <td class="link">$32,000.00</td>
+                <td style="color:#9ca3af;">—</td>
+                <td style="color:#9ca3af;">—</td>
+                <td>$32,000.00</td>
+                <td>3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+        <div class="approval-card">
+          <h3>Approval History</h3>
+          <p class="sub">Track the approval process for this quote.</p>
+          <div class="approval-empty">
+            <div class="icon">📄</div>
+            <p>No approval history yet.<br>Submit this quote for approval to see the approval process.</p>
+          </div>
+        </div>
+        <div class="cost-audit">
+          <h3>Cost Change Audit</h3>
+          <p class="sub">Track cost changes for line items in this quote.</p>
+          <div class="history-row">
+            <span class="history-label">History (0)</span>
+            <span class="history-caret" onclick="toast('No cost change history yet')">▾</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINE ITEMS TAB -->
+    <div id="tab-lineitems" class="line-items-tab hidden">
+      <div class="line-items-toolbar">
+        <button class="btn" onclick="collapseAll()">⊟ Collapse All</button>
+        <button class="btn" onclick="addPhase()">+ Add Phase</button>
+        <button class="btn btn-primary" onclick="openWizard('default')">+ Add Item</button>
+      </div>
+      <div class="line-items-table-wrap">
+        <table class="li-table" id="li-table">
+          <thead>
+            <tr>
+              <th style="width:30px;"></th>
+              <th style="width:220px;">Name</th>
+              <th style="width:120px;">Task</th>
+              <th style="width:100px;">Start Date</th>
+              <th style="width:100px;">End Date</th>
+              <th style="width:80px;">Quantity</th>
+              <th style="width:90px;">Base Rate</th>
+              <th style="width:90px;">Unit Price</th>
+              <th style="width:80px;">Discount %</th>
+              <th style="width:100px;">Total Price</th>
+            </tr>
+          </thead>
+          <tbody id="li-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TIMELINE TAB -->
+    <div id="tab-timeline" class="hidden" style="padding:32px;text-align:center;color:#9ca3af;">
+      <div style="font-size:40px;margin-bottom:12px;">📅</div>
+      <p style="font-size:14px;">Timeline view will be implemented soon.</p>
+    </div>
+
+    <!-- PDFs TAB -->
+    <div id="tab-pdfs" class="hidden" style="padding:32px;text-align:center;color:#9ca3af;">
+      <div style="font-size:40px;margin-bottom:12px;">📑</div>
+      <p style="font-size:14px;">Generated PDFs view will be implemented soon.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- WIZARD OVERLAY -->
+<div class="wizard-overlay hidden" id="wizard-overlay" onclick="handleOverlayClick(event)">
+  <div class="wizard-panel" onclick="event.stopPropagation()">
+    <div class="wizard-header" style="position:relative;">
+      <h2>Add Quote Line Items</h2>
+      <p>Select Products, Add-ons, Resource Roles to add to your quote.</p>
+      <button class="wizard-close" onclick="closeWizard()">✕</button>
+    </div>
+    <div class="wizard-tabs" id="wizard-tabs">
+      <div class="wizard-tab active" onclick="switchWizardTab('roles',this)">👤 Resource Roles (<span id="wt-roles-count">2</span>)</div>
+      <div class="wizard-tab" onclick="switchWizardTab('products',this)">📦 Products (<span id="wt-products-count">2</span>)</div>
+      <div class="wizard-tab" onclick="switchWizardTab('addons',this)">➕ Add-ons (<span id="wt-addons-count">1</span>)</div>
+    </div>
+    <div class="wizard-search">
+      <input type="text" placeholder="Search by name, description, or ID..." oninput="filterWizardItems(this.value)" id="wizard-search-input">
+    </div>
+    <div class="wizard-filter-bar">
+      <button class="filter-btn active" onclick="setFilter('name',this)">Name ↑</button>
+      <button class="filter-btn" onclick="setFilter('price',this)">Price</button>
+      <button class="filter-btn" onclick="toast('Price Filter will be implemented soon')">⊕ Price Filter</button>
+    </div>
+    <div class="wizard-list" id="wizard-list"></div>
+    <div class="wizard-footer">
+      <button class="cancel-btn" onclick="closeWizard()">Cancel</button>
+      <button class="add-btn" id="add-items-btn" onclick="addSelectedItems()">Add <span id="add-count">0</span> Items to <span id="add-phase-name">Default</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast-msg"></div>
+
+<script>
+var activeTab = 'summary';
+var wizardTab = 'roles';
+var currentPhase = 'default';
+var collapsed = {};
+var wizardSelections = {roles:[], products:[], addons:[]};
+
+var phases = [
+  {id:'default', name:'Default'},
+  {id:'phase1', name:'Phase 1'},
+  {id:'phase2', name:'Phase 2'}
+];
+
+var lineItems = [
+  {id:1, type:'role', phase:'default', name:'Functional QA Engineer', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:40, unitPrice:6400, discount:0, totalPrice:6400},
+  {id:2, type:'role', phase:'default', name:'QA Lead', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:100, unitPrice:16000, discount:0, totalPrice:16000},
+  {id:3, type:'role', phase:'default', name:'Test Automation Engineer', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:60, unitPrice:9600, discount:0, totalPrice:9600},
+  {id:4, type:'prod', phase:'phase1', name:'panel', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'item(s)', baseRate:100, unitPrice:100, discount:0, totalPrice:100},
+  {id:5, type:'prod', phase:'phase1', name:'product test 4', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'item(s)', baseRate:100, unitPrice:100, discount:0, totalPrice:100},
+  {id:6, type:'addon', phase:'phase1', name:'New addon 1', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'item(s)', baseRate:12, unitPrice:12, discount:0, totalPrice:12},
+  {id:7, type:'role', phase:'phase1', name:'Functional QA Engineer', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:40, unitPrice:6400, discount:0, totalPrice:6400},
+  {id:8, type:'role', phase:'phase1', name:'QA Lead', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:100, unitPrice:16000, discount:0, totalPrice:16000},
+  {id:9, type:'role', phase:'phase2', name:'Functional QA Engineer', task:'', startDate:'Apr 07, 2026', endDate:'May 7, 2026', quantity:1, unit:'month(s)', baseRate:40, unitPrice:6400, discount:0, totalPrice:6400},
+];
+
+var catalogRoles = [
+  {id:'r1', name:'Functional QA Engineer', desc:'No description available', price:'$40.00/Hour'},
+  {id:'r2', name:'QA Lead', desc:'No description available', price:'$100.00/Hour'},
+  {id:'r3', name:'Test Automation Engineer', desc:'No description available', price:'$60.00/Hour'},
+  {id:'r4', name:'Testing Role 2', desc:'Testing', price:'$15.00/Hour'},
+];
+var catalogProducts = [
+  {id:'p1', name:'panel', desc:'No description available', price:'$100.00/Each'},
+  {id:'p2', name:'product test 4', desc:'No description available', price:'$100.00/Each'},
+  {id:'p3', name:'test product 1', desc:'No description available', price:'$500.00/Each'},
+  {id:'p4', name:'test product 1', desc:'No description available', price:'$100.00/Each'},
+  {id:'p5', name:'Test Product 1', desc:'Testing', price:'$10.00/Each'},
+  {id:'p6', name:'Test-2-Product', desc:'No description available', price:'$3.00/Each'},
+  {id:'p7', name:'Testing Product 5', desc:'No description available', price:'$15.00/Each'},
+  {id:'p8', name:'Testing Product 6', desc:'No description available', price:'$12.00/Each'},
+];
+var catalogAddons = [
+  {id:'a1', name:'New addon 1', desc:'No description available', price:'$12.00/Each'},
+  {id:'a2', name:'Performance Testing Package', desc:'No description available', price:'$10000.00/Each'},
+];
+
+function switchTab(name, el) {
+  ['summary','lineitems','timeline','pdfs'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.add('hidden');
+  });
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.remove('hidden');
+  el.classList.add('active');
+  activeTab = name;
+  if(name==='lineitems') renderLineItems();
+}
+
+function renderLineItems() {
+  var tbody = document.getElementById('li-tbody');
+  var html = '';
+  var grandTotal = 0;
+  phases.forEach(function(phase) {
+    var items = lineItems.filter(function(i){return i.phase===phase.id;});
+    if(items.length===0 && phase.id!=='default') return;
+    var isCollapsed = collapsed[phase.id];
+    html += '<tr class="phase-row"><td colspan="10"><span class="phase-toggle" onclick="togglePhase(\''+phase.id+'\')">'+(isCollapsed?'▶':'▼')+'</span> '+phase.name+' &nbsp;<a class="add-item-link" onclick="openWizard(\''+phase.id+'\')">+ ADD ITEM</a></td></tr>';
+    if(!isCollapsed) {
+      items.forEach(function(item) {
+        var icon = item.type==='role'?'👤':item.type==='prod'?'📦':'➕';
+        grandTotal += item.totalPrice;
+        html += '<tr data-id="'+item.id+'">';
+        html += '<td>'+icon+'</td>';
+        html += '<td><a class="li-link">'+item.name+'</a></td>';
+        html += '<td><span style="color:#9ca3af;font-size:11px;cursor:pointer" onclick="toast(\'Task assignment will be implemented soon\')">Add task...</span></td>';
+        html += '<td>'+item.startDate+'</td>';
+        html += '<td>'+item.endDate+'</td>';
+        html += '<td class="editable-cell"><input type="number" value="'+item.quantity+'" min="0" step="0.5" onchange="updateItem('+item.id+',\'quantity\',this.value)"></td>';
+        html += '<td>$'+item.baseRate.toFixed(2)+'</td>';
+        html += '<td><a class="li-link">$'+item.unitPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</a></td>';
+        html += '<td class="editable-cell"><input type="number" value="'+item.discount+'" min="0" max="100" onchange="updateItem('+item.id+',\'discount\',this.value)">%</td>';
+        html += '<td><a class="li-link">$'+item.totalPrice.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</a></td>';
+        html += '</tr>';
+      });
+    }
+  });
+  html += '<tr class="total-row"><td colspan="9" style="text-align:right;">Total</td><td>$'+grandTotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+  tbody.innerHTML = html;
+}
+
+function togglePhase(id) {
+  collapsed[id] = !collapsed[id];
+  renderLineItems();
+}
+
+function collapseAll() {
+  phases.forEach(function(p){collapsed[p.id]=true;});
+  renderLineItems();
+}
+
+function addPhase() {
+  var name = 'Phase '+(phases.filter(function(p){return p.id!=='default';}).length+1);
+  var id = 'phase'+Date.now();
+  phases.push({id:id, name:name});
+  renderLineItems();
+  toast('Phase "'+name+'" added');
+}
+
+function updateItem(id, field, val) {
+  var item = lineItems.find(function(i){return i.id===id;});
+  if(!item) return;
+  item[field] = parseFloat(val)||0;
+  item.totalPrice = Math.round(item.unitPrice * item.quantity * (1 - item.discount/100));
+  renderLineItems();
+}
+
+function openWizard(phaseId) {
+  currentPhase = phaseId;
+  wizardSelections = {roles:[], products:[], addons:[]};
+  document.getElementById('wizard-overlay').classList.remove('hidden');
+  switchWizardTab('roles', document.querySelectorAll('.wizard-tab')[0]);
+  updateAddBtn();
+  document.getElementById('wizard-search-input').value='';
+}
+
+function closeWizard() {
+  document.getElementById('wizard-overlay').classList.add('hidden');
+}
+
+function handleOverlayClick(e) {
+  if(e.target===document.getElementById('wizard-overlay')) closeWizard();
+}
+
+function switchWizardTab(tab, el) {
+  wizardTab = tab;
+  document.querySelectorAll('.wizard-tab').forEach(function(e){e.classList.remove('active');});
+  el.classList.add('active');
+  renderWizardList('');
+  document.getElementById('wizard-search-input').value='';
+}
+
+function getWizardCatalog() {
+  if(wizardTab==='roles') return catalogRoles;
+  if(wizardTab==='products') return catalogProducts;
+  return catalogAddons;
+}
+
+function getWizardSelections() {
+  return wizardSelections[wizardTab];
+}
+
+function filterWizardItems(q) {
+  renderWizardList(q);
+}
+
+function renderWizardList(query) {
+  var catalog = getWizardCatalog();
+  var sel = getWizardSelections();
+  var filtered = catalog.filter(function(item){
+    return !query || item.name.toLowerCase().indexOf(query.toLowerCase())>=0 || item.desc.toLowerCase().indexOf(query.toLowerCase())>=0;
+  });
+  var html = '';
+  filtered.forEach(function(item) {
+    var isSelected = sel.indexOf(item.id)>=0;
+    html += '<div class="wizard-item'+(isSelected?' selected':'')+'" onclick="toggleWizardItem(\''+item.id+'\')">';
+    html += '<div class="check">'+(isSelected?'✓':'')+'</div>';
+    html += '<div class="item-info"><div class="item-name">'+item.name+'</div><div class="item-desc">'+item.desc+'</div></div>';
+    html += '<div class="item-price">'+item.price+'</div>';
+    html += '</div>';
+  });
+  if(filtered.length===0) html='<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px;">No items found</div>';
+  else html += '<div style="padding:10px 16px;text-align:center;font-size:11px;color:#9ca3af;">All items loaded</div>';
+  document.getElementById('wizard-list').innerHTML = html;
+  updateWizardCounts();
+}
+
+function toggleWizardItem(id) {
+  var sel = wizardSelections[wizardTab];
+  var idx = sel.indexOf(id);
+  if(idx>=0) sel.splice(idx,1); else sel.push(id);
+  renderWizardList(document.getElementById('wizard-search-input').value);
+  updateAddBtn();
+}
+
+function updateWizardCounts() {
+  document.getElementById('wt-roles-count').textContent = wizardSelections.roles.length;
+  document.getElementById('wt-products-count').textContent = wizardSelections.products.length;
+  document.getElementById('wt-addons-count').textContent = wizardSelections.addons.length;
+}
+
+function updateAddBtn() {
+  var total = wizardSelections.roles.length + wizardSelections.products.length + wizardSelections.addons.length;
+  document.getElementById('add-count').textContent = total;
+  var phase = phases.find(function(p){return p.id===currentPhase;});
+  document.getElementById('add-phase-name').textContent = phase ? phase.name : 'Default';
+}
+
+function addSelectedItems() {
+  var totalAdded = 0;
+  ['roles','products','addons'].forEach(function(type) {
+    var catalog = type==='roles'?catalogRoles:type==='products'?catalogProducts:catalogAddons;
+    wizardSelections[type].forEach(function(selId) {
+      var cat = catalog.find(function(c){return c.id===selId;});
+      if(!cat) return;
+      var itemType = type==='roles'?'role':type==='products'?'prod':'addon';
+      var rate = parseFloat(cat.price.replace(/[^0-9.]/g,''))||0;
+      var qty = 1;
+      var units = type==='roles'?'month(s)':'item(s)';
+      var unitPrice = type==='roles'?(rate*160):rate;
+      lineItems.push({
+        id: Date.now()+Math.random(),
+        type: itemType,
+        phase: currentPhase,
+        name: cat.name,
+        task: '',
+        startDate: 'Apr 07, 2026',
+        endDate: 'May 7, 2026',
+        quantity: qty,
+        unit: units,
+        baseRate: rate,
+        unitPrice: unitPrice,
+        discount: 0,
+        totalPrice: unitPrice
+      });
+      totalAdded++;
+    });
+  });
+  closeWizard();
+  if(totalAdded>0) {
+    toast(totalAdded+' item(s) added successfully');
+    renderLineItems();
+  } else {
+    toast('Please select at least one item');
+  }
+}
+
+function setFilter(type, el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  renderWizardList(document.getElementById('wizard-search-input').value);
+}
+
+function saveQuote() {
+  toast('Quote saved successfully!');
+}
+
+function refreshQuote() {
+  toast('Quote refreshed');
+}
+
+function toast(msg) {
+  var el = document.getElementById('toast-msg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){el.classList.add('hidden');}, 2500);
+}
+
+renderWizardList('');
+</script>
+</body>
+</html>
