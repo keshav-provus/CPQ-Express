@@ -1,90 +1,150 @@
-:host {
-    display: block;
-    background: #f8f9fa;
+.header-container {
+    background: white;
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
 }
 
-.header-main {
+.top-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    max-width: 1440px;
-    margin: 0 auto;
+    align-items: center;
+    margin-bottom: 0.75rem;
 }
 
-.title-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.name-status {
+.breadcrumbs {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
 }
 
-.quote-name {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #1a1c1e;
-    margin: 0;
-    letter-spacing: -0.02em;
+.breadcrumbs .root {
+    color: #2563eb;
+    font-weight: 500;
 }
 
 .status-badge {
+    background: #f1f5f9;
+    color: #475569;
     padding: 0.25rem 0.75rem;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: rgba(77, 68, 227, 0.1);
-    color: #4d44e3;
+    letter-spacing: 0.025em;
 }
 
-.badge-draft { background: rgba(77, 68, 227, 0.1); color: #4d44e3; }
-.badge-submitted { background: rgba(251, 191, 36, 0.1); color: #b45309; }
-.badge-approved { background: rgba(52, 211, 153, 0.1); color: #065f46; }
+.status-badge[data-status="Approved"] { background: #dcfce7; color: #166534; }
+.status-badge[data-status="Draft"] { background: #fef9c3; color: #854d0e; }
 
-.account-line {
-    font-size: 0.9rem;
-    color: #464555;
+.main-row {
+    display: grid;
+    grid-template-columns: 3fr 7fr 2fr;
+    align-items: center;
+    gap: 2rem;
+}
+
+.quote-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
     margin: 0;
+}
+
+.description {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.25rem;
 }
 
-.icon-muted {
-    --slds-c-icon-color-foreground: #464555;
+.edit-link {
+    background: none;
+    border: none;
+    color: #2563eb;
+    padding: 0;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
-.highlights-section {
+.stats-group {
     display: flex;
-    gap: 3rem;
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
 }
 
-.highlight-item {
-    text-align: right;
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
-.h-label {
-    font-size: 0.65rem;
+.stat-card label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.stat-card .value {
+    font-size: 1.125rem;
     font-weight: 700;
-    color: #777587;
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.1em;
+    color: #1e293b;
 }
 
-.h-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a1c1e;
-    margin: 0;
+.actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
 }
 
-.accent-text {
-    color: #2f2ebe; 
+.btn {
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    border: 1px solid #2563eb;
+}
+
+.btn-secondary {
+    background: white;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-ai {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.2);
+}
+
+.ai-icon { font-size: 1rem; }
+
+@media (max-width: 1200px) {
+    .main-row { grid-template-columns: 1fr; gap: 1rem; }
+    .stats-group { border: none; padding: 0; }
 }

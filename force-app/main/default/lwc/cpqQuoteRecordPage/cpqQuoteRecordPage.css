@@ -1,0 +1,45 @@
+.app-container {
+    background: #f8fafc;
+    min-height: 100vh;
+    padding: 1rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.content-area {
+    margin-top: 1rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.empty-state {
+    padding: 4rem;
+    text-align: center;
+    color: #64748b;
+}
+
+.empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+/* Scoped Tab Styling */
+:host {
+    --slds-c-tabs-scoped-color-background-active: #ffffff;
+    --slds-c-tabs-scoped-text-color-active: #2563eb;
+    --slds-c-tabs-scoped-color-border-active: #2563eb;
+}
+
+/* Glassmorphism sidebar effect */
+c-cpq-add-items-wizard {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 450px;
+    z-index: 9999;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+}

@@ -1,0 +1,56 @@
+<template>
+    <div class="app-container">
+        <!-- Header / Highlight Panel -->
+        <c-cpq-quote-header 
+            record-id={recordId}
+            quote-data={quoteData}
+            onrefresh={handleRefresh}>
+        </c-cpq-quote-header>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <lightning-tabset variant="scoped" active-tab-value={activeTab}>
+                <lightning-tab label="Summary" value="summary">
+                    <c-cpq-quote-summary 
+                        record-id={recordId}
+                        quote-data={quoteData}
+                        line-items={lineItems}>
+                    </c-cpq-quote-summary>
+                </lightning-tab>
+                
+                <lightning-tab label="Line Items" value="lineitems">
+                    <c-cpq-quote-line-editor 
+                        record-id={recordId}
+                        line-items={lineItems}
+                        onrefresh={handleRefresh}
+                        onopenwizard={handleOpenWizard}>
+                    </c-cpq-quote-line-editor>
+                </lightning-tab>
+
+                <lightning-tab label="Timeline" value="timeline">
+                    <div class="empty-state">
+                        <div class="icon">📅</div>
+                        <p>Timeline view will be implemented soon.</p>
+                    </div>
+                </lightning-tab>
+
+                <lightning-tab label="Generated PDFs" value="pdfs">
+                    <div class="empty-state">
+                        <div class="icon">📑</div>
+                        <p>Generated PDFs view will be implemented soon.</p>
+                    </div>
+                </lightning-tab>
+            </lightning-tabset>
+        </div>
+
+        <!-- Right Side Wizard Panel -->
+        <template if:true={isWizardOpen}>
+            <c-cpq-add-items-wizard 
+                record-id={recordId}
+                target-phase={targetPhase}
+                onclose={handleCloseWizard}
+                onsuccess={handleWizardSuccess}>
+            </c-cpq-add-items-wizard>
+        </template>
+    </div>
+</template>

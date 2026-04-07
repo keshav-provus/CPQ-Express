@@ -1,43 +1,60 @@
-import { LightningElement, api, wire } from 'lwc';
-import getQuoteLines from '@salesforce/apex/QuoteController.getQuoteLines';
-import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
-import TOTAL_AMOUNT_FIELD from '@salesforce/schema/Quote__c.Total_Amount__c';
+import { LightningElement, api } from 'lwc';
 
 export default class CpqQuoteSummary extends LightningElement {
     @api recordId;
+    @api quoteData;
+    @api lineItems = [];
 
-    @wire(getRecord, { recordId: '$recordId', fields: [TOTAL_AMOUNT_FIELD] })
-    quote;
-
-    @wire(getQuoteLines, { quoteId: '$recordId' })
-    lineItems;
-
-    get itemSubtotal() {
-        if (!this.lineItems.data) return '$0.00';
-        const subtotal = this.lineItems.data.reduce((sum, item) => {
-            return sum + (item.Quantity__c * item.Unit_Price__c);
-        }, 0);
-        return this.formatCurrency(subtotal);
+    get laborTotal() {
+        return this.lineItems
+            .filter(item => item.Product__r?.Product_Type__c === 'Resource Role')
+            .reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
     }
 
-    get itemDiscounts() {
-        if (!this.lineItems.data) return '$0.00';
-        const totalDiscount = this.lineItems.data.reduce((sum, item) => {
-            const discVal = (item.Quantity__c * item.Unit_Price__c) - (item.Net_Total__c || 0);
-            return sum + discVal;
-        }, 0);
-        return this.formatCurrency(totalDiscount);
+    get productTotal() {
+        return this.lineItems
+            .filter(item => item.Product__r?.Product_Type__c === 'Product')
+            .reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
     }
 
-    get itemGrandTotal() {
-        const val = getFieldValue(this.quote.data, TOTAL_AMOUNT_FIELD);
-        return this.formatCurrency(val);
+    get addonTotal() {
+        return this.lineItems
+            .filter(item => item.Product__r?.Product_Type__c === 'Add-on')
+            .reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
     }
 
-    formatCurrency(value) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(value || 0);
+    get grandTotal() {
+        return this.laborTotal + this.productTotal + this.addonTotal;
+    }
+
+    get laborBarStyle() {
+        const pct = this.grandTotal > 0 ? (this.laborTotal / this.grandTotal) * 100 : 0;
+        return `width: ${pct}%;`;
+    }
+
+    get productBarStyle() {
+        const pct = this.grandTotal > 0 ? (this.productTotal / this.grandTotal) * 100 : 0;
+        return `width: ${pct}%;`;
+    }
+
+    get addonBarStyle() {
+        const pct = this.grandTotal > 0 ? (this.addonTotal / this.grandTotal) * 100 : 0;
+        return `width: ${pct}%;`;
+    }
+
+    get phaseBreakdown() {
+        const phases = {};
+        this.lineItems.forEach(item => {
+            const phaseName = item.Phase__c || 'Default';
+            if (!phases[phaseName]) phases[phaseName] = 0;
+            phases[phaseName] += (item.Net_Total__c || 0);
+        });
+
+        const maxTotal = Math.max(...Object.values(phases), 1);
+        return Object.keys(phases).map(name => ({
+            name,
+            total: phases[name],
+            widthStyle: `width: ${(phases[name] / maxTotal) * 100}%;`
+        }));
     }
 }

@@ -1,27 +1,92 @@
 <template>
-    <div class="summary-card">
-        <h3 class="card-title">Quote Summary</h3>
-        <div class="summary-rows">
-            <div class="summary-row">
-                <span class="row-label">Subtotal</span>
-                <span class="row-value">{itemSubtotal}</span>
+    <div class="summary-container">
+        <!-- Revenue Cards -->
+        <div class="cards-row">
+            <div class="revenue-card">
+                <div class="card-header">
+                    <span class="dot labor"></span>
+                    <label>Labor</label>
+                </div>
+                <div class="card-body">
+                    <div class="value"><lightning-formatted-number value={laborTotal} format-style="currency"></lightning-formatted-number></div>
+                    <div class="trend up">↗ 12%</div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="row-label">Discounts</span>
-                <span class="row-value text-error">-{itemDiscounts}</span>
+            <div class="revenue-card">
+                <div class="card-header">
+                    <span class="dot products"></span>
+                    <label>Products</label>
+                </div>
+                <div class="card-body">
+                    <div class="value"><lightning-formatted-number value={productTotal} format-style="currency"></lightning-formatted-number></div>
+                    <div class="trend up">↗ 5%</div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="row-label">Shipping</span>
-                <span class="row-value">$0.00</span>
+            <div class="revenue-card">
+                <div class="card-header">
+                    <span class="dot addons"></span>
+                    <label>Add-ons</label>
+                </div>
+                <div class="card-body">
+                    <div class="value"><lightning-formatted-number value={addonTotal} format-style="currency"></lightning-formatted-number></div>
+                    <div class="trend down">↘ 2%</div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="row-label">Taxes</span>
-                <span class="row-value font-muted">Calculated at checkout</span>
+        </div>
+
+        <!-- Charts & Breakdown -->
+        <div class="grid-layout">
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3>Item Type Breakdown</h3>
+                    <div class="bar-chart">
+                        <div class="bar labor" style={laborBarStyle}></div>
+                        <div class="bar products" style={productBarStyle}></div>
+                        <div class="bar addons" style={addonBarStyle}></div>
+                    </div>
+                    <div class="chart-legend">
+                        <span>Labor</span>
+                        <span>Products</span>
+                        <span>Add-ons</span>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Phase Revenue</h3>
+                    <div class="phase-bars">
+                        <template for:each={phaseBreakdown} for:item="pb">
+                            <div key={pb.name} class="phase-row">
+                                <label>{pb.name}</label>
+                                <div class="progress-bg">
+                                    <div class="progress-fill" style={pb.widthStyle}></div>
+                                </div>
+                                <span class="amt"><lightning-formatted-number value={pb.total} format-style="currency"></lightning-formatted-number></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
-            
-            <div class="grand-total-row">
-                <span class="grand-label">Grand Total</span>
-                <span class="grand-value">{itemGrandTotal}</span>
+
+            <div class="side-widgets">
+                <div class="widget-card">
+                    <h3>Approval History</h3>
+                    <ul class="history-list">
+                        <li>
+                            <span class="bullet"></span>
+                            <div class="item">
+                                <p class="msg">Quote submitted for approval</p>
+                                <span class="time">2 hours ago</span>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="bullet gray"></span>
+                            <div class="item">
+                                <p class="msg">Initial draft created</p>
+                                <span class="time">Yesterday</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

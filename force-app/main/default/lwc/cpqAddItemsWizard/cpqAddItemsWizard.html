@@ -1,0 +1,58 @@
+<template>
+    <div class="wizard-overlay" onclick={closeWizard}></div>
+    <div class="wizard-panel">
+        <div class="wizard-header">
+            <div class="header-top">
+                <h2>Add Items to {targetPhase}</h2>
+                <button class="close-btn" onclick={closeWizard}>&times;</button>
+            </div>
+            
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class={roleTabClass} data-type="Resource Role" onclick={handleTabChange}>Resource Roles</button>
+                <button class={prodTabClass} data-type="Product" onclick={handleTabChange}>Products</button>
+                <button class={addonTabClass} data-type="Add-on" onclick={handleTabChange}>Add-on</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search items..." oninput={handleSearch}/>
+            </div>
+        </div>
+
+        <div class="wizard-content">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading items..."></lightning-spinner>
+            </template>
+            
+            <template if:false={isLoading}>
+                <div class="item-list">
+                    <template for:each={filteredProducts} for:item="prod">
+                        <div key={prod.Id} class="item-card">
+                            <div class="check-box">
+                                <input type="checkbox" onchange={handleToggleSelection} data-id={prod.Id}/>
+                            </div>
+                            <div class="item-info">
+                                <p class="item-name">{prod.Name}</p>
+                                <p class="item-code">{prod.Product_Code__c}</p>
+                            </div>
+                            <div class="item-price">
+                                <lightning-formatted-number value={prod.Price__c} format-style="currency"></lightning-formatted-number>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+
+        <div class="wizard-footer">
+            <div class="selection-count">
+                {selectedCount} Items Selected
+            </div>
+            <button class="btn btn-primary" onclick={handleAddItems} disabled={noSelected}>
+                Add to Phase
+            </button>
+        </div>
+    </div>
+</template>

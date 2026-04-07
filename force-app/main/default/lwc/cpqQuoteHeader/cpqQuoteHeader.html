@@ -1,30 +1,64 @@
 <template>
     <div class="header-container">
-        <div class="header-main">
-            <div class="title-section">
-                <div class="name-status">
-                    <h1 class="quote-name">{quoteName}</h1>
-                    <span class={statusBadgeClass}>{quoteStatus}</span>
-                </div>
-                <p class="account-line">
-                    <lightning-icon icon-name="utility:company" size="xx-small" class="icon-muted"></lightning-icon>
-                    {accountName}
-                </p>
+        <!-- Breadcrumbs & Status -->
+        <div class="top-row">
+            <div class="breadcrumbs">
+                <span class="root">Quotes</span>
+                <span class="separator">/</span>
+                <span class="current">{quoteName}</span>
             </div>
-            
-            <div class="highlights-section">
-                <div class="highlight-item">
-                    <p class="h-label">TOTAL AMOUNT</p>
-                    <p class="h-value">{formattedTotal}</p>
+            <div class="status-badge" data-status={status}>
+                {status}
+            </div>
+        </div>
+
+        <!-- Main Info Row -->
+        <div class="main-row">
+            <div class="title-section">
+                <h1 class="quote-title">{quoteName}</h1>
+                <div class="description">
+                    <span>No description provided</span>
+                    <button class="edit-link">Edit description</button>
                 </div>
-                <div class="highlight-item">
-                    <p class="h-label">MARGIN %</p>
-                    <p class="h-value accent-text">{marginPercent}%</p>
+            </div>
+
+            <!-- Financial Stats -->
+            <div class="stats-group">
+                <div class="stat-card">
+                    <label>Total Amount</label>
+                    <div class="value currency"><lightning-formatted-number value={totalAmount} format-style="currency"></lightning-formatted-number></div>
                 </div>
-                <div class="highlight-item">
-                    <p class="h-label">EXPIRATION</p>
-                    <p class="h-value">{formattedExpiration}</p>
+                <div class="stat-card">
+                    <label>Subtotal</label>
+                    <div class="value currency"><lightning-formatted-number value={totalAmount} format-style="currency"></lightning-formatted-number></div>
                 </div>
+                <div class="stat-card">
+                    <label>Margin</label>
+                    <div class="value percent">{margin}%</div>
+                </div>
+                <div class="stat-card">
+                    <label>Discount</label>
+                    <div class="value percent">0%</div>
+                </div>
+                <div class="stat-card">
+                    <label>Start Date</label>
+                    <div class="value date">{startDate}</div>
+                </div>
+                <div class="stat-card">
+                    <label>Duration</label>
+                    <div class="value duration">{duration} mo</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <button class="btn btn-secondary" onclick={handleGeneratePdf}>Generate PDF</button>
+                <button class="btn btn-secondary" onclick={handleRefresh}>Refresh</button>
+                <button class="btn btn-primary" onclick={handleSave}>Save</button>
+                <button class="btn-ai" onclick={handleAiAssistant}>
+                    <span class="ai-icon">✨</span>
+                    AI Assistant
+                </button>
             </div>
         </div>
     </div>

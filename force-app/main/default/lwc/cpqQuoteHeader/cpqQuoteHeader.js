@@ -1,58 +1,74 @@
-import { LightningElement, api, wire } from 'lwc';
-import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
-import NAME_FIELD from '@salesforce/schema/Quote__c.Name';
-import STATUS_FIELD from '@salesforce/schema/Quote__c.Status__c';
-import ACCOUNT_NAME_FIELD from '@salesforce/schema/Quote__c.Account__r.Name';
-import TOTAL_AMOUNT_FIELD from '@salesforce/schema/Quote__c.Total_Amount__c';
-import MARGIN_PERCENT_FIELD from '@salesforce/schema/Quote__c.Margin_Percent__c';
-import VALID_UNTIL_FIELD from '@salesforce/schema/Quote__c.Valid_Until__c';
+import { LightningElement, api } from 'lwc';
+import { getFieldValue } from 'lightning/uiRecordApi';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const FIELDS = [NAME_FIELD, STATUS_FIELD, ACCOUNT_NAME_FIELD, TOTAL_AMOUNT_FIELD, MARGIN_PERCENT_FIELD, VALID_UNTIL_FIELD];
+const NAME_FIELD = 'Quote__c.Name';
+const TOTAL_FIELD = 'Quote__c.Total_Amount__c';
+const MARGIN_FIELD = 'Quote__c.Margin_Percent__c';
+const STATUS_FIELD = 'Quote__c.Status__c';
+const START_DATE_FIELD = 'Quote__c.Start_Date__c';
+const DURATION_FIELD = 'Quote__c.Duration_Months__c';
 
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
-
-    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
-    quote;
+    @api quoteData;
 
     get quoteName() {
-        return getFieldValue(this.quote.data, NAME_FIELD);
+        return getFieldValue(this.quoteData, NAME_FIELD);
     }
 
-    get quoteStatus() {
-        return getFieldValue(this.quote.data, STATUS_FIELD);
+    get totalAmount() {
+        return getFieldValue(this.quoteData, TOTAL_FIELD) || 0;
     }
 
-    get accountName() {
-        return getFieldValue(this.quote.data, ACCOUNT_NAME_FIELD);
+    get margin() {
+        return getFieldValue(this.quoteData, MARGIN_FIELD) || 0;
     }
 
-    get marginPercent() {
-        const val = getFieldValue(this.quote.data, MARGIN_PERCENT_FIELD);
-        return val ? val.toFixed(1) : '0.0';
+    get status() {
+        return getFieldValue(this.quoteData, STATUS_FIELD);
     }
 
-    get formattedTotal() {
-        const val = getFieldValue(this.quote.data, TOTAL_AMOUNT_FIELD);
-        if (val === undefined || val === null) return '$0.00';
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(val);
+    get startDate() {
+        return getFieldValue(this.quoteData, START_DATE_FIELD);
     }
 
-    get formattedExpiration() {
-        const val = getFieldValue(this.quote.data, VALID_UNTIL_FIELD);
-        if (!val) return 'N/A';
-        return new Date(val).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
+    get duration() {
+        return getFieldValue(this.quoteData, DURATION_FIELD) || 0;
     }
 
-    get statusBadgeClass() {
-        const status = (this.quoteStatus || '').toLowerCase();
-        return `status-badge badge-${status}`;
+    handleRefresh() {
+        this.dispatchEvent(new CustomEvent('refresh'));
+    }
+
+    handleSave() {
+        this.dispatchEvent(new CustomEvent('refresh'));
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Success',
+                message: 'Quote saved successfully',
+                variant: 'success'
+            })
+        );
+    }
+
+    handleGeneratePdf() {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Info',
+                message: 'PDF generation feature coming soon',
+                variant: 'info'
+            })
+        );
+    }
+
+    handleAiAssistant() {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Sparkle!',
+                message: 'AI Assistant is analyzing your quote...',
+                variant: 'info'
+            })
+        );
     }
 }

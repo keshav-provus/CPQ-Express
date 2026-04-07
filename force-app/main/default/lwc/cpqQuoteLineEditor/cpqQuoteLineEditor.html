@@ -1,86 +1,81 @@
 <template>
-    <div class="editor-card">
-        <div class="card-header">
-            <h2 class="card-title">Quote Line Editor</h2>
-            <div class="header-actions">
-                <input type="file" 
-                       accept=".csv" 
-                       class="slds-hide" 
-                       onchange={handleFileChange}
-                       lwc:ref="fileInput"/>
-                <button class="secondary-btn" onclick={triggerFileInput}>Import CSV</button>
-                <button class="primary-btn" onclick={handleAddProducts}>
-                    <lightning-icon icon-name="utility:add" size="xx-small" class="btn-icon"></lightning-icon>
-                    Add Products
+    <div class="editor-container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="btn-group">
+                <button class="btn btn-icon" title="Collapse All">
+                    <span class="icon">⬩</span>
                 </button>
             </div>
-        </div>
-
-        <div class="table-container">
-            <table class="quote-table">
-                <thead>
-                    <tr>
-                        <th class="th-product">PRODUCT</th>
-                        <th class="th-qty text-center">QUANTITY</th>
-                        <th class="th-price text-right">UNIT PRICE</th>
-                        <th class="th-discount text-center">DISCOUNT %</th>
-                        <th class="th-total text-right">TOTAL</th>
-                        <th class="th-actions"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template for:each={lineItems} for:item="item">
-                        <tr key={item.Id} class="item-row">
-                            <td class="td-product">
-                                <p class="p-name">{item.productName}</p>
-                                <p class="p-sku">SKU: {item.productSKU}</p>
-                            </td>
-                            <td class="td-qty text-center">
-                                <input type="number" 
-                                       class="qty-input" 
-                                       value={item.Quantity__c} 
-                                       data-id={item.Id}
-                                       data-field="Quantity__c"
-                                       onchange={handleInputChange}/>
-                            </td>
-                            <td class="td-price text-right">{item.formattedPrice}</td>
-                            <td class="td-discount text-center">
-                                <input type="number" 
-                                       class="discount-input" 
-                                       value={item.Discount_Percent__c} 
-                                       data-id={item.Id}
-                                       data-field="Discount_Percent__c"
-                                       onchange={handleInputChange}/>
-                            </td>
-                            <td class="td-total text-right font-bold">{item.formattedTotal}</td>
-                            <td class="td-actions">
-                                <button class="delete-btn" onclick={handleDeleteItem} data-id={item.Id}>
-                                    <lightning-icon icon-name="utility:delete" size="xx-small" class="icon-delete"></lightning-icon>
-                                </button>
-                            </td>
-                        </tr>
-                    </template>
-                </tbody>
-            </table>
-        </div>
-
-        <template if:false={hasLines}>
-            <div class="empty-state">
-                <p>No products added to this quote yet.</p>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick={handleAddPhase}>Add Phase</button>
+                <button class="btn btn-primary" onclick={handleSaveAll}>Save All Changes</button>
             </div>
-        </template>
-        
-        <div class="footer-actions" if:true={hasChanges}>
-             <button class="save-btn" onclick={handleSave}>Save Changes</button>
         </div>
 
-        <!-- Product Selector Popup -->
-        <template if:true={showSelector}>
-            <c-product-selector-popup 
-                record-id={recordId}
-                onclose={handleCloseSelector}
-                onproductsadded={handleProductsAdded}>
-            </c-product-selector-popup>
-        </template>
+        <!-- Grouped Table -->
+        <div class="table-wrapper">
+            <template for:each={groupedPhases} for:item="phase">
+                <div key={phase.name} class="phase-group">
+                    <div class="phase-header">
+                        <div class="phase-title">
+                            <span class="chevron">▼</span>
+                            <h3>{phase.name}</h3>
+                            <span class="badge">{phase.itemCount} Items</span>
+                        </div>
+                        <div class="phase-actions">
+                            <button class="btn btn-text" onclick={handleOpenWizard} data-phase={phase.name}>+ Add Item</button>
+                        </div>
+                    </div>
+
+                    <div class="phase-content">
+                        <table class="grid-table">
+                            <thead>
+                                <tr>
+                                    <th class="cell-icon"></th>
+                                    <th class="cell-name">Item Name</th>
+                                    <th class="cell-task">Task</th>
+                                    <th class="cell-date">Start Date</th>
+                                    <th class="cell-date">End Date</th>
+                                    <th class="cell-qty">Qty</th>
+                                    <th class="cell-rate">Base Rate</th>
+                                    <th class="cell-price">Unit Price</th>
+                                    <th class="cell-disc">Disc %</th>
+                                    <th class="cell-total">Total Price</th>
+                                    <th class="cell-actions"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={phase.items} for:item="item">
+                                    <tr key={item.Id} class="row">
+                                        <td class="cell-icon"><span class="icon-sm">📦</span></td>
+                                        <td class="cell-name">{item.Product__r.Name}</td>
+                                        <td class="cell-task">
+                                            <input type="text" class="input-text" placeholder="Add task..."/>
+                                        </td>
+                                        <td class="cell-date">--</td>
+                                        <td class="cell-date">--</td>
+                                        <td class="cell-qty">
+                                            <input type="number" class="input-number" value={item.Quantity__c} 
+                                                   onchange={handleQtyChange} data-id={item.Id}/>
+                                        </td>
+                                        <td class="cell-rate">--</td>
+                                        <td class="cell-price"><lightning-formatted-number value={item.Unit_Price__c} format-style="currency"></lightning-formatted-number></td>
+                                        <td class="cell-disc">
+                                            <input type="number" class="input-number" value={item.Discount_Percent__c} 
+                                                   onchange={handleDiscountChange} data-id={item.Id}/>
+                                        </td>
+                                        <td class="cell-total"><lightning-formatted-number value={item.Net_Total__c} format-style="currency"></lightning-formatted-number></td>
+                                        <td class="cell-actions">
+                                            <button class="btn btn-icon-sm" onclick={handleDeleteItem} data-id={item.Id}>🗑️</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        </div>
     </div>
 </template>

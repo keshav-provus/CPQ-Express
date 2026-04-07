@@ -1,65 +1,141 @@
-.summary-card {
-    background: white;
-    border-radius: 0.75rem;
+.summary-container {
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-.card-title {
-    font-size: 1rem;
+.cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+}
+
+.revenue-card {
+    background: #f8fafc;
+    padding: 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-header label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.dot { height: 8px; width: 8px; border-radius: 50%; }
+.dot.labor { background: #3b82f6; }
+.dot.products { background: #10b981; }
+.dot.addons { background: #f59e0b; }
+
+.card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.card-body .value {
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #1a1c1e;
+    color: #1e293b;
+}
+
+.trend { font-size: 0.75rem; font-weight: 600; }
+.trend.up { color: #10b981; }
+.trend.down { color: #f43f5e; }
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.charts-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.chart-card h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
     margin-bottom: 1.5rem;
 }
 
-.summary-rows {
+.bar-chart {
+    display: flex;
+    height: 32px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.bar.labor { background: #3b82f6; }
+.bar.products { background: #10b981; }
+.bar.addons { background: #f59e0b; }
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.phase-bars {
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
+    gap: 1rem;
 }
 
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8125rem;
-}
-
-.row-label {
-    color: #777587;
-}
-
-.row-value {
-    color: #1a1c1e;
-    font-weight: 500;
-}
-
-.text-error {
-    color: #ef4444;
-}
-
-.font-muted {
-    font-weight: 400;
-    color: #94a3b8;
-}
-
-.grand-total-row {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
+.phase-row {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
     align-items: center;
+    gap: 1rem;
 }
 
-.grand-label {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #1a1c1e;
+.phase-row label { font-size: 0.875rem; font-weight: 500; color: #475569; }
+
+.progress-bg { height: 8px; background: #f1f5f9; border-radius: 9999px; overflow: hidden; }
+.progress-fill { height: 100%; background: #2563eb; transition: width 0.3s; }
+
+.phase-row .amt { font-size: 0.875rem; font-weight: 600; color: #1e293b; text-align: right; }
+
+.widget-card {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
-.grand-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #4f46e5;
-}
+.widget-card h3 { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem; }
+
+.history-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+
+.history-list li { display: flex; gap: 1rem; }
+
+.bullet { height: 8px; width: 8px; border-radius: 50%; background: #2563eb; margin-top: 0.375rem; position: relative; }
+.bullet.gray { background: #cbd5e1; }
+.bullet::after { content: ''; position: absolute; top: 12px; left: 3.5px; width: 1px; height: 1.5rem; background: #e2e8f0; }
+li:last-child .bullet::after { display: none; }
+
+.history-list .msg { font-size: 0.875rem; color: #1e293b; font-weight: 500; margin: 0; }
+.history-list .time { font-size: 0.75rem; color: #94a3b8; }
