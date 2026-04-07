@@ -1,0 +1,168 @@
+.card-wrapper {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+/* ── Table ── */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.action-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.action-table thead th {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    text-align: left;
+    padding: 0.5rem 0.75rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.table-row {
+    border-bottom: 1px solid #f8fafc;
+    transition: background 0.1s ease;
+}
+
+.table-row:hover {
+    background: #f8fafc;
+}
+
+.table-row td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+}
+
+.opp-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #1e293b;
+    margin: 0;
+}
+
+.account-name {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0.125rem 0 0 0;
+}
+
+.quote-link {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #4f46e5;
+    text-decoration: none;
+}
+
+.quote-link:hover {
+    text-decoration: underline;
+}
+
+.td-value {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #1e293b;
+    white-space: nowrap;
+}
+
+.td-date {
+    font-size: 0.85rem;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.overdue-date {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* ── Status Badges ── */
+.status-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+}
+
+.badge-submitted {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.badge-draft {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.badge-rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* ── Actions ── */
+.td-actions {
+    white-space: nowrap;
+}
+
+.action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    margin-right: 0.25rem;
+    color: #64748b;
+    transition: background 0.1s ease;
+    text-decoration: none;
+}
+
+.action-icon:hover {
+    background: #f1f5f9;
+}
+
+/* ── Empty State ── */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-icon {
+    margin-bottom: 0.5rem;
+    --sds-c-icon-color-foreground-default: #a3e635;
+}
+
+.empty-text {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.spinner-container {
+    position: relative;
+    min-height: 120px;
+}

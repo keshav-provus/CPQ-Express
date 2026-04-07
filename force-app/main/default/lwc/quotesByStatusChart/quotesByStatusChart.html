@@ -1,0 +1,19 @@
+<template>
+    <lightning-card title="Quotes by Status" icon-name="standard:report">
+        <template if:true={isLoading}>
+            <div class="spinner-container">
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </div>
+        </template>
+        <template if:false={isLoading}>
+            <div class="chart-container">
+                <canvas lwc:dom="manual" class="chart-canvas"></canvas>
+            </div>
+            <template if:true={hasNoData}>
+                <div class="slds-p-around_large slds-text-align_center">
+                    <p class="slds-text-color_weak">No quote data available for chart.</p>
+                </div>
+            </template>
+        </template>
+    </lightning-card>
+</template>

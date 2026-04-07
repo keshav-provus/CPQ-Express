@@ -1,0 +1,46 @@
+<template>
+    <div class="card-wrapper">
+        <div class="card-header">
+            <h2 class="card-title">My Quotes by Status</h2>
+            <div class="header-actions">
+                <button class="generate-btn" onclick={openCreateModal}>
+                    <lightning-icon icon-name="utility:add" size="xx-small" class="btn-icon-white"></lightning-icon>
+                    Generate Quote
+                </button>
+                <span class="period-badge">This Quarter</span>
+            </div>
+        </div>
+        
+        <template if:true={isCreateModalOpen}>
+            <c-cpq-create-quote-modal onclose={closeCreateModal}></c-cpq-create-quote-modal>
+        </template>
+        <template if:true={isLoading}>
+            <div class="spinner-container">
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </div>
+        </template>
+        <template if:false={isLoading}>
+            <div class="chart-area">
+                <canvas lwc:dom="manual" class="donut-canvas"></canvas>
+            </div>
+            <div class="status-row">
+                <div class="status-item">
+                    <p class="status-label">DRAFT</p>
+                    <p class="status-value draft-val">{draftCount}</p>
+                </div>
+                <div class="status-item">
+                    <p class="status-label">SUBMITTED</p>
+                    <p class="status-value submitted-val">{submittedCount}</p>
+                </div>
+                <div class="status-item">
+                    <p class="status-label">APPROVED</p>
+                    <p class="status-value approved-val">{approvedCount}</p>
+                </div>
+                <div class="status-item">
+                    <p class="status-label">REJECTED</p>
+                    <p class="status-value rejected-val">{rejectedCount}</p>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

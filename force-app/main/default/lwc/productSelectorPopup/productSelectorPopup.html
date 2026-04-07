@@ -1,0 +1,110 @@
+<template>
+    <!-- Search & Stats Bar -->
+    <div class="slds-p-around_medium modal-body">
+        <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small search-bar-container">
+            <div class="slds-col slds-grow slds-p-right_small">
+                <lightning-input
+                    type="search"
+                    label="Search Products"
+                    variant="label-hidden"
+                    placeholder="Search by name, code, category, or type..."
+                    value={searchTerm}
+                    onchange={handleSearchChange}
+                    class="search-input"
+                ></lightning-input>
+            </div>
+            <div class="slds-col slds-no-flex slds-grid slds-grid_vertical-align-center stats-badges">
+                <span class="slds-badge slds-badge_lightest product-count-badge slds-m-right_x-small">
+                    <lightning-icon icon-name="utility:package" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                    {productCount} Products
+                </span>
+                <template if:true={hasSelectedProducts}>
+                    <span class="slds-badge selected-count-badge">
+                        <lightning-icon icon-name="utility:check" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                        {selectedCount} Selected
+                    </span>
+                </template>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <template if:true={isLoading}>
+            <div class="spinner-container">
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Product Data Table -->
+        <template if:true={hasProducts}>
+            <div class="datatable-container">
+                <lightning-datatable
+                    key-field="Id"
+                    data={filteredProducts}
+                    columns={columns}
+                    draft-values={draftValues}
+                    onrowselection={handleRowSelection}
+                    oncellchange={handleCellChange}
+                    onsort={handleSort}
+                    sorted-by={sortBy}
+                    sorted-direction={sortDirection}
+                    show-row-number-column
+                    max-row-selection="50"
+                    class="product-datatable"
+                ></lightning-datatable>
+            </div>
+        </template>
+
+        <!-- No Results -->
+        <template if:false={hasProducts}>
+            <template if:false={isLoading}>
+                <div class="no-results-container">
+                    <lightning-icon
+                        icon-name="utility:search"
+                        size="large"
+                        class="slds-m-bottom_small no-results-icon"
+                    ></lightning-icon>
+                    <p class="slds-text-heading_small slds-text-color_weak slds-m-bottom_x-small">
+                        {noResultsMessage}
+                    </p>
+                    <template if:true={hasSearchTerm}>
+                        <lightning-button
+                            label="Clear Search"
+                            variant="neutral"
+                            icon-name="utility:clear"
+                            onclick={clearSearch}
+                            class="slds-m-top_small"
+                        ></lightning-button>
+                    </template>
+                </div>
+            </template>
+        </template>
+    </div>
+
+    <!-- Footer -->
+    <div class="slds-p-around_small modal-footer slds-border_top">
+        <div class="slds-grid slds-grid_vertical-align-center">
+            <div class="slds-col slds-grow">
+                <template if:true={hasSelectedProducts}>
+                    <p class="slds-text-body_small footer-info">
+                        Edit Qty &amp; Discount % inline. Price &amp; Cost auto-populated from catalog.
+                    </p>
+                </template>
+            </div>
+            <div class="slds-col slds-no-flex">
+                <lightning-button
+                    label="Cancel"
+                    onclick={handleClose}
+                    class="slds-m-right_small"
+                ></lightning-button>
+                <lightning-button
+                    label={addButtonLabel}
+                    variant="brand"
+                    onclick={handleAddSelected}
+                    disabled={isAddDisabled}
+                    icon-name="utility:add"
+                    class="add-selected-btn"
+                ></lightning-button>
+            </div>
+        </div>
+    </div>
+</template>
