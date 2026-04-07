@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlexiPage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Home page dashboard for Sales Manager profile — team pipeline, charts, leaderboard, and all quotes.</description>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>role</name>
+                    <value>manager</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>statValue</name>
+                    <value>0</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
+                    <name>statLabel</name>
+                    <value>team quotes active</value>
+                </componentInstanceProperties>
+                <componentName>cpqWelcomeBanner</componentName>
+                <identifier>cpqWelcomeBanner1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>teamQuotesPipeline</componentName>
+                <identifier>teamQuotesPipeline1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>top</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentName>teamRecentQuotes</componentName>
+                <identifier>teamRecentQuotes1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>bottomLeft</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentName>quotesByStatusChart</componentName>
+                <identifier>quotesByStatusChart1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentName>topRepLeaderboard</componentName>
+                <identifier>topRepLeaderboard1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <name>bottomRight</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <name>sidebar</name>
+        <type>Region</type>
+    </flexiPageRegions>
+    <masterLabel>CPQ Sales Manager Home</masterLabel>
+    <template>
+        <name>home:desktopTemplate</name>
+    </template>
+    <type>HomePage</type>
+</FlexiPage>

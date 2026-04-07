@@ -21,4 +21,18 @@ public with sharing class QuoteService {
         
         return QuoteDAO.insertQuote(newQuote);
     }
+
+    /**
+     * @description Submits a Quote by updating its status to 'Submitted'.
+     * @param quoteId The ID of the Quote to submit.
+     */
+    public void submitQuote(Id quoteId) {
+        if (quoteId == null) return;
+        
+        Quote__c quote = new Quote__c(
+            Id = quoteId,
+            Status__c = 'Submitted'
+        );
+        QuoteDAO.updateQuote(quote);
+    }
 }

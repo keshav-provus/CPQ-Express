@@ -15,4 +15,14 @@ public with sharing class QuoteDAO {
         }
         return null;
     }
+
+    /**
+     * @description Updates an existing Quote record.
+     * @param quoteToUpdate The Quote record to be updated.
+     */
+    public static void updateQuote(Quote__c quoteToUpdate) {
+        if (quoteToUpdate != null && Schema.sObjectType.Quote__c.isUpdateable()) {
+            update quoteToUpdate;
+        }
+    }
 }
