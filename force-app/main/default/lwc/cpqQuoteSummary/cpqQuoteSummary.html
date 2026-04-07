@@ -40,9 +40,9 @@
                 <div class="chart-card">
                     <h3>Item Type Breakdown</h3>
                     <div class="bar-chart">
-                        <div class="bar labor" style={laborBarStyle}></div>
-                        <div class="bar products" style={productBarStyle}></div>
-                        <div class="bar addons" style={addonBarStyle}></div>
+                        <div class="bar labor"></div>
+                        <div class="bar products"></div>
+                        <div class="bar addons"></div>
                     </div>
                     <div class="chart-legend">
                         <span>Labor</span>
@@ -58,7 +58,7 @@
                             <div key={pb.name} class="phase-row">
                                 <label>{pb.name}</label>
                                 <div class="progress-bg">
-                                    <div class="progress-fill" style={pb.widthStyle}></div>
+                                    <div class="progress-fill"></div>
                                 </div>
                                 <span class="amt"><lightning-formatted-number value={pb.total} format-style="currency"></lightning-formatted-number></span>
                             </div>
