@@ -1,92 +1,164 @@
 <template>
-    <div class="summary-container">
-        <!-- Revenue Cards -->
-        <div class="cards-row">
-            <div class="revenue-card">
-                <div class="card-header">
-                    <span class="dot labor"></span>
-                    <label>Labor</label>
-                </div>
-                <div class="card-body">
-                    <div class="value"><lightning-formatted-number value={laborTotal} format-style="currency"></lightning-formatted-number></div>
-                    <div class="trend up">↗ 12%</div>
-                </div>
-            </div>
-            <div class="revenue-card">
-                <div class="card-header">
-                    <span class="dot products"></span>
-                    <label>Products</label>
-                </div>
-                <div class="card-body">
-                    <div class="value"><lightning-formatted-number value={productTotal} format-style="currency"></lightning-formatted-number></div>
-                    <div class="trend up">↗ 5%</div>
+    <div class="summary-tab">
+        <div class="left-col">
+            <!-- Details card -->
+            <div class="card">
+                <div class="detail-grid">
+                    <div class="detail-item"><label>Opportunity</label><div class="val">{opportunityName}</div></div>
+                    <div class="detail-item"><label>Account</label><div class="val"><a href="#">{accountName}</a></div></div>
+                    <div class="detail-item"><label>Valid Until</label><div class="val">{validUntil}</div></div>
+                    <div class="detail-item"><label>Quote Time Period</label><div class="val">{timePeriod}</div></div>
+                    <div class="detail-item"><label>Created Date</label><div class="val">{createdDate}</div></div>
+                    <div class="detail-item"><label>Created By</label><div class="val">{createdByName}</div></div>
+                    <div class="detail-item last-modified" style="grid-column: 1 / -1;"><label>Last Modified By</label><div class="val">{lastModifiedByName}</div></div>
                 </div>
             </div>
-            <div class="revenue-card">
-                <div class="card-header">
-                    <span class="dot addons"></span>
-                    <label>Add-ons</label>
-                </div>
-                <div class="card-body">
-                    <div class="value"><lightning-formatted-number value={addonTotal} format-style="currency"></lightning-formatted-number></div>
-                    <div class="trend down">↘ 2%</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Charts & Breakdown -->
-        <div class="grid-layout">
-            <div class="charts-section">
+            <!-- Revenue cards -->
+            <div class="revenue-row">
+                <div class="rev-card">
+                    <div class="rev-header">
+                        <span class="rev-label">👤 Labor Revenue</span>
+                        <span class="rev-pct">↗ {laborPercentage}%</span>
+                    </div>
+                    <div class="rev-amount"><lightning-formatted-number value={laborRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-meta">
+                        Cost: <lightning-formatted-number value={laborCost} format-style="currency"></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={laborMargin} format-style="currency"></lightning-formatted-number>
+                    </div>
+                    <div class="rev-sub">{laborCount} Resource Roles</div>
+                </div>
+                <div class="rev-card">
+                    <div class="rev-header">
+                        <span class="rev-label">📦 Products Revenue</span>
+                        <span class="rev-pct">↘ {productPercentage}%</span>
+                    </div>
+                    <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-meta">
+                        Cost: <lightning-formatted-number value={productCost} format-style="currency"></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={productMargin} format-style="currency"></lightning-formatted-number>
+                    </div>
+                    <div class="rev-sub">{productCount} Products</div>
+                </div>
+                <div class="rev-card">
+                    <div class="rev-header">
+                        <span class="rev-label">➕ Add-ons Revenue</span>
+                        <span class="rev-pct">↘ {addonPercentage}%</span>
+                    </div>
+                    <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-meta">
+                        Cost: <lightning-formatted-number value={addonCost} format-style="currency"></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={addonMargin} format-style="currency"></lightning-formatted-number>
+                    </div>
+                    <div class="rev-sub">{addonCount} Add-on Items</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-row">
                 <div class="chart-card">
-                    <h3>Item Type Breakdown</h3>
+                    <h4>Item Type Breakdown</h4>
+                    <div class="chart-sub">Cost and margin distribution by item type</div>
                     <div class="bar-chart">
-                        <div class="bar labor"></div>
-                        <div class="bar products"></div>
-                        <div class="bar addons"></div>
+                        <div class="bar-group">
+                            <div class="bars">
+                                <div class="bar cost" style={laborCostStyle}></div>
+                                <div class="bar margin" style={laborMarginStyle}></div>
+                            </div>
+                            <div class="bar-label">Labor</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bars">
+                                <div class="bar cost" style={productCostStyle}></div>
+                                <div class="bar margin" style={productMarginStyle}></div>
+                            </div>
+                            <div class="bar-label">Products</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bars">
+                                <div class="bar cost" style={addonCostStyle}></div>
+                                <div class="bar margin" style={addonMarginStyle}></div>
+                            </div>
+                            <div class="bar-label">Add-ons</div>
+                        </div>
                     </div>
                     <div class="chart-legend">
-                        <span>Labor</span>
-                        <span>Products</span>
-                        <span>Add-ons</span>
+                        <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
                     </div>
                 </div>
-
                 <div class="chart-card">
-                    <h3>Phase Revenue</h3>
-                    <div class="phase-bars">
-                        <template for:each={phaseBreakdown} for:item="pb">
-                            <div key={pb.name} class="phase-row">
-                                <label>{pb.name}</label>
-                                <div class="progress-bg">
-                                    <div class="progress-fill"></div>
+                    <h4>Phase Breakdown</h4>
+                    <div class="chart-sub">Cost and margin distribution by project phase</div>
+                    <div class="bar-chart">
+                        <template for:each={phaseChartData} for:item="bar">
+                            <div key={bar.label} class="bar-group">
+                                <div class="bars">
+                                    <div class="bar cost" style={bar.costStyle}></div>
+                                    <div class="bar margin" style={bar.marginStyle}></div>
                                 </div>
-                                <span class="amt"><lightning-formatted-number value={pb.total} format-style="currency"></lightning-formatted-number></span>
+                                <div class="bar-label">{bar.label}</div>
                             </div>
                         </template>
                     </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
+                        <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="side-widgets">
-                <div class="widget-card">
-                    <h3>Approval History</h3>
-                    <ul class="history-list">
-                        <li>
-                            <span class="bullet"></span>
-                            <div class="item">
-                                <p class="msg">Quote submitted for approval</p>
-                                <span class="time">2 hours ago</span>
-                            </div>
-                        </li>
-                        <li>
-                            <span class="bullet gray"></span>
-                            <div class="item">
-                                <p class="msg">Initial draft created</p>
-                                <span class="time">Yesterday</span>
-                            </div>
-                        </li>
-                    </ul>
+            <!-- Phase table -->
+            <div class="phase-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Phase</th><th>Labor</th><th>Products</th><th>Add-ons</th><th>Total</th><th>Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template if:true={hasPhases}>
+                            <template for:each={phaseRows} for:item="row">
+                                <tr key={row.phase}>
+                                    <td>{row.phase}</td>
+                                    <td class="link"><lightning-formatted-number value={row.labor} format-style="currency"></lightning-formatted-number></td>
+                                    <td class="link"><lightning-formatted-number value={row.products} format-style="currency"></lightning-formatted-number></td>
+                                    <td class="link"><lightning-formatted-number value={row.addons} format-style="currency"></lightning-formatted-number></td>
+                                    <td><lightning-formatted-number value={row.total} format-style="currency"></lightning-formatted-number></td>
+                                    <td>{row.items}</td>
+                                </tr>
+                            </template>
+                        </template>
+                        <template if:false={hasPhases}>
+                            <tr><td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">No line items added yet.</td></tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="right-col">
+            <div class="approval-card">
+                <h3>Approval History</h3>
+                <p class="sub">Track the approval process for this quote.</p>
+                <div class="approval-empty">
+                    <div class="icon">📄</div>
+                    <p>No approval history yet.<br>Submit this quote for approval to see the approval process.</p>
                 </div>
+            </div>
+            <div class="cost-audit">
+                <h3>Cost Change Audit</h3>
+                <p class="sub">Track cost changes for line items in this quote.</p>
+                <div class="history-row" onclick={toggleAuditHistory}>
+                    <span class="history-label">History (0)</span>
+                    <span class="history-caret">▾</span>
+                </div>
+                <template if:true={showAuditHistory}>
+                    <div class="audit-empty">
+                        <p>No cost changes recorded yet.</p>
+                    </div>
+                </template>
             </div>
         </div>
     </div>

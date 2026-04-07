@@ -1,82 +1,127 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import getProducts from '@salesforce/apex/ProductController.getActiveProducts';
-import addLineItemsFromProducts from '@salesforce/apex/QuoteController.addLineItemsFromProducts';
+import getResourceRoles from '@salesforce/apex/QuoteController.getResourceRoles';
+import getProducts from '@salesforce/apex/QuoteController.getProducts';
+import getAddOns from '@salesforce/apex/QuoteController.getAddOns';
+import addLineItems from '@salesforce/apex/QuoteLineItemController.addLineItems';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class CpqAddItemsWizard extends LightningElement {
     @api recordId;
     @api targetPhase = 'Default';
 
-    @track selectedType = 'Resource Role';
+    @track wizardTab = 'roles';
     @track searchQuery = '';
-    @track selectedProductIds = new Set();
+    @track wizardSelections = { roles: [], products: [], addons: [] };
     @track isLoading = false;
 
-    wiredProductsResult;
+    wiredRoles;
+    wiredProducts;
+    wiredAddons;
+
+    @wire(getResourceRoles)
+    wiredResourceRoles(result) {
+        this.wiredRoles = result;
+    }
 
     @wire(getProducts)
-    wiredProducts(result) {
-        this.wiredProductsResult = result;
+    wiredProductRecords(result) {
+        this.wiredProducts = result;
     }
 
-    get filteredProducts() {
-        const data = this.wiredProductsResult?.data || [];
-        return data.filter(prod => {
-            const matchesType = prod.Product_Type__c === this.selectedType;
-            const matchesSearch = prod.Name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                                 prod.Product_Code__c?.toLowerCase().includes(this.searchQuery.toLowerCase());
-            return matchesType && matchesSearch;
-        });
+    @wire(getAddOns)
+    wiredAddOnRecords(result) {
+        this.wiredAddons = result;
     }
 
-    get selectedCount() { return this.selectedProductIds.size; }
-    get noSelected() { return this.selectedProductIds.size === 0; }
+    get activeCatalog() {
+        if (this.wizardTab === 'roles') return this.wiredRoles?.data || [];
+        if (this.wizardTab === 'products') return this.wiredProducts?.data || [];
+        return this.wiredAddons?.data || [];
+    }
 
-    get roleTabClass() { return this.selectedType === 'Resource Role' ? 'active' : ''; }
-    get prodTabClass() { return this.selectedType === 'Product' ? 'active' : ''; }
-    get addonTabClass() { return this.selectedType === 'Add-on' ? 'active' : ''; }
+    get filteredCatalog() {
+        const query = this.searchQuery.toLowerCase();
+        return this.activeCatalog.filter(item =>
+            item.Name.toLowerCase().includes(query) ||
+            (item.Name__c && item.Name__c.toLowerCase().includes(query))
+        ).map(item => ({
+            ...item,
+            displayName: item.Name__c || item.Name,
+            displayPrice: this.formatPrice(item.Price__c, item.Billing_Unit__c),
+            isSelected: this.wizardSelections[this.wizardTab].includes(item.Id),
+            itemClass: `wizard-item ${this.wizardSelections[this.wizardTab].includes(item.Id) ? 'selected' : ''}`
+        }));
+    }
 
-    handleTabChange(event) {
-        this.selectedType = event.target.dataset.type;
+    formatPrice(price, unit) {
+        const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price || 0);
+        return `${formatted}/${unit || 'Unit'}`;
+    }
+
+    get rolesCount() { return this.wizardSelections.roles.length; }
+    get productsCount() { return this.wizardSelections.products.length; }
+    get addonsCount() { return this.wizardSelections.addons.length; }
+    get totalSelected() { return this.rolesCount + this.productsCount + this.addonsCount; }
+
+    get rolesTabClass() { return `wizard-tab ${this.wizardTab === 'roles' ? 'active' : ''}`; }
+    get productsTabClass() { return `wizard-tab ${this.wizardTab === 'products' ? 'active' : ''}`; }
+    get addonsTabClass() { return `wizard-tab ${this.wizardTab === 'addons' ? 'active' : ''}`; }
+
+    switchWizardTab(event) {
+        this.wizardTab = event.target.dataset.tab;
+        this.searchQuery = '';
     }
 
     handleSearch(event) {
         this.searchQuery = event.target.value;
     }
 
-    handleToggleSelection(event) {
-        const id = event.target.dataset.id;
-        if (event.target.checked) {
-            this.selectedProductIds.add(id);
-        } else {
-            this.selectedProductIds.delete(id);
-        }
+    toggleWizardItem(event) {
+        const id = event.currentTarget.dataset.id;
+        const sel = [...this.wizardSelections[this.wizardTab]];
+        const idx = sel.indexOf(id);
+        if (idx >= 0) sel.splice(idx, 1); else sel.push(id);
+        this.wizardSelections = { ...this.wizardSelections, [this.wizardTab]: sel };
     }
 
     closeWizard() {
         this.dispatchEvent(new CustomEvent('close'));
     }
 
-    handleAddItems() {
-        this.isLoading = true;
-        const lineItems = Array.from(this.selectedProductIds).map(pid => ({
-            productId: pid,
-            quantity: 1,
-            discountPercent: 0,
-            phase: this.targetPhase
-        }));
+    addSelectedItems() {
+        if (this.totalSelected === 0) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Warning',
+                message: 'Please select at least one item',
+                variant: 'warning'
+            }));
+            return;
+        }
 
-        addLineItemsFromProducts({
+        this.isLoading = true;
+        addLineItems({
             quoteId: this.recordId,
-            lineItemsJson: JSON.stringify(lineItems)
+            resourceRoleIds: this.wizardSelections.roles,
+            productIds: this.wizardSelections.products,
+            addonIds: this.wizardSelections.addons
         })
-            .then(() => {
-                this.dispatchEvent(new CustomEvent('success'));
-            })
-            .catch(error => {
-                console.error('Error adding items:', error);
-            })
-            .finally(() => {
-                this.isLoading = false;
-            });
+        .then(() => {
+            this.dispatchEvent(new CustomEvent('success'));
+        })
+        .catch(error => {
+            console.error('Add items error', error);
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Error',
+                message: error.body.message,
+                variant: 'error'
+            }));
+        })
+        .finally(() => {
+            this.isLoading = false;
+        });
+    }
+
+    handleOverlayClick(event) {
+        if (event.target === event.currentTarget) this.closeWizard();
     }
 }
