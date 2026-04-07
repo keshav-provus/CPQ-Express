@@ -4,12 +4,14 @@
             <button class="btn" onclick={handleCollapseAll}>▸ Collapse All</button>
             <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
             <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
-            <button class="btn btn-primary" data-phase="Default" onclick={handleOpenWizard}>+ Add Item</button>
+            <button class="btn btn-primary" data-phase="" onclick={handleOpenWizard}>+ Add Item</button>
             <template if:true={hasSelected}>
                 <button class="btn btn-danger" onclick={handleDeleteSelected}>🗑 Delete Selected</button>
             </template>
         </div>
-        <div class="line-items-table-wrap">
+        <div class="line-items-table-wrap"
+             ondragover={handleDragOver}
+             ondrop={handleDropToRoot}>
             <table class="li-table">
                 <thead>
                     <tr>
@@ -33,21 +35,33 @@
                         <template if:true={row.isPhase}>
                             <tr key={row.key} class="phase-row"
                                 data-phase={row.name}
-                                ondrop={handlePhaseDrop}
-                                ondragover={handleDragOver}>
-                                <td></td>
+                                ondragover={handleDragOver}
+                                ondragleave={handleDragLeave}
+                                ondrop={handlePhaseDrop}>
                                 <td></td>
                                 <td>
                                     <span class="drag-handle phase-drag"
                                           draggable="true"
                                           data-phase={row.name}
-                                          ondragstart={handlePhaseDragStart}>⠿</span>
+                                          ondragstart={handleDragStart}>⠿</span>
                                 </td>
-                                <td colspan="9" class="phase-cell">
+                                <td>
                                     <span class="phase-toggle" data-phase={row.name} onclick={togglePhase}>{row.toggleIcon}</span>
-                                    <strong>{row.name}</strong>
+                                </td>
+                                <td colspan="9" class="phase-cell-td">
+                                    <template if:false={row.isEditing}>
+                                        <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
+                                    </template>
+                                    <template if:true={row.isEditing}>
+                                        <input type="text" class="phase-name-input"
+                                               value={row.editValue}
+                                               onchange={handlePhaseNameChange}
+                                               onblur={handlePhaseNameBlur}
+                                               onkeydown={handlePhaseNameKeyDown}>
+                                    </template>
                                     &nbsp;
                                     <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
+                                    <span class="phase-item-count">({row.itemCount})</span>
                                 </td>
                             </tr>
                         </template>
@@ -60,6 +74,7 @@
                                 data-phase={row.phase}
                                 ondragstart={handleDragStart}
                                 ondragover={handleDragOver}
+                                ondragleave={handleDragLeave}
                                 ondrop={handleDrop}>
                                 <td>
                                     <input type="checkbox"
@@ -68,13 +83,15 @@
                                            onchange={toggleSelect}>
                                 </td>
                                 <td>
-                                    <span class="drag-handle"
-                                          data-id={row.Id}>⠿</span>
+                                    <span class="drag-handle" data-id={row.Id}>⠿</span>
                                 </td>
                                 <td class="type-icon-cell">
                                     <span class={row.iconClass} title={row.Item_Type__c}>{row.icon}</span>
                                 </td>
                                 <td>
+                                    <template if:true={row.isIndented}>
+                                        <span class="indent-spacer"></span>
+                                    </template>
                                     <span class="item-name">{row.displayName}</span>
                                     <span class="info-icon" title="View details">ⓘ</span>
                                 </td>
@@ -86,7 +103,7 @@
                                 <td>{row.endDateFormatted}</td>
                                 <td class="editable-cell">
                                     <input type="number" value={row.Quantity__c} min="0" step="0.5"
-                                           data-id={row.Id} data-field="Quantity__c" 
+                                           data-id={row.Id} data-field="Quantity__c"
                                            onchange={handleUpdateItem}>
                                     <span class="qty-unit">{row.qtyUnit}</span>
                                 </td>
@@ -94,7 +111,7 @@
                                 <td class="money link-price">{row.formattedUnitPrice}</td>
                                 <td class="editable-cell">
                                     <input type="number" value={row.Discount_Percent__c} min="0" max="100"
-                                           data-id={row.Id} data-field="Discount_Percent__c" 
+                                           data-id={row.Id} data-field="Discount_Percent__c"
                                            onchange={handleUpdateItem}>
                                     <span class="pct-symbol">%</span>
                                 </td>

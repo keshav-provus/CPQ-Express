@@ -96,13 +96,30 @@ table.li-table td {
     background: #f0f4ff;
 }
 
+/* Indent spacer for items inside phases */
+.indent-spacer {
+    display: inline-block;
+    width: 20px;
+}
+
 /* ── Dragging state ── */
 .item-row.dragging {
-    opacity: 0.4;
+    opacity: 0.35;
 }
 
 .item-row[draggable="true"] {
     cursor: grab;
+}
+
+/* Drop target indicator */
+.drag-over td {
+    background: #e0edff !important;
+    border-bottom: 2px solid #0176d3 !important;
+}
+
+.phase-row.drag-over td {
+    background: #c7dbff !important;
+    border-bottom: 2px solid #0176d3 !important;
 }
 
 /* ── Phase rows ── */
@@ -115,10 +132,37 @@ table.li-table td {
     border-bottom: 1px solid #dde5f5;
 }
 
-.phase-cell {
+.phase-cell-td {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.phase-label {
+    cursor: text;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.phase-label:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.phase-name-input {
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #0176d3;
+    border-radius: 3px;
+    padding: 1px 6px;
+    background: #fff;
+    outline: none;
+    width: 130px;
+}
+
+.phase-item-count {
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 400;
 }
 
 /* ── Total row ── */
@@ -192,13 +236,6 @@ table.li-table td {
 }
 
 /* ── Links ── */
-.li-link {
-    color: #0176d3;
-    text-decoration: none;
-    font-weight: 500;
-    cursor: pointer;
-}
-
 .add-item-link {
     color: #0176d3;
     font-size: 11px;
@@ -218,7 +255,6 @@ table.li-table td {
     cursor: pointer;
     color: #6b7280;
     font-size: 12px;
-    margin-right: 2px;
     user-select: none;
 }
 

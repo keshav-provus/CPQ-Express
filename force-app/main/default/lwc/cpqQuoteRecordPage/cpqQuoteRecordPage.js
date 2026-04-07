@@ -23,7 +23,7 @@ export default class CpqQuoteRecordPage extends LightningElement {
     switchTab(event) {
         this.activeTab = event.target.dataset.tab;
     }
-    @track targetPhase = 'Default';
+    @track targetPhase = '';
 
     wiredQuoteResult;
     wiredLinesResult;
@@ -49,10 +49,15 @@ export default class CpqQuoteRecordPage extends LightningElement {
     handleRefresh() {
         refreshApex(this.wiredQuoteResult);
         refreshApex(this.wiredLinesResult);
+        // Also refresh the summary component's internal wire calls
+        const summaryComp = this.template.querySelector('c-cpq-quote-summary');
+        if (summaryComp && typeof summaryComp.refresh === 'function') {
+            summaryComp.refresh();
+        }
     }
 
     handleOpenWizard(event) {
-        this.targetPhase = event.detail.phase || 'Default';
+        this.targetPhase = event.detail.phase || '';
         this.isWizardOpen = true;
     }
 

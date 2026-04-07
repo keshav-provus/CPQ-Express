@@ -13,12 +13,15 @@ export default class CpqQuoteLineEditor extends LightningElement {
     @track collapsedPhases = {};
     @track customPhases = [];
     @track selectedIds = {};
-    @track pendingChanges = {};
     @track localOrder = [];
     @track phaseOrder = [];
     @track itemPhaseOverrides = {};
+    @track editingPhaseName = null;
+    @track editingPhaseValue = '';
 
     _snapshotJson = '';
+    _dragItemId = null;
+    _dragSourcePhase = null;
     wiredPhaseList;
 
     @wire(getPhaseList, { quoteId: '$recordId' })
@@ -28,7 +31,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
             const phases = result.data.split(',').filter(p => p.trim() !== '');
             this.customPhases = phases;
             if (this.phaseOrder.length === 0) {
-                this.phaseOrder = ['Default', ...phases];
+                this.phaseOrder = [...phases];
             }
         }
     }
@@ -39,7 +42,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
             localOrder: this.localOrder,
             phaseOrder: this.phaseOrder,
             itemPhaseOverrides: this.itemPhaseOverrides,
-            pendingChanges: this.pendingChanges
+            customPhases: this.customPhases
         });
     }
 
@@ -57,7 +60,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
         this.localOrder = snap.localOrder;
         this.phaseOrder = snap.phaseOrder;
         this.itemPhaseOverrides = snap.itemPhaseOverrides;
-        this.pendingChanges = snap.pendingChanges;
+        this.customPhases = snap.customPhases;
         this._snapshotJson = '';
         this.dispatchEvent(new ShowToastEvent({
             title: 'Undone',
@@ -87,7 +90,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const idsToDelete = Object.entries(this.selectedIds)
             .filter(([, v]) => v)
             .map(([k]) => k);
-
         if (idsToDelete.length === 0) return;
 
         const promises = idsToDelete.map(id => deleteLineItem({ itemId: id }));
@@ -110,7 +112,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
             });
     }
 
-    // ─── Computed rows (flat list for template) ───
+    // ─── Helpers ───
     get timePeriodMetric() {
         return this.quoteData?.Time_Period_Metric__c || '';
     }
@@ -153,80 +155,86 @@ export default class CpqQuoteLineEditor extends LightningElement {
         return 'item(s)';
     }
 
+    formatCurrency(value) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        }).format(value || 0);
+    }
+
+    // ─── Phase helpers ───
+    _getEffectivePhase(item) {
+        return this.itemPhaseOverrides[item.Id] || item.Phase__c || null;
+    }
+
+    // ─── Build flat rows ───
     get flatRows() {
-        const phases = this._buildPhaseGroups();
-        const rows = [];
-
-        // Use phaseOrder for ordering if set, otherwise default
-        const orderedPhaseNames = this.phaseOrder.length > 0
-            ? this.phaseOrder
-            : ['Default', ...this.customPhases];
-
-        // Include phases that might have items but aren't in phaseOrder yet
-        const allPhaseNames = new Set(orderedPhaseNames);
-        phases.forEach((_, name) => allPhaseNames.add(name));
-
-        const finalOrder = [...orderedPhaseNames];
-        allPhaseNames.forEach(name => {
-            if (!finalOrder.includes(name)) finalOrder.push(name);
-        });
-
         const metric = this.timePeriodMetric;
         const qtyUnit = this._getQtyUnit(metric);
 
-        finalOrder.forEach(name => {
-            const phase = phases.get(name);
-            if (!phase) return;
+        // Group items by effective phase
+        const unphasedItems = [];
+        const phaseItemsMap = new Map();
+
+        // Initialize phase buckets from phaseOrder
+        const phases = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
+        phases.forEach(p => phaseItemsMap.set(p, []));
+
+        this.lineItems.forEach(item => {
+            const phase = this._getEffectivePhase(item);
+            if (!phase || phase === 'Default') {
+                unphasedItems.push(item);
+            } else {
+                if (!phaseItemsMap.has(phase)) {
+                    phaseItemsMap.set(phase, []);
+                }
+                phaseItemsMap.get(phase).push(item);
+            }
+        });
+
+        // Sort items by localOrder if available
+        const orderMap = {};
+        this.localOrder.forEach((id, idx) => { orderMap[id] = idx; });
+        const sortFn = (a, b) => {
+            const oa = orderMap[a.Id] !== undefined ? orderMap[a.Id] : 9999;
+            const ob = orderMap[b.Id] !== undefined ? orderMap[b.Id] : 9999;
+            return oa - ob;
+        };
+
+        const rows = [];
+
+        // 1) Unphased items at top (no phase header, look like root-level items)
+        [...unphasedItems].sort(sortFn).forEach(item => {
+            rows.push(this._buildItemRow(item, null, qtyUnit, false));
+        });
+
+        // 2) Phase groups
+        const phaseNames = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
+        // Add any phases from phaseItemsMap that aren't in phaseNames
+        phaseItemsMap.forEach((_, name) => {
+            if (!phaseNames.includes(name)) phaseNames.push(name);
+        });
+
+        phaseNames.forEach(name => {
+            const items = phaseItemsMap.get(name) || [];
 
             // Phase header row
+            const isEditing = this.editingPhaseName === name;
             rows.push({
                 key: `phase-${name}`,
                 isPhase: true,
                 name: name,
                 toggleIcon: this.collapsedPhases[name] ? '▸' : '▾',
-                isCollapsed: this.collapsedPhases[name] || false
+                isCollapsed: this.collapsedPhases[name] || false,
+                itemCount: items.length,
+                isEditing: isEditing,
+                editValue: isEditing ? this.editingPhaseValue : name
             });
 
-            // Item rows (only if not collapsed)
+            // Items under phase (only if not collapsed)
             if (!this.collapsedPhases[name]) {
-                const items = phase.items;
-
-                // Sort by localOrder if available
-                const orderMap = {};
-                this.localOrder.forEach((id, idx) => { orderMap[id] = idx; });
-                const sorted = [...items].sort((a, b) => {
-                    const oa = orderMap[a.Id] !== undefined ? orderMap[a.Id] : 9999;
-                    const ob = orderMap[b.Id] !== undefined ? orderMap[b.Id] : 9999;
-                    return oa - ob;
-                });
-
-                sorted.forEach(item => {
-                    const isInPhase = name !== 'Default';
-                    rows.push({
-                        key: `item-${item.Id}`,
-                        isPhase: false,
-                        Id: item.Id,
-                        phase: name,
-                        displayName: this._getDisplayName(item),
-                        Item_Type__c: item.Item_Type__c,
-                        icon: this._getIcon(item.Item_Type__c),
-                        iconClass: this._getIconClass(item.Item_Type__c),
-                        Name: item.Name,
-                        Quantity__c: item.Quantity__c,
-                        Discount_Percent__c: item.Discount_Percent__c || 0,
-                        startDateFormatted: item.Start_Date__c
-                            ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-                            : '-',
-                        endDateFormatted: item.End_Date__c
-                            ? new Date(item.End_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-                            : '-',
-                        formattedBaseRate: this.formatCurrency(item.Base_Rate__c),
-                        formattedUnitPrice: this.formatCurrency(item.Unit_Price__c),
-                        formattedNetTotal: this.formatCurrency(item.Net_Total__c),
-                        qtyUnit: qtyUnit,
-                        isSelected: this.selectedIds[item.Id] || false,
-                        rowClass: `item-row ${isInPhase ? 'in-phase' : ''} ${item.Item_Type__c === 'Resource Role' ? 'type-role' : item.Item_Type__c === 'Product' ? 'type-product' : 'type-addon'}`
-                    });
+                [...items].sort(sortFn).forEach(item => {
+                    rows.push(this._buildItemRow(item, name, qtyUnit, true));
                 });
             }
         });
@@ -234,36 +242,38 @@ export default class CpqQuoteLineEditor extends LightningElement {
         return rows;
     }
 
-    _buildPhaseGroups() {
-        const phases = new Map();
-        const allPhaseNames = ['Default', ...this.customPhases];
-
-        allPhaseNames.forEach(name => {
-            phases.set(name, { items: [] });
-        });
-
-        this.lineItems.forEach(item => {
-            // Use override phase if drag-moved, otherwise use original
-            const phaseName = this.itemPhaseOverrides[item.Id] || item.Phase__c || 'Default';
-            if (!phases.has(phaseName)) {
-                phases.set(phaseName, { items: [] });
-            }
-            phases.get(phaseName).items.push(item);
-        });
-
-        return phases;
+    _buildItemRow(item, phaseName, qtyUnit, isIndented) {
+        return {
+            key: `item-${item.Id}`,
+            isPhase: false,
+            Id: item.Id,
+            phase: phaseName || '',
+            displayName: this._getDisplayName(item),
+            Item_Type__c: item.Item_Type__c,
+            icon: this._getIcon(item.Item_Type__c),
+            iconClass: this._getIconClass(item.Item_Type__c),
+            Name: item.Name,
+            Quantity__c: item.Quantity__c,
+            Discount_Percent__c: item.Discount_Percent__c || 0,
+            startDateFormatted: item.Start_Date__c
+                ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                : '-',
+            endDateFormatted: item.End_Date__c
+                ? new Date(item.End_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                : '-',
+            formattedBaseRate: this.formatCurrency(item.Base_Rate__c),
+            formattedUnitPrice: this.formatCurrency(item.Unit_Price__c),
+            formattedNetTotal: this.formatCurrency(item.Net_Total__c),
+            qtyUnit: qtyUnit,
+            isSelected: this.selectedIds[item.Id] || false,
+            isIndented: isIndented,
+            rowClass: `item-row${isIndented ? ' in-phase' : ''}`
+        };
     }
 
     get grandTotal() {
         const total = this.lineItems.reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
         return this.formatCurrency(total);
-    }
-
-    formatCurrency(value) {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(value || 0);
     }
 
     // ─── Phase actions ───
@@ -275,8 +285,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleCollapseAll() {
         const newCollapsed = {};
         const allNames = this.phaseOrder.length > 0
-            ? this.phaseOrder
-            : ['Default', ...this.customPhases];
+            ? [...this.phaseOrder]
+            : [...this.customPhases];
         allNames.forEach(name => { newCollapsed[name] = true; });
         this.collapsedPhases = newCollapsed;
     }
@@ -300,8 +310,79 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleOpenWizard(event) {
         const phase = event.target.dataset.phase;
         this.dispatchEvent(new CustomEvent('openwizard', {
-            detail: { phase }
+            detail: { phase: phase || '' }
         }));
+    }
+
+    // ─── Phase name editing ───
+    handlePhaseNameDblClick(event) {
+        const name = event.currentTarget.dataset.phase;
+        this.editingPhaseName = name;
+        this.editingPhaseValue = name;
+    }
+
+    handlePhaseNameChange(event) {
+        this.editingPhaseValue = event.target.value;
+    }
+
+    handlePhaseNameBlur() {
+        this._commitPhaseRename();
+    }
+
+    handlePhaseNameKeyDown(event) {
+        if (event.key === 'Enter') {
+            this._commitPhaseRename();
+        } else if (event.key === 'Escape') {
+            this.editingPhaseName = null;
+            this.editingPhaseValue = '';
+        }
+    }
+
+    _commitPhaseRename() {
+        const oldName = this.editingPhaseName;
+        const newName = this.editingPhaseValue.trim();
+        this.editingPhaseName = null;
+        this.editingPhaseValue = '';
+
+        if (!newName || newName === oldName) return;
+
+        this._takeSnapshot();
+
+        // Update customPhases
+        this.customPhases = this.customPhases.map(p => p === oldName ? newName : p);
+        this.phaseOrder = this.phaseOrder.map(p => p === oldName ? newName : p);
+
+        // Update itemPhaseOverrides
+        const newOverrides = {};
+        Object.entries(this.itemPhaseOverrides).forEach(([id, phase]) => {
+            newOverrides[id] = phase === oldName ? newName : phase;
+        });
+        this.itemPhaseOverrides = newOverrides;
+
+        // Update collapsed state
+        if (this.collapsedPhases[oldName] !== undefined) {
+            const newCollapsed = { ...this.collapsedPhases };
+            newCollapsed[newName] = newCollapsed[oldName];
+            delete newCollapsed[oldName];
+            this.collapsedPhases = newCollapsed;
+        }
+
+        // Persist phase list
+        savePhaseList({ quoteId: this.recordId, phaseList: this.customPhases.join(',') });
+
+        // Update items that have Phase__c = oldName in the database
+        this.lineItems.forEach(item => {
+            const effectivePhase = this.itemPhaseOverrides[item.Id] || item.Phase__c;
+            if (effectivePhase === newName || item.Phase__c === oldName) {
+                const updateObj = { Id: item.Id, Phase__c: newName };
+                updateLineItem({ item: updateObj }).catch(err => console.error(err));
+            }
+        });
+
+        // Refresh to pick up server changes
+        setTimeout(() => {
+            this.dispatchEvent(new CustomEvent('refresh'));
+        }, 500);
     }
 
     // ─── Inline editing ───
@@ -328,13 +409,10 @@ export default class CpqQuoteLineEditor extends LightningElement {
             });
     }
 
-    // ─── Drag & Drop (items) ───
-    _dragItemId = null;
-    _dragPhase = null;
-
+    // ─── Drag & Drop ───
     handleDragStart(event) {
         this._dragItemId = event.currentTarget.dataset.id;
-        this._dragPhase = null;
+        this._dragSourcePhase = event.currentTarget.dataset.phase || null;
         event.dataTransfer.effectAllowed = 'move';
         event.dataTransfer.setData('text/plain', this._dragItemId);
         event.currentTarget.classList.add('dragging');
@@ -343,84 +421,104 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleDragOver(event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
+        // Add visual indicator
+        const row = event.currentTarget;
+        if (row.classList.contains('item-row') || row.classList.contains('phase-row')) {
+            row.classList.add('drag-over');
+        }
+    }
+
+    handleDragLeave(event) {
+        event.currentTarget.classList.remove('drag-over');
     }
 
     handleDrop(event) {
         event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
         const targetId = event.currentTarget.dataset.id;
-        const targetPhase = event.currentTarget.dataset.phase;
+        const targetPhase = event.currentTarget.dataset.phase || '';
 
-        if (this._dragItemId && this._dragItemId !== targetId) {
-            this._takeSnapshot();
-
-            // Build current order if not set
-            if (this.localOrder.length === 0) {
-                this.localOrder = this.lineItems.map(i => i.Id);
-            }
-
-            const newOrder = [...this.localOrder];
-            const fromIdx = newOrder.indexOf(this._dragItemId);
-            const toIdx = newOrder.indexOf(targetId);
-
-            if (fromIdx >= 0) newOrder.splice(fromIdx, 1);
-            const insertIdx = toIdx >= 0 ? toIdx : newOrder.length;
-            newOrder.splice(insertIdx, 0, this._dragItemId);
-            this.localOrder = newOrder;
-
-            // Move to target phase
-            if (targetPhase) {
-                this.itemPhaseOverrides = {
-                    ...this.itemPhaseOverrides,
-                    [this._dragItemId]: targetPhase
-                };
-                // Persist phase change to server
-                const updateObj = { Id: this._dragItemId, Phase__c: targetPhase };
-                updateLineItem({ item: updateObj })
-                    .then(() => this.dispatchEvent(new CustomEvent('refresh')));
-            }
+        if (!this._dragItemId || this._dragItemId === targetId) {
+            this._cleanupDrag();
+            return;
         }
-        this._dragItemId = null;
-        // Remove dragging class from all rows
-        this.template.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
-    }
 
-    // ─── Drag & Drop (phase rows — drop items onto phase) ───
-    handlePhaseDragStart(event) {
-        this._dragPhase = event.currentTarget.dataset.phase;
-        this._dragItemId = null;
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', this._dragPhase);
+        this._takeSnapshot();
+
+        // Build current order if not set
+        if (this.localOrder.length === 0) {
+            this.localOrder = this.lineItems.map(i => i.Id);
+        }
+
+        const newOrder = [...this.localOrder];
+        const fromIdx = newOrder.indexOf(this._dragItemId);
+        const toIdx = newOrder.indexOf(targetId);
+
+        if (fromIdx >= 0) newOrder.splice(fromIdx, 1);
+        const insertIdx = toIdx >= 0 ? toIdx : newOrder.length;
+        newOrder.splice(insertIdx, 0, this._dragItemId);
+        this.localOrder = newOrder;
+
+        // Move to target phase if different
+        const currentPhase = this._dragSourcePhase || '';
+        if (targetPhase !== currentPhase) {
+            const newPhaseValue = targetPhase || null;
+            this.itemPhaseOverrides = {
+                ...this.itemPhaseOverrides,
+                [this._dragItemId]: newPhaseValue
+            };
+            const updateObj = { Id: this._dragItemId };
+            updateObj.Phase__c = newPhaseValue || '';
+            updateLineItem({ item: updateObj })
+                .then(() => this.dispatchEvent(new CustomEvent('refresh')));
+        }
+
+        this._cleanupDrag();
     }
 
     handlePhaseDrop(event) {
         event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
         const targetPhase = event.currentTarget.dataset.phase;
-        const sourceId = event.dataTransfer.getData('text/plain');
 
-        if (this._dragItemId && sourceId) {
-            // Item dropped onto phase header
+        if (this._dragItemId) {
+            // Item dropped onto phase header — move item into this phase
             this._takeSnapshot();
             this.itemPhaseOverrides = {
                 ...this.itemPhaseOverrides,
-                [sourceId]: targetPhase
+                [this._dragItemId]: targetPhase
             };
-            const updateObj = { Id: sourceId, Phase__c: targetPhase };
+            const updateObj = { Id: this._dragItemId, Phase__c: targetPhase };
             updateLineItem({ item: updateObj })
                 .then(() => this.dispatchEvent(new CustomEvent('refresh')));
-        } else if (this._dragPhase && this._dragPhase !== targetPhase) {
-            // Phase reorder
-            this._takeSnapshot();
-            const newOrder = [...this.phaseOrder];
-            const fromIdx = newOrder.indexOf(this._dragPhase);
-            const toIdx = newOrder.indexOf(targetPhase);
-            if (fromIdx >= 0) newOrder.splice(fromIdx, 1);
-            const insertIdx = toIdx >= 0 ? toIdx : newOrder.length;
-            newOrder.splice(insertIdx, 0, this._dragPhase);
-            this.phaseOrder = newOrder;
         }
 
+        this._cleanupDrag();
+    }
+
+    handleDropToRoot(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+
+        if (this._dragItemId) {
+            // Item dropped outside all phases — remove from phase
+            this._takeSnapshot();
+            this.itemPhaseOverrides = {
+                ...this.itemPhaseOverrides,
+                [this._dragItemId]: null
+            };
+            const updateObj = { Id: this._dragItemId, Phase__c: '' };
+            updateLineItem({ item: updateObj })
+                .then(() => this.dispatchEvent(new CustomEvent('refresh')));
+        }
+        this._cleanupDrag();
+    }
+
+    _cleanupDrag() {
         this._dragItemId = null;
-        this._dragPhase = null;
+        this._dragSourcePhase = null;
+        this.template.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        this.template.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
     }
 
     handleToast(event) {

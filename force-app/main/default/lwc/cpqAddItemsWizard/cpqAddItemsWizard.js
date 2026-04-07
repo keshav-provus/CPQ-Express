@@ -103,7 +103,8 @@ export default class CpqAddItemsWizard extends LightningElement {
             quoteId: this.recordId,
             resourceRoleIds: this.wizardSelections.roles,
             productIds: this.wizardSelections.products,
-            addonIds: this.wizardSelections.addons
+            addonIds: this.wizardSelections.addons,
+            phase: this.targetPhase || ''
         })
         .then(() => {
             this.dispatchEvent(new CustomEvent('success'));
