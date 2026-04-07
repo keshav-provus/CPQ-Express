@@ -1,59 +1,112 @@
 <template>
     <div class="line-items-tab">
         <div class="line-items-toolbar">
-            <button class="btn" onclick={handleCollapseAll}>⊟ Collapse All</button>
+            <button class="btn" onclick={handleCollapseAll}>▸ Collapse All</button>
             <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
+            <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
             <button class="btn btn-primary" data-phase="Default" onclick={handleOpenWizard}>+ Add Item</button>
+            <template if:true={hasSelected}>
+                <button class="btn btn-danger" onclick={handleDeleteSelected}>🗑 Delete Selected</button>
+            </template>
         </div>
         <div class="line-items-table-wrap">
             <table class="li-table">
                 <thead>
                     <tr>
-                        <th style="width:30px;"></th>
-                        <th style="width:220px;">Name</th>
-                        <th style="width:120px;">Task</th>
-                        <th style="width:100px;">Start Date</th>
-                        <th style="width:100px;">End Date</th>
-                        <th style="width:80px;">Quantity</th>
+                        <th style="width:36px;"><input type="checkbox" onchange={toggleSelectAll}></th>
+                        <th style="width:28px;"></th>
+                        <th style="width:28px;"></th>
+                        <th style="width:200px;">Name</th>
+                        <th style="width:130px;">Task</th>
+                        <th style="width:110px;">Start Date</th>
+                        <th style="width:110px;">End Date</th>
+                        <th style="width:110px;">Quantity</th>
                         <th style="width:90px;">Base Rate</th>
-                        <th style="width:90px;">Unit Price</th>
-                        <th style="width:80px;">Discount %</th>
-                        <th style="width:100px;">Total Price</th>
+                        <th style="width:110px;">Unit Price</th>
+                        <th style="width:90px;">Discount %</th>
+                        <th style="width:110px;">Total Price</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <template for:each={groupedPhases} for:item="phase">
-                        <tr key={phase.name} class="phase-row">
-                            <td colspan="10">
-                                <span class="phase-toggle" data-phase={phase.name} onclick={togglePhase}>{phase.toggleIcon}</span>
-                                {phase.name} &nbsp;
-                                <a class="add-item-link" data-phase={phase.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
-                            </td>
-                        </tr>
-                        <template if:false={phase.isCollapsed}>
-                            <template for:each={phase.items} for:item="item">
-                                <tr key={item.Id} data-id={item.Id}>
-                                    <td>{item.icon}</td>
-                                    <td><a class="li-link">{item.Name}</a></td>
-                                    <td><span class="add-task-link" data-msg="Task assignment will be implemented soon" onclick={handleToast}>Add task...</span></td>
-                                    <td>{item.startDateFormatted}</td>
-                                    <td>{item.endDateFormatted}</td>
-                                    <td class="editable-cell">
-                                        <input type="number" value={item.Quantity__c} min="0" step="0.5" data-id={item.Id} data-field="Quantity__c" onchange={handleUpdateItem}>
-                                    </td>
-                                    <td>{item.formattedBaseRate}</td>
-                                    <td><a class="li-link">{item.formattedUnitPrice}</a></td>
-                                    <td class="editable-cell">
-                                        <input type="number" value={item.Discount_Percent__c} min="0" max="100" data-id={item.Id} data-field="Discount_Percent__c" onchange={handleUpdateItem}>%
-                                    </td>
-                                    <td><a class="li-link">{item.formattedNetTotal}</a></td>
-                                </tr>
-                            </template>
+                    <template for:each={flatRows} for:item="row">
+                        <!-- Phase header row -->
+                        <template if:true={row.isPhase}>
+                            <tr key={row.key} class="phase-row"
+                                data-phase={row.name}
+                                ondrop={handlePhaseDrop}
+                                ondragover={handleDragOver}>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                    <span class="drag-handle phase-drag"
+                                          draggable="true"
+                                          data-phase={row.name}
+                                          ondragstart={handlePhaseDragStart}>⠿</span>
+                                </td>
+                                <td colspan="9" class="phase-cell">
+                                    <span class="phase-toggle" data-phase={row.name} onclick={togglePhase}>{row.toggleIcon}</span>
+                                    <strong>{row.name}</strong>
+                                    &nbsp;
+                                    <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <!-- Line item row -->
+                        <template if:false={row.isPhase}>
+                            <tr key={row.key} class={row.rowClass}
+                                draggable="true"
+                                data-id={row.Id}
+                                data-phase={row.phase}
+                                ondragstart={handleDragStart}
+                                ondragover={handleDragOver}
+                                ondrop={handleDrop}>
+                                <td>
+                                    <input type="checkbox"
+                                           data-id={row.Id}
+                                           checked={row.isSelected}
+                                           onchange={toggleSelect}>
+                                </td>
+                                <td>
+                                    <span class="drag-handle"
+                                          data-id={row.Id}>⠿</span>
+                                </td>
+                                <td class="type-icon-cell">
+                                    <span class={row.iconClass} title={row.Item_Type__c}>{row.icon}</span>
+                                </td>
+                                <td>
+                                    <span class="item-name">{row.displayName}</span>
+                                    <span class="info-icon" title="View details">ⓘ</span>
+                                </td>
+                                <td>
+                                    <span class="add-task-link" data-msg="Task assignment will be implemented soon" onclick={handleToast}>Add task...</span>
+                                    <span class="info-icon" title="Task info">ⓘ</span>
+                                </td>
+                                <td>{row.startDateFormatted}</td>
+                                <td>{row.endDateFormatted}</td>
+                                <td class="editable-cell">
+                                    <input type="number" value={row.Quantity__c} min="0" step="0.5"
+                                           data-id={row.Id} data-field="Quantity__c" 
+                                           onchange={handleUpdateItem}>
+                                    <span class="qty-unit">{row.qtyUnit}</span>
+                                </td>
+                                <td class="money">{row.formattedBaseRate}</td>
+                                <td class="money link-price">{row.formattedUnitPrice}</td>
+                                <td class="editable-cell">
+                                    <input type="number" value={row.Discount_Percent__c} min="0" max="100"
+                                           data-id={row.Id} data-field="Discount_Percent__c" 
+                                           onchange={handleUpdateItem}>
+                                    <span class="pct-symbol">%</span>
+                                </td>
+                                <td class="money total-price">{row.formattedNetTotal}</td>
+                            </tr>
                         </template>
                     </template>
+
+                    <!-- Total row -->
                     <tr class="total-row">
-                        <td colspan="9" style="text-align:right;">Total</td>
-                        <td>{grandTotal}</td>
+                        <td colspan="11" style="text-align:right; font-weight:700;">Total</td>
+                        <td class="money total-price" style="font-weight:700;">{grandTotal}</td>
                     </tr>
                 </tbody>
             </table>
