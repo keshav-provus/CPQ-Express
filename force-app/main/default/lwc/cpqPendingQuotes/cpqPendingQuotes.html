@@ -1,0 +1,45 @@
+<template>
+    <div class="pending-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Pending Approvals</h2>
+                <p class="card-subtitle">Quotes waiting for your review</p>
+            </div>
+            <lightning-button-icon icon-name="utility:refresh" variant="bare" onclick={handleRefresh}></lightning-button-icon>
+        </div>
+
+        <div class="list-container">
+            <template if:true={quotes}>
+                <template for:each={formattedQuotes} for:item="quote">
+                    <div key={quote.Id} class="quote-item">
+                        <div class="quote-main">
+                            <div class="quote-info">
+                                <p class="quote-name">{quote.Name}</p>
+                                <p class="account-name">{quote.AccountName}</p>
+                            </div>
+                            <div class="quote-meta">
+                                <p class="quote-amount">{quote.formattedAmount}</p>
+                                <p class="quote-date">{quote.formattedDate}</p>
+                            </div>
+                        </div>
+                        <div class="quote-actions">
+                            <button class="action-btn approve" data-id={quote.Id} onclick={handleApprove}>Approve</button>
+                            <button class="action-btn reject" data-id={quote.Id} onclick={handleReject}>Reject</button>
+                        </div>
+                    </div>
+                </template>
+                <template if:false={hasQuotes}>
+                    <div class="empty-state">
+                        <lightning-icon icon-name="utility:check" size="medium"></lightning-icon>
+                        <p>No quotes pending approval</p>
+                    </div>
+                </template>
+            </template>
+            <template if:false={quotes}>
+                <div class="slds-p-around_medium slds-text-align_center">
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

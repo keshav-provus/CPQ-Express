@@ -1,0 +1,49 @@
+:host {
+    --slds-c-button-brand-color-background: #6366f1;
+    --slds-c-button-brand-color-border: #6366f1;
+}
+
+.end-date-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.end-date-display {
+    text-align: left;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #4f46e5;
+    min-height: 32px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.slds-modal__header {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: white;
+}
+
+.slds-modal__header h2 {
+    font-weight: 700;
+}
+
+.slds-button_brand {
+    background: #4f46e5 !important;
+    border: none !important;
+    padding: 0 1.5rem !important;
+    font-weight: 600 !important;
+}
+
+.slds-button_neutral {
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+}
+
+.slds-form-element__label {
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.slds-modal__container {
+    max-width: 500px !important;
+}

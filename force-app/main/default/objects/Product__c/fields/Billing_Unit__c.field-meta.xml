@@ -2,7 +2,6 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Billing_Unit__c</fullName>
     <description>Unit of measurement for billing (e.g., Piece, Month, Year).</description>
-    <externalId>false</externalId>
     <label>Billing Unit</label>
     <required>false</required>
     <trackTrending>false</trackTrending>

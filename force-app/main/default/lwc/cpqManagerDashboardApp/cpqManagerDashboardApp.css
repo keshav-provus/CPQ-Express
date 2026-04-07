@@ -1,0 +1,89 @@
+:host {
+    display: block;
+    background-color: #f3f4f6;
+    min-height: 100vh;
+    padding: 1rem 1.5rem; /* Reduced from 2rem */
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.dashboard-container {
+    max-width: 1536px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem; /* Reduced from 1.5rem */
+}
+
+@media (min-width: 1024px) {
+    .dashboard-container {
+        grid-template-columns: repeat(12, 1fr);
+    }
+    
+    .header-section {
+        grid-column: span 12;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+    }
+
+    .kpis-section {
+        grid-column: span 12;
+        margin-bottom: 0rem;
+    }
+
+    /* First Row: Pipeline & Map */
+    .row-middle {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: 7fr 5fr;
+        gap: 1rem;
+    }
+
+    /* Second Row: New compact layout for 3 components */
+    .row-lower {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    /* Third Row: Bottom items */
+    .row-bottom {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: 8fr 4fr;
+        gap: 1rem;
+    }
+}
+
+.header-title {
+    font-size: 1.5rem; /* Reduced from 1.875rem */
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-avatar {
+    width: 32px; /* Reduced from 40px */
+    height: 32px; /* Reduced from 40px */
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-weight: 600;
+}

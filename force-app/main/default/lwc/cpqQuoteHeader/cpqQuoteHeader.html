@@ -1,0 +1,31 @@
+<template>
+    <div class="header-container">
+        <div class="header-main">
+            <div class="title-section">
+                <div class="name-status">
+                    <h1 class="quote-name">{quoteName}</h1>
+                    <span class={statusBadgeClass}>{quoteStatus}</span>
+                </div>
+                <p class="account-line">
+                    <lightning-icon icon-name="utility:company" size="xx-small" class="icon-muted"></lightning-icon>
+                    {accountName}
+                </p>
+            </div>
+            
+            <div class="highlights-section">
+                <div class="highlight-item">
+                    <p class="h-label">TOTAL AMOUNT</p>
+                    <p class="h-value">{formattedTotal}</p>
+                </div>
+                <div class="highlight-item">
+                    <p class="h-label">MARGIN %</p>
+                    <p class="h-value accent-text">{marginPercent}%</p>
+                </div>
+                <div class="highlight-item">
+                    <p class="h-label">EXPIRATION</p>
+                    <p class="h-value">{formattedExpiration}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

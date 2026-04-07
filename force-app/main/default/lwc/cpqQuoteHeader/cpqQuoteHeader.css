@@ -1,0 +1,90 @@
+:host {
+    display: block;
+    background: #f8f9fa;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.name-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.quote-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a1c1e;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(77, 68, 227, 0.1);
+    color: #4d44e3;
+}
+
+.badge-draft { background: rgba(77, 68, 227, 0.1); color: #4d44e3; }
+.badge-submitted { background: rgba(251, 191, 36, 0.1); color: #b45309; }
+.badge-approved { background: rgba(52, 211, 153, 0.1); color: #065f46; }
+
+.account-line {
+    font-size: 0.9rem;
+    color: #464555;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-muted {
+    --slds-c-icon-color-foreground: #464555;
+}
+
+.highlights-section {
+    display: flex;
+    gap: 3rem;
+}
+
+.highlight-item {
+    text-align: right;
+}
+
+.h-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #777587;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.1em;
+}
+
+.h-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1c1e;
+    margin: 0;
+}
+
+.accent-text {
+    color: #2f2ebe; 
+}

@@ -1,0 +1,42 @@
+<template>
+    <div class="dashboard-container">
+        
+        <!-- Header -->
+        <div class="header-section">
+            <h1 class="header-title">Manager Dashboard</h1>
+            <div class="header-controls">
+                <lightning-input type="search" variant="label-hidden" placeholder="Search..."></lightning-input>
+                <lightning-button-icon icon-name="utility:notification" variant="bare" class="slds-m-horizontal_small"></lightning-button-icon>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <lightning-icon icon-name="standard:user" size="small"></lightning-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpis-section">
+            <c-cpq-manager-k-p-is></c-cpq-manager-k-p-is>
+        </div>
+
+        <!-- Middle Row: Charts & Maps -->
+        <div class="row-middle">
+            <c-cpq-weekly-pipeline-chart></c-cpq-weekly-pipeline-chart>
+            <c-cpq-quote-map></c-cpq-quote-map>
+        </div>
+
+        <!-- Lower Row: 3 Column List Components -->
+        <div class="row-lower">
+            <c-cpq-pending-quotes></c-cpq-pending-quotes>
+            <c-cpq-top-transactions></c-cpq-top-transactions>
+            <c-cpq-top-products></c-cpq-top-products>
+        </div>
+
+        <!-- Bottom Row (Optional/Promo) -->
+        <div class="row-bottom">
+            <c-cpq-promo-insight></c-cpq-promo-insight>
+        </div>
+
+    </div>
+</template>

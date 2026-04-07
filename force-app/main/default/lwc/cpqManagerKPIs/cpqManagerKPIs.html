@@ -1,0 +1,77 @@
+<template>
+    <div class="kpi-grid">
+        <template if:true={kpis}>
+            <!-- Total Pipeline -->
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="icon-wrapper revenue">
+                        <lightning-icon icon-name="utility:money" size="x-small" variant="inverse" class="slds-current-color"></lightning-icon>
+                    </div>
+                    <span class="kpi-title">Total Pipeline Pipeline</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span class="kpi-value">{kpis.formattedPipeline}</span>
+                    <span class="kpi-growth growth-up">
+                        <lightning-icon icon-name="utility:arrowup" size="xx-small" class="slds-current-color slds-m-right_xxx-small"></lightning-icon>
+                        12% <span class="kpi-subtitle">vs last month</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Active Quotes -->
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="icon-wrapper customer">
+                        <lightning-icon icon-name="utility:groups" size="x-small" variant="inverse" class="slds-current-color"></lightning-icon>
+                    </div>
+                    <span class="kpi-title">Active Quotes</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span class="kpi-value">{kpis.activeQuotes}</span>
+                    <span class="kpi-growth growth-down">
+                        <lightning-icon icon-name="utility:arrowdown" size="xx-small" class="slds-current-color slds-m-right_xxx-small"></lightning-icon>
+                        3% <span class="kpi-subtitle">vs last month</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Transactions / Approved -->
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="icon-wrapper transaction">
+                        <lightning-icon icon-name="utility:success" size="x-small" variant="inverse" class="slds-current-color"></lightning-icon>
+                    </div>
+                    <span class="kpi-title">Approved Quotes</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span class="kpi-value">{kpis.approvedCount}</span>
+                    <span class="kpi-growth growth-up">
+                        <lightning-icon icon-name="utility:arrowup" size="xx-small" class="slds-current-color slds-m-right_xxx-small"></lightning-icon>
+                        8% <span class="kpi-subtitle">vs last month</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Total Products in Catalog -->
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <div class="icon-wrapper product">
+                        <lightning-icon icon-name="utility:products" size="x-small" variant="inverse" class="slds-current-color"></lightning-icon>
+                    </div>
+                    <span class="kpi-title">Active Products</span>
+                </div>
+                <div class="kpi-value-row">
+                    <span class="kpi-value">{kpis.totalProducts}</span>
+                    <span class="kpi-growth growth-neutral">
+                        - 0% <span class="kpi-subtitle">vs last month</span>
+                    </span>
+                </div>
+            </div>
+        </template>
+        <template if:false={kpis}>
+            <div class="slds-p-around_medium">
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </div>
+        </template>
+    </div>
+</template>

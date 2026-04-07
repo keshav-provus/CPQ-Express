@@ -24,18 +24,19 @@ export default class QuotesByStatusChart extends LightningElement {
     chartJsInitialized = false;
     chart;
 
-    @wire(getQuotesByStatus)
-    wiredData({ data, error }) {
-        if (data) {
-            this.chartData = data;
-            this.hasNoData = data.length === 0;
+    @api 
+    set dashboardData(value) {
+        if (value) {
+            this.chartData = value;
+            this.hasNoData = value.length === 0;
             if (this.chartJsInitialized && !this.hasNoData) {
                 this.renderChart();
             }
-        } else if (error) {
-            console.error('Error loading chart data:', error);
+            this.isLoading = false;
         }
-        this.isLoading = false;
+    }
+    get dashboardData() {
+        return this.chartData;
     }
 
     renderedCallback() {

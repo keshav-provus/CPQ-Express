@@ -1,0 +1,14 @@
+<template>
+    <div class="actions-card">
+        <h3 class="card-title">Actions</h3>
+        <div class="button-stack">
+            <button class="submit-btn" onclick={handleSubmit}>
+                <lightning-icon icon-name="utility:send" size="small" class="btn-icon-white"></lightning-icon>
+                Submit for Approval
+            </button>
+            <div class="secondary-grid">
+                <button class="grid-btn bg-purple" onclick={handlePDF}>Generate PDF</button>
+            </div>
+        </div>
+    </div>
+</template>

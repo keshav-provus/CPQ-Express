@@ -1,0 +1,17 @@
+<template>
+    <div class="card-container">
+        <div class="card-content">
+            <h3 class="card-title">Profitability Health</h3>
+            <p class="card-subtitle">
+                This quote is currently {healthStatus} the {marginThreshold}% threshold for automatic approval.
+            </p>
+            
+            <div class="progress-section">
+                <div class="progress-bar-container">
+                    <div class={progressBarClass} style={progressBarStyle}></div>
+                </div>
+                <span class={statusLabelClass}>{healthLabel}</span>
+            </div>
+        </div>
+    </div>
+</template>

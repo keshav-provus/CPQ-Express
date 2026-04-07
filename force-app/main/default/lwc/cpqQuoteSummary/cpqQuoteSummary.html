@@ -1,0 +1,28 @@
+<template>
+    <div class="summary-card">
+        <h3 class="card-title">Quote Summary</h3>
+        <div class="summary-rows">
+            <div class="summary-row">
+                <span class="row-label">Subtotal</span>
+                <span class="row-value">{itemSubtotal}</span>
+            </div>
+            <div class="summary-row">
+                <span class="row-label">Discounts</span>
+                <span class="row-value text-error">-{itemDiscounts}</span>
+            </div>
+            <div class="summary-row">
+                <span class="row-label">Shipping</span>
+                <span class="row-value">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span class="row-label">Taxes</span>
+                <span class="row-value font-muted">Calculated at checkout</span>
+            </div>
+            
+            <div class="grand-total-row">
+                <span class="grand-label">Grand Total</span>
+                <span class="grand-value">{itemGrandTotal}</span>
+            </div>
+        </div>
+    </div>
+</template>

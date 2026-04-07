@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Product_Type__c</fullName>
-    <description>Type of product (Hardware, Software, or Recurring Revenue).</description>
-    <externalId>false</externalId>
+    <description>Type of product (Resource Role, Product, or Add-on).</description>
     <label>Product Type</label>
     <required>false</required>
     <trackTrending>false</trackTrending>
@@ -11,6 +10,21 @@
         <restricted>true</restricted>
         <valueSetDefinition>
             <sorted>false</sorted>
+            <value>
+                <fullName>Resource Role</fullName>
+                <default>false</default>
+                <label>Resource Role</label>
+            </value>
+            <value>
+                <fullName>Product</fullName>
+                <default>false</default>
+                <label>Product</label>
+            </value>
+            <value>
+                <fullName>Add-on</fullName>
+                <default>false</default>
+                <label>Add-on</label>
+            </value>
             <value>
                 <fullName>Hardware</fullName>
                 <default>false</default>
