@@ -215,6 +215,23 @@ public with sharing class QuoteLineItemController {
     }
 
     /**
+     * @description Cascade delete all line items for a given phase and quote.
+     * @param quoteId Quote__c ID.
+     * @param phaseName Name of the phase.
+     */
+    @AuraEnabled
+    public static void deletePhaseItems(Id quoteId, String phaseName) {
+        List<Quote_Line_Item__c> items = [
+            SELECT Id FROM Quote_Line_Item__c 
+            WHERE Quote__c = :quoteId AND Phase__c = :phaseName
+        ];
+        if (!items.isEmpty()) {
+            delete items;
+            QuoteController.recalculateQuoteTotals(quoteId);
+        }
+    }
+
+    /**
      * @description Get line items grouped by type for summary cards.
      * @param quoteId Quote__c ID.
      * @return Summary map.

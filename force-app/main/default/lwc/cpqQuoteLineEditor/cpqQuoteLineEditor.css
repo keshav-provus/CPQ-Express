@@ -253,9 +253,11 @@ table.li-table td {
 
 .phase-toggle {
     cursor: pointer;
-    color: #6b7280;
-    font-size: 12px;
+    --sds-c-icon-color-foreground-default: #6b7280;
     user-select: none;
+}
+.phase-toggle:hover {
+    --sds-c-icon-color-foreground-default: #374151;
 }
 
 /* ── Money columns ── */
@@ -314,4 +316,42 @@ table.li-table input[type="checkbox"] {
     height: 15px;
     cursor: pointer;
     accent-color: #0176d3;
+}
+
+/* ── Phase Actions ── */
+.delete-phase-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+    color: #9ca3af;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.delete-phase-btn:hover {
+    color: #dc2626;
+}
+
+.phase-date-cell input[type="date"] {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #374151;
+    font-size: 11px;
+    padding: 1px 2px;
+    width: 105px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+}
+.phase-date-cell input[type="date"]:hover {
+    border-color: #d1d5db;
+}
+.phase-date-cell input[type="date"]:focus {
+    border-color: #0176d3;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(1, 118, 211, 0.15);
 }

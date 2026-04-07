@@ -1,6 +1,7 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import updateLineItem from '@salesforce/apex/QuoteLineItemController.updateLineItem';
 import deleteLineItem from '@salesforce/apex/QuoteLineItemController.deleteLineItem';
+import deletePhaseItems from '@salesforce/apex/QuoteLineItemController.deletePhaseItems';
 import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList';
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
@@ -15,6 +16,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     @track selectedIds = {};
     @track localOrder = [];
     @track phaseOrder = [];
+    @track phaseDetails = {};
     @track itemPhaseOverrides = {};
     @track editingPhaseName = null;
     @track editingPhaseValue = '';
@@ -28,12 +30,30 @@ export default class CpqQuoteLineEditor extends LightningElement {
     wiredPhases(result) {
         this.wiredPhaseList = result;
         if (result.data) {
-            const phases = result.data.split(',').filter(p => p.trim() !== '');
-            this.customPhases = phases;
-            if (this.phaseOrder.length === 0) {
-                this.phaseOrder = [...phases];
+            let raw = result.data.trim();
+            if (raw.startsWith('{')) {
+                try {
+                    let data = JSON.parse(raw);
+                    this.phaseOrder = data.order || [];
+                    this.phaseDetails = data.details || {};
+                    this.customPhases = [...this.phaseOrder];
+                } catch(e) { console.error('Error parsing Phase_List__c', e); }
+            } else {
+                let phases = raw.split(',').filter(p => p.trim() !== '');
+                this.customPhases = phases;
+                if (this.phaseOrder.length === 0) {
+                    this.phaseOrder = [...phases];
+                }
             }
         }
+    }
+
+    _savePhaseListData() {
+        const payload = JSON.stringify({
+            order: this.phaseOrder,
+            details: this.phaseDetails
+        });
+        savePhaseList({ quoteId: this.recordId, phaseList: payload });
     }
 
     // ─── Snapshot for Undo ───
@@ -41,6 +61,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
         this._snapshotJson = JSON.stringify({
             localOrder: this.localOrder,
             phaseOrder: this.phaseOrder,
+            phaseDetails: this.phaseDetails,
             itemPhaseOverrides: this.itemPhaseOverrides,
             customPhases: this.customPhases
         });
@@ -59,6 +80,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const snap = JSON.parse(this._snapshotJson);
         this.localOrder = snap.localOrder;
         this.phaseOrder = snap.phaseOrder;
+        this.phaseDetails = snap.phaseDetails || {};
         this.itemPhaseOverrides = snap.itemPhaseOverrides;
         this.customPhases = snap.customPhases;
         this._snapshotJson = '';
@@ -220,15 +242,18 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
             // Phase header row
             const isEditing = this.editingPhaseName === name;
+            const details = this.phaseDetails[name] || {};
             rows.push({
                 key: `phase-${name}`,
                 isPhase: true,
                 name: name,
-                toggleIcon: this.collapsedPhases[name] ? '▸' : '▾',
+                toggleIcon: this.collapsedPhases[name] ? 'utility:chevronright' : 'utility:chevrondown',
                 isCollapsed: this.collapsedPhases[name] || false,
                 itemCount: items.length,
                 isEditing: isEditing,
-                editValue: isEditing ? this.editingPhaseValue : name
+                editValue: isEditing ? this.editingPhaseValue : name,
+                startDate: details.startDate || '',
+                endDate: details.endDate || ''
             });
 
             // Items under phase (only if not collapsed)
@@ -297,14 +322,13 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const newPhaseName = `Phase ${nextPhaseNum}`;
         this.customPhases = [...this.customPhases, newPhaseName];
         this.phaseOrder = [...this.phaseOrder, newPhaseName];
-        savePhaseList({ quoteId: this.recordId, phaseList: this.customPhases.join(',') })
-            .then(() => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Success',
-                    message: `Phase "${newPhaseName}" added`,
-                    variant: 'success'
-                }));
-            });
+        this.phaseDetails = { ...this.phaseDetails, [newPhaseName]: {} };
+        this._savePhaseListData();
+        this.dispatchEvent(new ShowToastEvent({
+            title: 'Success',
+            message: `Phase "${newPhaseName}" added`,
+            variant: 'success'
+        }));
     }
 
     handleOpenWizard(event) {
@@ -367,8 +391,16 @@ export default class CpqQuoteLineEditor extends LightningElement {
             this.collapsedPhases = newCollapsed;
         }
 
+        // Update phase details map
+        if (this.phaseDetails[oldName]) {
+            const newDetails = { ...this.phaseDetails };
+            newDetails[newName] = newDetails[oldName];
+            delete newDetails[oldName];
+            this.phaseDetails = newDetails;
+        }
+
         // Persist phase list
-        savePhaseList({ quoteId: this.recordId, phaseList: this.customPhases.join(',') });
+        this._savePhaseListData();
 
         // Update items that have Phase__c = oldName in the database
         this.lineItems.forEach(item => {
@@ -385,7 +417,57 @@ export default class CpqQuoteLineEditor extends LightningElement {
         }, 500);
     }
 
-    // ─── Inline editing ───
+    // ─── Inline editing & Phase Logic ───
+    handleDeletePhase(event) {
+        const phaseName = event.target.dataset.phase;
+        if (!confirm(`Are you sure you want to delete ${phaseName} and all its items?`)) return;
+
+        this._takeSnapshot();
+
+        // Server-side
+        deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName })
+            .then(() => {
+                // Client-side layer cleanup
+                this.customPhases = this.customPhases.filter(p => p !== phaseName);
+                this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
+                if (this.phaseDetails[phaseName]) {
+                    const newDetails = { ...this.phaseDetails };
+                    delete newDetails[phaseName];
+                    this.phaseDetails = newDetails;
+                }
+                this._savePhaseListData();
+
+                this.dispatchEvent(new CustomEvent('refresh'));
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Deleted',
+                    message: `${phaseName} deleted.`,
+                    variant: 'success'
+                }));
+            })
+            .catch(error => {
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body?.message || 'Error deleting phase',
+                    variant: 'error'
+                }));
+            });
+    }
+
+    handlePhaseDetailChange(event) {
+        const phaseName = event.target.dataset.phase;
+        const field = event.target.dataset.field; // 'startDate' or 'endDate'
+        const val = event.target.value;
+
+        this._takeSnapshot();
+
+        const currentDetails = this.phaseDetails[phaseName] || {};
+        this.phaseDetails = {
+            ...this.phaseDetails,
+            [phaseName]: { ...currentDetails, [field]: val }
+        };
+        this._savePhaseListData();
+    }
+
     handleUpdateItem(event) {
         this._takeSnapshot();
         const itemId = event.target.dataset.id;
