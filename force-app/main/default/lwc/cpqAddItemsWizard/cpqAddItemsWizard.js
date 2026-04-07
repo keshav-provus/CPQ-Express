@@ -1,5 +1,5 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import getProducts from '@salesforce/apex/ProductController.getProducts';
+import getProducts from '@salesforce/apex/ProductController.getActiveProducts';
 import addLineItemsFromProducts from '@salesforce/apex/QuoteController.addLineItemsFromProducts';
 
 export default class CpqAddItemsWizard extends LightningElement {

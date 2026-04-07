@@ -3,11 +3,8 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>cpqQuoteRecordPage</componentName>
-                <componentInstanceProperties>
-                    <name>recordId</name>
-                    <value>{!recordId}</value>
-                </componentInstanceProperties>
+                <componentName>c:cpqQuoteRecordPage</componentName>
+                <identifier>cpqQuoteRecordPage</identifier>
             </componentInstance>
         </itemInstances>
         <name>main</name>
@@ -16,7 +13,7 @@
     <masterLabel>CPQ Quote Record Page</masterLabel>
     <sobjectType>Quote__c</sobjectType>
     <template>
-        <name>flexipage:recordHomeSingleColTemplateActual</name>
+        <name>flexipage:recordHomeTemplateDesktop</name>
     </template>
     <type>RecordPage</type>
 </FlexiPage>
