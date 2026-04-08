@@ -17,6 +17,10 @@ export default class CpqProductRecordPage extends LightningElement {
         return this.wiredProductResult?.data;
     }
 
+    get productPrice() {
+        return this.product?.Price__c || 0;
+    }
+
     get isDetails() { return this.activeTab === 'details'; }
     get isRelated() { return this.activeTab === 'related'; }
     get isConfig() { return this.activeTab === 'config'; }

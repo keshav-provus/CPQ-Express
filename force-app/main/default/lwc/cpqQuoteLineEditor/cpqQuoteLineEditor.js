@@ -562,18 +562,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const val = event.target.value;
 
         const details = this.phaseDetails[phaseName] || {};
-        const newStart = field === 'startDate' ? val : details.startDate;
-        const newEnd = field === 'endDate' ? val : details.endDate;
-
-        if (!this._validatePhaseAgainstItems(phaseName, newStart, newEnd)) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Invalid Phase Dates',
-                message: 'Some items in this phase fall outside the new date range. Please adjust items first.',
-                variant: 'error'
-            }));
-            event.target.value = details[field] || '';
-            return;
-        }
 
         this._takeSnapshot();
         this.phaseDetails = {

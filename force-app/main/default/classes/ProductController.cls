@@ -88,4 +88,19 @@ public with sharing class ProductController {
             throw new AuraHandledException('Error updating product: ' + e.getMessage());
         }
     }
+
+    /**
+     * @description Fetches all active products with their categories.
+     * @return List of Product__c records.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Product__c> getActiveProducts() {
+        return [
+            SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c,
+                   Active__c, Billing_Unit__c, Category__c, Category__r.Name, Description__c
+            FROM Product__c
+            WHERE Active__c = true
+            ORDER BY Name ASC
+        ];
+    }
 }
