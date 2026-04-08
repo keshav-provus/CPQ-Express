@@ -211,7 +211,7 @@ public with sharing class QuoteController {
      * @description Generates a PDF for the quote and saves it as a version.
      */
     @AuraEnabled
-    public static void generateQuotePdf(Id quoteId, String title, String description, Id templateId) {
+    public static void generateQuotePdf(Id quoteId, String title, String description) {
         try {
             // 1. Get next version label
             List<Quote_Version__c> existingVersions = [SELECT Id FROM Quote_Version__c WHERE Quote__c = :quoteId];
@@ -219,11 +219,8 @@ public with sharing class QuoteController {
             String versionLabel = 'v4.' + nextVersion; // Using v4.x as per screenshot example
 
             // 2. Render PDF
-            PageReference pdfPage = Page.DynamicQuotePDF;
-            pdfPage.getParameters().put('quoteId', quoteId);
-            if (templateId != null) {
-                pdfPage.getParameters().put('templateId', templateId);
-            }
+            PageReference pdfPage = Page.QuotePDF;
+            pdfPage.getParameters().put('id', quoteId);
             Blob pdfBlob;
             if (Test.isRunningTest()) {
                 pdfBlob = Blob.valueOf('Test PDF Content');

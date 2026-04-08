@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
     <brand>
-        <headerColor>#4F46E5</headerColor>
+        <headerColor>#0070D2</headerColor>
         <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
     </brand>
-    <description>CPQ Express Application with AI Assistant</description>
+    <description>CPQ Express App</description>
+    <formFactors>Small</formFactors>
     <formFactors>Large</formFactors>
     <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
     <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
     <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
     <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
-    <label>CPQ Express</label>
+    <label>Provus Express Quoting</label>
     <navType>Standard</navType>
-    <tabs>Quote__c</tabs>
-    <tabs>Product__c</tabs>
     <uiType>Lightning</uiType>
-    <utilityBar>CPQ_Express_UtilityBar</utilityBar>
+    <utilityBar>Provus_Express_Quoting_UtilityBar</utilityBar>
 </CustomApplication>

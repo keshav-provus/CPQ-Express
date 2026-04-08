@@ -67,15 +67,7 @@
                         <h2 class="slds-text-heading_medium">Generate PDF</h2>
                     </header>
                     <div class="slds-modal__content slds-p-around_medium">
-                        <lightning-combobox
-                            label="Document Template"
-                            value={selectedTemplateId}
-                            options={templateOptions}
-                            onchange={handleTemplateChange}
-                            required
-                            class="slds-m-bottom_medium">
-                        </lightning-combobox>
-                        <lightning-input label="PDF Title" value={pdfTitle} onchange={handlePdfTitleChange} placeholder="e.g. Solution Proposal - v1"></lightning-input>
+                        <lightning-input label="Title" value={pdfTitle} onchange={handlePdfTitleChange} placeholder="e.g. Pricing Adjusted"></lightning-input>
                         <lightning-textarea label="Description" value={pdfDescription} onchange={handlePdfDescChange} placeholder="Describe the changes in this version..."></lightning-textarea>
                     </div>
                     <footer class="slds-modal__footer">
