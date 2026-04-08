@@ -1,0 +1,52 @@
+:host {
+    display: block;
+    --primary: #3525cd;
+    --on-surface: #191c1e;
+    --on-surface-variant: #464555;
+    --outline: #777587;
+    --surface-container-low: #f2f4f6;
+    --surface-container-lowest: #ffffff;
+    --surface-container-high: #e6e8ea;
+}
+
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.px-4 { padding-left: 1rem; padding-right: 1rem; }
+.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.bg-primary { background-color: var(--primary); }
+.text-white { color: #ffffff; }
+.rounded-lg { border-radius: 0.5rem; }
+.font-bold { font-weight: 700; }
+.text-xs { font-size: 0.75rem; }
+.uppercase { text-transform: uppercase; }
+.tracking-wider { letter-spacing: 0.05em; }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+.bg-surface-container-low { background-color: var(--surface-container-low); }
+.p-1 { padding: 0.25rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.overflow-x-auto { overflow-x: auto; }
+.w-full { width: 100%; }
+.text-left { text-align: left; }
+.border-separate { border-collapse: separate; }
+.border-spacing-y-1 { border-spacing: 0 0.25rem; }
+
+.text-\[10px\] { font-size: 10px; }
+.text-outline { color: var(--outline); }
+.tracking-widest { letter-spacing: 0.1em; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+
+.bg-surface-container-lowest { background-color: var(--surface-container-lowest); }
+.hover\:bg-surface-container-high:hover { background-color: var(--surface-container-high); }
+.transition-colors { transition-property: background-color; transition-duration: 150ms; }
+.text-on-surface { color: var(--on-surface); }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-on-surface-variant { color: var(--on-surface-variant); }
+.font-headline { font-family: 'Manrope', sans-serif; }
+.text-lg { font-size: 1.125rem; }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 16px; }
