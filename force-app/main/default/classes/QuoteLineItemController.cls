@@ -1,21 +1,37 @@
 public with sharing class QuoteLineItemController {
 
+    // ─── Working‑hours multiplier lookup ───
+    private static Decimal getWorkingHoursPerDay() {
+        List<Company_Settings__c> settings = [SELECT Working_Hours_Per_Day__c FROM Company_Settings__c LIMIT 1];
+        if (!settings.isEmpty() && settings[0].Working_Hours_Per_Day__c != null) {
+            return settings[0].Working_Hours_Per_Day__c;
+        }
+        return 8; // default
+    }
+
+    private static Decimal getHoursMultiplier(String timePeriod) {
+        Decimal hpd = getWorkingHoursPerDay();
+        if (timePeriod == 'Days')      return hpd;
+        if (timePeriod == 'Weeks')     return hpd * 5;
+        if (timePeriod == 'Months')    return hpd * 5 * 4;  // 20 working days
+        if (timePeriod == 'Quarters')  return hpd * 5 * 4 * 3;
+        return hpd; // fallback
+    }
+
     /**
      * @description Fetches all line items for a quote with full details for the new UI.
-     * @param quoteId Quote__c ID.
-     * @return List of Quote_Line_Item__c.
      */
     @AuraEnabled(cacheable=true)
     public static List<Quote_Line_Item__c> getLineItems(Id quoteId) {
         return [
-            SELECT Id, Name, Name__c, Item_Type__c,
+            SELECT Id, Name, Name__c, Item_Type__c, Billing_Unit__c,
                    Resource_Role__c, Resource_Role__r.Name, Resource_Role__r.Name__c,
                    Product__c, Product__r.Name, Product__r.Product_Code__c,
                    Add_On__c, Add_On__r.Name, Add_On__r.Name__c,
                    Phase__c, Task__c,
                    Start_Date__c, End_Date__c,
                    Quantity__c, Base_Rate__c,
-                   Unit_Price__c, Discount_Percent__c,
+                   Unit_Price__c, Unit_Cost__c, Discount_Percent__c,
                    Net_Total__c, Total_Line_Cost__c, Margin_Percent__c
             FROM Quote_Line_Item__c
             WHERE Quote__c = :quoteId
@@ -25,8 +41,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Get empty phases stored on the Quote.
-     * @param quoteId Quote__c ID.
-     * @return Phase List string.
      */
     @AuraEnabled(cacheable=true)
     public static String getPhaseList(Id quoteId) {
@@ -43,8 +57,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Save empty phases back to the Quote.
-     * @param quoteId Quote__c ID.
-     * @param phaseList Phase List string.
      */
     @AuraEnabled
     public static void savePhaseList(Id quoteId, String phaseList) {
@@ -56,11 +68,9 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Add line items from modal selection.
-     * @param quoteId Quote__c ID.
-     * @param resourceRoleIds List of Resource_Role__c IDs.
-     * @param productIds List of Product__c IDs.
-     * @param addonIds List of Add_On__c IDs.
-     * @param phase Optional phase name for the items.
+     *   - Resource Roles: always hourly. Price/Cost converted using quote time period.
+     *   - Products / Add-ons with Billing_Unit = Subscription: same conversion as roles.
+     *   - Products / Add-ons with Billing_Unit = Each: flat price, no conversion.
      */
     @AuraEnabled
     public static void addLineItems(
@@ -77,9 +87,12 @@ public with sharing class QuoteLineItemController {
             LIMIT 1
         ];
 
+        String timePeriod = parentQuote.Time_Period_Metric__c;
+        Decimal multiplier = getHoursMultiplier(timePeriod);
+
         List<Quote_Line_Item__c> itemsToInsert = new List<Quote_Line_Item__c>();
 
-        // Add Resource Roles
+        // ── Resource Roles (always hourly) ──
         if (resourceRoleIds != null && !resourceRoleIds.isEmpty()) {
             List<Resource_Role__c> roles = [
                 SELECT Id, Name, Name__c, Price__c, Cost__c, Billing_Unit__c
@@ -92,10 +105,11 @@ public with sharing class QuoteLineItemController {
                 item.Quote__c            = quoteId;
                 item.Item_Type__c        = 'Resource Role';
                 item.Resource_Role__c    = role.Id;
-                item.Base_Rate__c        = role.Price__c;
-                item.Unit_Price__c       = role.Price__c;
-                item.Unit_Cost__c        = role.Cost__c;
-                item.Quantity__c         = 1;
+                item.Billing_Unit__c     = 'Hour';
+                item.Base_Rate__c        = role.Price__c;  // hourly rate
+                item.Unit_Price__c       = role.Price__c * multiplier;  // converted to quote period
+                item.Unit_Cost__c        = role.Cost__c  * multiplier;
+                item.Quantity__c         = 1;  // 1 resource
                 item.Discount_Percent__c = 0;
                 item.Name__c             = role.Name__c != null ? role.Name__c : role.Name;
                 if (String.isNotBlank(phase)) item.Phase__c = phase;
@@ -104,10 +118,10 @@ public with sharing class QuoteLineItemController {
             }
         }
 
-        // Add Products
+        // ── Products ──
         if (productIds != null && !productIds.isEmpty()) {
             List<Product__c> products = [
-                SELECT Id, Name, Price__c, Cost__c
+                SELECT Id, Name, Price__c, Cost__c, Billing_Unit__c
                 FROM Product__c
                 WHERE Id IN :productIds
             ];
@@ -117,9 +131,19 @@ public with sharing class QuoteLineItemController {
                 item.Quote__c            = quoteId;
                 item.Item_Type__c        = 'Product';
                 item.Product__c          = product.Id;
+                item.Billing_Unit__c     = product.Billing_Unit__c;
                 item.Base_Rate__c        = product.Price__c;
-                item.Unit_Price__c       = product.Price__c;
-                item.Unit_Cost__c        = product.Cost__c;
+
+                if (product.Billing_Unit__c == 'Subscription') {
+                    // Subscription: price is hourly-equivalent, convert to quote period
+                    item.Unit_Price__c   = product.Price__c * multiplier;
+                    item.Unit_Cost__c    = product.Cost__c  * multiplier;
+                } else {
+                    // Each: flat one-time price
+                    item.Unit_Price__c   = product.Price__c;
+                    item.Unit_Cost__c    = product.Cost__c;
+                }
+
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
                 item.Name__c             = product.Name;
@@ -129,10 +153,10 @@ public with sharing class QuoteLineItemController {
             }
         }
 
-        // Add Add-ons
+        // ── Add-ons ──
         if (addonIds != null && !addonIds.isEmpty()) {
             List<Add_On__c> addons = [
-                SELECT Id, Name, Name__c, Price__c, Cost__c
+                SELECT Id, Name, Name__c, Price__c, Cost__c, Billing_Unit__c
                 FROM Add_On__c
                 WHERE Id IN :addonIds
             ];
@@ -142,9 +166,17 @@ public with sharing class QuoteLineItemController {
                 item.Quote__c            = quoteId;
                 item.Item_Type__c        = 'Add-on';
                 item.Add_On__c           = addon.Id;
+                item.Billing_Unit__c     = addon.Billing_Unit__c;
                 item.Base_Rate__c        = addon.Price__c;
-                item.Unit_Price__c       = addon.Price__c;
-                item.Unit_Cost__c        = addon.Cost__c;
+
+                if (addon.Billing_Unit__c == 'Subscription') {
+                    item.Unit_Price__c   = addon.Price__c * multiplier;
+                    item.Unit_Cost__c    = addon.Cost__c  * multiplier;
+                } else {
+                    item.Unit_Price__c   = addon.Price__c;
+                    item.Unit_Cost__c    = addon.Cost__c;
+                }
+
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
                 item.Name__c             = addon.Name__c != null ? addon.Name__c : addon.Name;
@@ -162,13 +194,13 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Update a single line item.
-     * @param item Quote_Line_Item__c record.
+     *   - Quantity change does NOT alter end date (quantity = count of resources).
+     *   - Always recalculates quote totals (which auto-sets quote end date).
      */
     @AuraEnabled
     public static void updateLineItem(Quote_Line_Item__c item) {
         Quote_Line_Item__c existing = [
-            SELECT Quantity__c, Start_Date__c, End_Date__c, Quote__c,
-                   Quote__r.Start_Date__c, Quote__r.End_Date__c, Quote__r.Time_Period_Metric__c
+            SELECT Quantity__c, Start_Date__c, End_Date__c, Quote__c
             FROM Quote_Line_Item__c
             WHERE Id = :item.Id
             LIMIT 1
@@ -176,36 +208,43 @@ public with sharing class QuoteLineItemController {
 
         checkQuoteDraftStatus(existing.Quote__c);
 
-        if (existing.Quote__r.Time_Period_Metric__c != null) {
-            Boolean hasChange = (item.Quantity__c != null || item.Start_Date__c != null);
-            if (hasChange) {
-                Decimal qty = item.Quantity__c != null ? item.Quantity__c : existing.Quantity__c;
-                Date start = item.Start_Date__c != null ? item.Start_Date__c : existing.Start_Date__c;
-                item.End_Date__c = calculateEndDate(start, qty, existing.Quote__r.Time_Period_Metric__c);
-            }
+        // Validate discount bounds
+        if (item.Discount_Percent__c != null) {
+            if (item.Discount_Percent__c > 1) item.Discount_Percent__c = 1;
+            if (item.Discount_Percent__c < 0) item.Discount_Percent__c = 0;
         }
 
+        // Quantity change does NOT modify end date — quantity = # of resources/items
         update item;
         QuoteController.recalculateQuoteTotals(existing.Quote__c);
     }
 
+    /**
+     * @description Sets start/end dates on a new line item from the parent quote.
+     *   Quantity is count — not duration — so end date is derived from quote period, not qty.
+     */
     private static void populateDates(Quote_Line_Item__c item, Quote__c parentQuote) {
         if (parentQuote.Start_Date__c != null) {
             item.Start_Date__c = parentQuote.Start_Date__c;
-            if (parentQuote.Time_Period_Metric__c != null) {
-                item.End_Date__c = calculateEndDate(parentQuote.Start_Date__c, item.Quantity__c, parentQuote.Time_Period_Metric__c);
+            if (parentQuote.Time_Period_Metric__c != null && parentQuote.Time_Period_Count__c != null) {
+                // End date based on 1 unit of the quote time period
+                item.End_Date__c = calculateEndDate(
+                    parentQuote.Start_Date__c,
+                    parentQuote.Time_Period_Count__c,
+                    parentQuote.Time_Period_Metric__c
+                );
             } else if (parentQuote.End_Date__c != null) {
                 item.End_Date__c = parentQuote.End_Date__c;
             }
         }
     }
 
-    private static Date calculateEndDate(Date startDate, Decimal quantity, String timePeriod) {
-        if (startDate == null || quantity == null || String.isBlank(timePeriod)) return null;
-        if (timePeriod == 'Days') return startDate.addDays((Integer)Math.round(quantity));
-        if (timePeriod == 'Weeks') return startDate.addDays((Integer)Math.round(quantity * 7));
+    private static Date calculateEndDate(Date startDate, Decimal periodCount, String timePeriod) {
+        if (startDate == null || periodCount == null || String.isBlank(timePeriod)) return null;
+        if (timePeriod == 'Days') return startDate.addDays((Integer)Math.round(periodCount));
+        if (timePeriod == 'Weeks') return startDate.addDays((Integer)Math.round(periodCount * 7));
         if (timePeriod == 'Months' || timePeriod == 'Quarters' || timePeriod == 'Years') {
-            Decimal totalMonths = (timePeriod == 'Months') ? quantity : (timePeriod == 'Quarters') ? quantity * 3 : quantity * 12;
+            Decimal totalMonths = (timePeriod == 'Months') ? periodCount : (timePeriod == 'Quarters') ? periodCount * 3 : periodCount * 12;
             Integer wholeMonths = (Integer)Math.floor(totalMonths);
             Decimal fraction = totalMonths - wholeMonths;
             Date d = startDate.addMonths(wholeMonths);
@@ -217,7 +256,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Delete a single line item.
-     * @param itemId Quote_Line_Item__c ID.
      */
     @AuraEnabled
     public static void deleteLineItem(Id itemId) {
@@ -230,8 +268,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Cascade delete all line items for a given phase and quote.
-     * @param quoteId Quote__c ID.
-     * @param phaseName Name of the phase.
      */
     @AuraEnabled
     public static void deletePhaseItems(Id quoteId, String phaseName) {
@@ -248,8 +284,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Get line items grouped by type for summary cards.
-     * @param quoteId Quote__c ID.
-     * @return Summary map.
      */
     @AuraEnabled(cacheable=true)
     public static Map<String, Object> getLineItemSummary(Id quoteId) {
@@ -301,8 +335,6 @@ public with sharing class QuoteLineItemController {
 
     /**
      * @description Get line items grouped by phase for phase table.
-     * @param quoteId Quote__c ID.
-     * @return List of phase data maps.
      */
     @AuraEnabled(cacheable=true)
     public static List<Map<String, Object>> getLineItemsByPhase(Id quoteId) {

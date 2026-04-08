@@ -10,18 +10,8 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>Day</fullName>
-                <default>false</default>
-                <label>Day</label>
-            </value>
-            <value>
-                <fullName>Each</fullName>
-                <default>false</default>
-                <label>Each</label>
-            </value>
-            <value>
                 <fullName>Hour</fullName>
-                <default>false</default>
+                <default>true</default>
                 <label>Hour</label>
             </value>
         </valueSetDefinition>
