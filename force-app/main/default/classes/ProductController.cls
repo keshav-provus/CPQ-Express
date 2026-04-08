@@ -117,6 +117,7 @@ public with sharing class ProductController {
             FROM Quote_Line_Item__c
             WHERE Product__c = :productId
             AND Quote__r.Account__c != null
+            AND Quote__r.Status__c = 'Approved'
             AND Start_Date__c != null
             AND End_Date__c != null
             ORDER BY Start_Date__c ASC
