@@ -87,13 +87,13 @@ table.li-table td {
     background: #f9fafb;
 }
 
-/* Items inside a named phase get a subtle highlight */
+/* Items inside a named phase get a subtle border */
 .item-row.in-phase td {
-    background: #fafbff;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 .item-row.in-phase:hover td {
-    background: #f0f4ff;
+    filter: brightness(0.97);
 }
 
 /* Indent spacer for items inside phases */
@@ -124,7 +124,6 @@ table.li-table td {
 
 /* ── Phase rows ── */
 .phase-row td {
-    background: #f0f4ff !important;
     font-size: 12px;
     font-weight: 600;
     color: #374151;

@@ -6,6 +6,17 @@ import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList'
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+const PHASE_COLORS = [
+    'hsla(210, 100%, 97%, 1)', // Light Blue
+    'hsla(140, 100%, 97%, 1)', // Light Green
+    'hsla(35, 100%, 96%, 1)',  // Light Amber
+    'hsla(280, 100%, 97%, 1)', // Light Purple
+    'hsla(340, 100%, 97%, 1)', // Light Pink
+    'hsla(180, 100%, 96%, 1)', // Light Teal
+    'hsla(20, 100%, 97%, 1)',  // Light Orange
+    'hsla(60, 100%, 96%, 1)'   // Light Yellow
+];
+
 export default class CpqQuoteLineEditor extends LightningElement {
     @api recordId;
     @api lineItems = [];
@@ -241,6 +252,11 @@ export default class CpqQuoteLineEditor extends LightningElement {
             const items = phaseItemsMap.get(name) || [];
 
             // Phase header row
+            const phaseIndex = phaseNames.indexOf(name);
+            const bgColor = phaseIndex >= 0 ? PHASE_COLORS[phaseIndex % PHASE_COLORS.length] : 'transparent';
+            const rowStyle = `background-color: ${bgColor} !important;`;
+            const borderStyle = phaseIndex >= 0 ? `border-left: 4px solid ${bgColor.replace('97%', '70%').replace('96%', '70%')};` : '';
+
             const isEditing = this.editingPhaseName === name;
             const details = this.phaseDetails[name] || {};
             rows.push({
@@ -253,13 +269,14 @@ export default class CpqQuoteLineEditor extends LightningElement {
                 isEditing: isEditing,
                 editValue: isEditing ? this.editingPhaseValue : name,
                 startDate: details.startDate || '',
-                endDate: details.endDate || ''
+                endDate: details.endDate || '',
+                rowStyle: rowStyle + borderStyle
             });
 
             // Items under phase (only if not collapsed)
             if (!this.collapsedPhases[name]) {
                 [...items].sort(sortFn).forEach(item => {
-                    rows.push(this._buildItemRow(item, name, qtyUnit, true));
+                    rows.push(this._buildItemRow(item, name, qtyUnit, true, rowStyle));
                 });
             }
         });
@@ -267,7 +284,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
         return rows;
     }
 
-    _buildItemRow(item, phaseName, qtyUnit, isIndented) {
+    _buildItemRow(item, phaseName, qtyUnit, isIndented, rowStyle = '') {
         return {
             key: `item-${item.Id}`,
             isPhase: false,
@@ -292,7 +309,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
             qtyUnit: qtyUnit,
             isSelected: this.selectedIds[item.Id] || false,
             isIndented: isIndented,
-            rowClass: `item-row${isIndented ? ' in-phase' : ''}`
+            rowClass: `item-row${isIndented ? ' in-phase' : ''}`,
+            rowStyle: rowStyle
         };
     }
 
@@ -472,10 +490,19 @@ export default class CpqQuoteLineEditor extends LightningElement {
         this._takeSnapshot();
         const itemId = event.target.dataset.id;
         const field = event.target.dataset.field;
-        const value = event.target.value;
+        let value = parseFloat(event.target.value) || 0;
+
+        if (field === 'Discount_Percent__c') {
+            if (value > 100) value = 100;
+            if (value < 0) value = 0;
+            event.target.value = value;
+        } else if (field === 'Quantity__c') {
+            if (value < 0) value = 0;
+            event.target.value = value;
+        }
 
         const updateObj = { Id: itemId };
-        updateObj[field] = parseFloat(value);
+        updateObj[field] = value;
 
         updateLineItem({ item: updateObj })
             .then(() => {

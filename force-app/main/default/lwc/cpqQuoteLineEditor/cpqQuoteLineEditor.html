@@ -34,6 +34,7 @@
                         <!-- Phase header row -->
                         <template if:true={row.isPhase}>
                             <tr key={row.key} class="phase-row"
+                                style={row.rowStyle}
                                 data-phase={row.name}
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
@@ -87,6 +88,7 @@
                         <!-- Line item row -->
                         <template if:false={row.isPhase}>
                             <tr key={row.key} class={row.rowClass}
+                                style={row.rowStyle}
                                 draggable="true"
                                 data-id={row.Id}
                                 data-phase={row.phase}
