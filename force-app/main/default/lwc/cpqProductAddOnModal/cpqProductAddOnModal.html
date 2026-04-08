@@ -1,0 +1,38 @@
+<template>
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 border-b border-surface-container-low flex justify-between items-center bg-surface-container">
+                <h3 class="font-headline font-bold text-lg text-on-surface">Create New Add-on</h3>
+                <button onclick={handleCancel} class="material-symbols-outlined text-outline hover:text-red-600 transition-colors">close</button>
+            </div>
+            <div class="p-8 space-y-6">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Add-on Name</label>
+                    <input type="text" data-field="Name__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="e.g. Platinum Support">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Unit Price</label>
+                        <input type="number" data-field="Price__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="0.00">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Unit Cost</label>
+                        <input type="number" data-field="Cost__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Billing Unit</label>
+                    <select data-field="Billing_Unit__c" onchange={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40">
+                        <option value="Each">Each</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 bg-surface-container flex justify-end gap-3">
+                <button onclick={handleCancel} class="px-6 py-2.5 text-on-surface-variant font-bold text-xs uppercase tracking-wider hover:bg-surface-container-highest transition-colors rounded-xl">Cancel</button>
+                <button onclick={handleSave} class="px-6 py-2.5 bg-primary text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-indigo-100 hover:bg-primary-container transition-colors">Create Add-on</button>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,0 +1,42 @@
+<template>
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <h3 class="font-headline font-bold text-lg text-on-surface">Discount Tiers</h3>
+            <button onclick={handleAddTier} class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md shadow-indigo-100">
+                <span class="material-symbols-outlined text-sm">add</span>
+                Add Discount Tier
+            </button>
+        </div>
+        <div class="bg-surface-container-low p-1 rounded-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-separate border-spacing-y-1">
+                    <thead>
+                        <tr class="text-[10px] font-bold text-outline uppercase tracking-widest">
+                            <th class="px-6 py-4">Quantity Range</th>
+                            <th class="px-6 py-4 text-right">Discount %</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-xs">
+                        <template if:true={hasTiers}>
+                            <template for:each={tiers} for:item="tier">
+                                <tr key={tier.Id} class="bg-surface-container-lowest hover:bg-surface-container-high transition-colors">
+                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Quantity_Range__c}</td>
+                                    <td class="px-6 py-4 text-right font-bold text-indigo-600">{tier.Discount_Percent__c}%</td>
+                                </tr>
+                            </template>
+                        </template>
+                        <template if:false={hasTiers}>
+                            <tr class="bg-surface-container-lowest">
+                                <td colspan="2" class="px-6 py-4 text-center text-on-surface-variant">No discount tiers found.</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <template if:true={isModalOpen}>
+            <c-cpq-product-discount-tier-modal record-id={recordId} onclose={handleCloseModal} onsuccess={handleSaveSuccess}></c-cpq-product-discount-tier-modal>
+        </template>
+    </div>
+</template>
