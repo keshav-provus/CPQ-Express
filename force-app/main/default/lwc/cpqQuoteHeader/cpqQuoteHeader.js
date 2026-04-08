@@ -4,6 +4,7 @@ import submitForApproval from '@salesforce/apex/QuoteController.submitForApprova
 import recallApproval from '@salesforce/apex/QuoteController.recallApproval';
 import approveQuote from '@salesforce/apex/QuoteController.approveQuote';
 import rejectQuote from '@salesforce/apex/QuoteController.rejectQuote';
+import generateQuotePdf from '@salesforce/apex/QuoteController.generateQuotePdf';
 
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
