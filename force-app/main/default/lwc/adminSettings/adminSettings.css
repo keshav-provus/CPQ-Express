@@ -1,0 +1,17 @@
+.slds-nav-vertical__item {
+    border-radius: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+.slds-nav-vertical__item.slds-is-active {
+    background-color: #e5f2fa;
+    border-left: 3px solid #0070d2;
+}
+.slds-nav-vertical__item.slds-is-active a {
+    color: #0070d2;
+    font-weight: 700;
+}
+.slds-visual-picker__figure {
+    height: auto;
+    text-align: left;
+    align-items: flex-start;
+}
