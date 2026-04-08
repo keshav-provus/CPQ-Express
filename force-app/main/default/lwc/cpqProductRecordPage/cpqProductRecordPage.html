@@ -8,10 +8,16 @@
                 <!-- Left Main Content Area -->
                 <div class="col-span-12 lg:col-span-8 space-y-8">
                     <!-- Tabs -->
-                    <div class="border-b border-surface-container-high flex gap-8">
-                        <button class={detailsTabClass} data-tab="details" onclick={handleTabClick}>Details</button>
-                        <button class={relatedTabClass} data-tab="related" onclick={handleTabClick}>Related Lists</button>
-                        <button class={configTabClass} data-tab="config" onclick={handleTabClick}>Configuration Specs</button>
+                    <div class="tab-container">
+                        <button class={detailsTabClass} data-tab="details" onclick={handleTabClick}>
+                            <span class="tab-button">Details</span>
+                        </button>
+                        <button class={relatedTabClass} data-tab="related" onclick={handleTabClick}>
+                            <span class="tab-button">Related Lists</span>
+                        </button>
+                        <button class={configTabClass} data-tab="config" onclick={handleTabClick}>
+                            <span class="tab-button">Configuration Specs</span>
+                        </button>
                     </div>
 
                     <!-- Tab Content -->
