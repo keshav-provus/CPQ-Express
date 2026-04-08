@@ -487,6 +487,40 @@ export default class CpqQuoteLineEditor extends LightningElement {
     }
 
     // ─── Inline editing & Phase Logic ───
+    // ─── Validation Helpers ───
+    _validateItemAgainstPhase(item, phaseName, itemStart = null, itemEnd = null) {
+        if (!phaseName) return true;
+        const details = this.phaseDetails[phaseName];
+        if (!details || (!details.startDate && !details.endDate)) return true;
+
+        const pStart = details.startDate ? new Date(details.startDate) : null;
+        const pEnd = details.endDate ? new Date(details.endDate) : null;
+        const iStart = new Date(itemStart || item.Start_Date__c);
+        const iEnd = new Date(itemEnd || item.End_Date__c);
+
+        if (pStart && iStart < pStart) return false;
+        if (pEnd && iEnd > pEnd) return false;
+        return true;
+    }
+
+    _validatePhaseAgainstItems(phaseName, newStart, newEnd) {
+        const pStart = newStart ? new Date(newStart) : null;
+        const pEnd = newEnd ? new Date(newEnd) : null;
+
+        const items = this.lineItems.filter(i => {
+            const eff = this.itemPhaseOverrides[i.Id] || i.Phase__c;
+            return eff === phaseName;
+        });
+
+        for (const item of items) {
+            const iStart = new Date(item.Start_Date__c);
+            const iEnd = new Date(item.End_Date__c);
+            if (pStart && iStart < pStart) return false;
+            if (pEnd && iEnd > pEnd) return false;
+        }
+        return true;
+    }
+
     handleDeletePhase(event) {
         const phaseName = event.target.dataset.phase;
         if (!confirm(`Are you sure you want to delete ${phaseName} and all its items?`)) return;
@@ -527,33 +561,66 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const field = event.target.dataset.field; // 'startDate' or 'endDate'
         const val = event.target.value;
 
-        this._takeSnapshot();
+        const details = this.phaseDetails[phaseName] || {};
+        const newStart = field === 'startDate' ? val : details.startDate;
+        const newEnd = field === 'endDate' ? val : details.endDate;
 
-        const currentDetails = this.phaseDetails[phaseName] || {};
+        if (!this._validatePhaseAgainstItems(phaseName, newStart, newEnd)) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Invalid Phase Dates',
+                message: 'Some items in this phase fall outside the new date range. Please adjust items first.',
+                variant: 'error'
+            }));
+            event.target.value = details[field] || '';
+            return;
+        }
+
+        this._takeSnapshot();
         this.phaseDetails = {
             ...this.phaseDetails,
-            [phaseName]: { ...currentDetails, [field]: val }
+            [phaseName]: { ...details, [field]: val }
         };
         this._savePhaseListData();
     }
 
     handleUpdateItem(event) {
-        this._takeSnapshot();
         const itemId = event.target.dataset.id;
         const field = event.target.dataset.field;
-        let value = parseFloat(event.target.value) || 0;
+        let value = event.target.value;
+
+        const item = this.lineItems.find(i => i.Id === itemId);
+        const phaseName = this._getEffectivePhase(item);
+
+        if (field === 'Start_Date__c' || field === 'End_Date__c') {
+            const iStart = field === 'Start_Date__c' ? value : item.Start_Date__c;
+            const iEnd = field === 'End_Date__c' ? value : item.End_Date__c;
+            if (!this._validateItemAgainstPhase(item, phaseName, iStart, iEnd)) {
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Invalid Dates',
+                    message: 'Item dates must be within the phase start and end dates.',
+                    variant: 'error'
+                }));
+                event.target.value = item[field];
+                return;
+            }
+        }
+
+        this._takeSnapshot();
+        let finalValue = value;
 
         if (field === 'Discount_Percent__c') {
-            if (value > 100) value = 100;
-            if (value < 0) value = 0;
-            event.target.value = value;
+            finalValue = parseFloat(value) || 0;
+            if (finalValue > 100) finalValue = 100;
+            if (finalValue < 0) finalValue = 0;
+            event.target.value = finalValue;
         } else if (field === 'Quantity__c') {
-            if (value < 0) value = 0;
-            event.target.value = value;
+            finalValue = parseFloat(value) || 0;
+            if (finalValue < 0) finalValue = 0;
+            event.target.value = finalValue;
         }
 
         const updateObj = { Id: itemId };
-        updateObj[field] = value;
+        updateObj[field] = finalValue;
 
         updateLineItem({ item: updateObj })
             .then(() => {
@@ -595,15 +662,24 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleDrop(event) {
         event.preventDefault();
         event.currentTarget.classList.remove('drag-over');
-        const targetId = event.currentTarget.dataset.id;
+        const dropTargetId = event.currentTarget.dataset.id; // Moving before this item
         const targetPhase = event.currentTarget.dataset.phase || '';
 
-        if (!this._dragItemId || this._dragItemId === targetId) {
-            this._cleanupDrag();
+        const item = this.lineItems.find(i => i.Id === this._dragItemId);
+        if (targetPhase && !this._validateItemAgainstPhase(item, targetPhase)) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Invalid Phase',
+                message: 'This item dates are outside the target phase duration.',
+                variant: 'error'
+            }));
             return;
         }
 
         this._takeSnapshot();
+        if (!this._dragItemId || this._dragItemId === dropTargetId) {
+            this._cleanupDrag();
+            return;
+        }
 
         // Build current order if not set
         if (this.localOrder.length === 0) {
@@ -612,7 +688,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         const newOrder = [...this.localOrder];
         const fromIdx = newOrder.indexOf(this._dragItemId);
-        const toIdx = newOrder.indexOf(targetId);
+        const toIdx = newOrder.indexOf(dropTargetId);
 
         if (fromIdx >= 0) newOrder.splice(fromIdx, 1);
         const insertIdx = toIdx >= 0 ? toIdx : newOrder.length;
@@ -640,6 +716,16 @@ export default class CpqQuoteLineEditor extends LightningElement {
         event.preventDefault();
         event.currentTarget.classList.remove('drag-over');
         const targetPhase = event.currentTarget.dataset.phase;
+
+        const item = this.lineItems.find(i => i.Id === this._dragItemId);
+        if (targetPhase && !this._validateItemAgainstPhase(item, targetPhase)) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Invalid Phase',
+                message: 'This item dates are outside the target phase duration.',
+                variant: 'error'
+            }));
+            return;
+        }
 
         if (this._dragItemId) {
             // Item dropped onto phase header — move item into this phase

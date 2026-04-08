@@ -54,34 +54,40 @@
                                 <td>
                                     <lightning-icon icon-name={row.toggleIcon} size="xx-small" class="phase-toggle slds-m-right_xx-small" data-phase={row.name} onclick={togglePhase}></lightning-icon>
                                 </td>
-                                <td colspan="2" class="phase-cell-td">
-                                    <template if:false={row.isEditing}>
-                                        <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
-                                    </template>
-                                    <template if:true={row.isEditing}>
-                                        <input type="text" class="phase-name-input"
-                                               value={row.editValue}
-                                               onchange={handlePhaseNameChange}
-                                               onblur={handlePhaseNameBlur}
-                                               onkeydown={handlePhaseNameKeyDown}>
-                                    </template>
-                                    &nbsp;
-                                    <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
-                                    <span class="phase-item-count">({row.itemCount})</span>
+                                <td colspan="2">
+                                    <div class="phase-cell-inner">
+                                        <template if:false={row.isEditing}>
+                                            <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
+                                        </template>
+                                        <template if:true={row.isEditing}>
+                                            <input type="text" class="phase-name-input"
+                                                   value={row.editValue}
+                                                   onchange={handlePhaseNameChange}
+                                                   onblur={handlePhaseNameBlur}
+                                                   onkeydown={handlePhaseNameKeyDown}>
+                                        </template>
+                                        &nbsp;
+                                        <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
+                                        <span class="phase-item-count">({row.itemCount})</span>
+                                    </div>
                                 </td>
-                                <td class="editable-cell phase-date-cell">
-                                    <input type="date"
-                                           data-phase={row.name}
-                                           data-field="startDate"
-                                           value={row.startDate}
-                                           onchange={handlePhaseDetailChange}>
+                                <td class="phase-date-cell">
+                                    <div class="date-cell-inner">
+                                        <input type="date"
+                                               data-phase={row.name}
+                                               data-field="startDate"
+                                               value={row.startDate}
+                                               onchange={handlePhaseDetailChange}>
+                                    </div>
                                 </td>
-                                <td class="editable-cell phase-date-cell">
-                                    <input type="date"
-                                           data-phase={row.name}
-                                           data-field="endDate"
-                                           value={row.endDate}
-                                           onchange={handlePhaseDetailChange}>
+                                <td class="phase-date-cell">
+                                    <div class="date-cell-inner">
+                                        <input type="date"
+                                               data-phase={row.name}
+                                               data-field="endDate"
+                                               value={row.endDate}
+                                               onchange={handlePhaseDetailChange}>
+                                    </div>
                                 </td>
                                 <td colspan="4"></td>
                                 <td style="text-align: right;">
