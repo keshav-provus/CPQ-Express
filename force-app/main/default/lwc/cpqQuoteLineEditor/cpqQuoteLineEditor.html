@@ -39,26 +39,27 @@
                         <!-- Phase header row -->
                         <template if:true={row.isPhase}>
                             <tr key={row.key} class={row.phaseRowClass}
+                                style={row.phaseRowStyle}
                                 data-phase={row.name}
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handlePhaseDrop}>
-                                <td class="sticky-left-0 phase-cell">
+                                <td class="sticky-left-0 phase-cell" style={row.phaseBgStyle}>
                                     <input type="checkbox"
                                            data-target-phase={row.name}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
                                 </td>
-                                <td class="sticky-left-1 phase-cell">
+                                <td class="sticky-left-1 phase-cell" style={row.phaseBgStyle}>
                                     <span class="drag-handle phase-drag"
                                           draggable="true"
                                           data-phase={row.name}
                                           ondragstart={handleDragStart}>⠿</span>
                                 </td>
-                                <td class="sticky-left-2 phase-cell">
+                                <td class="sticky-left-2 phase-cell" style={row.phaseBgStyle}>
                                     <lightning-icon icon-name={row.toggleIcon} size="xx-small" class="phase-toggle slds-m-right_xx-small" data-phase={row.name} onclick={togglePhase}></lightning-icon>
                                 </td>
-                                <td class="sticky-left-3 phase-cell phase-name-td">
+                                <td class="sticky-left-3 phase-cell phase-name-td" style={row.phaseBgStyle}>
                                     <div class="phase-cell-inner">
                                         <template if:false={row.isEditing}>
                                             <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
@@ -77,32 +78,48 @@
                                 <!-- Task column empty for phase -->
                                 <td class="phase-cell"></td>
                                 <!-- Start Date -->
-                                <td class="phase-cell phase-date-cell">
+                                <td class="phase-cell">
                                     <template if:true={row.isCollapsed}>
                                         <span class="phase-agg-value">{row.aggStartDate}</span>
                                     </template>
                                     <template if:false={row.isCollapsed}>
-                                        <div class="date-cell-inner">
-                                            <input type="date"
-                                                   data-phase={row.name}
-                                                   data-field="startDate"
-                                                   value={row.startDate}
-                                                   onchange={handlePhaseDetailChange}>
+                                        <div class="phase-date-wrap">
+                                            <template if:true={row.hasStartDate}>
+                                                <input type="date" class="phase-date-input"
+                                                       data-phase={row.name}
+                                                       data-field="startDate"
+                                                       value={row.startDate}
+                                                       onchange={handlePhaseDetailChange}>
+                                            </template>
+                                            <template if:false={row.hasStartDate}>
+                                                <span class="phase-date-placeholder"
+                                                      data-phase={row.name}
+                                                      data-field="startDate"
+                                                      onclick={handleDatePlaceholderClick}>Set start…</span>
+                                            </template>
                                         </div>
                                     </template>
                                 </td>
                                 <!-- End Date -->
-                                <td class="phase-cell phase-date-cell">
+                                <td class="phase-cell">
                                     <template if:true={row.isCollapsed}>
                                         <span class="phase-agg-value">{row.aggEndDate}</span>
                                     </template>
                                     <template if:false={row.isCollapsed}>
-                                        <div class="date-cell-inner">
-                                            <input type="date"
-                                                   data-phase={row.name}
-                                                   data-field="endDate"
-                                                   value={row.endDate}
-                                                   onchange={handlePhaseDetailChange}>
+                                        <div class="phase-date-wrap">
+                                            <template if:true={row.hasEndDate}>
+                                                <input type="date" class="phase-date-input"
+                                                       data-phase={row.name}
+                                                       data-field="endDate"
+                                                       value={row.endDate}
+                                                       onchange={handlePhaseDetailChange}>
+                                            </template>
+                                            <template if:false={row.hasEndDate}>
+                                                <span class="phase-date-placeholder"
+                                                      data-phase={row.name}
+                                                      data-field="endDate"
+                                                      onclick={handleDatePlaceholderClick}>Set end…</span>
+                                            </template>
                                         </div>
                                     </template>
                                 </td>
@@ -127,12 +144,9 @@
                                         <span class="phase-agg-value">{row.aggDiscount}</span>
                                     </template>
                                 </td>
-                                <td class="phase-cell phase-total-cell">
+                                <td class="phase-cell money">
                                     <template if:true={row.isCollapsed}>
                                         <span class="phase-agg-total">{row.aggNetTotal}</span>
-                                    </template>
-                                    <template if:false={row.isCollapsed}>
-                                        <button class="btn-icon delete-phase-btn" data-phase={row.name} onclick={handleDeletePhase} title="Delete Phase and its items">🗑</button>
                                     </template>
                                 </td>
                             </tr>
@@ -141,6 +155,7 @@
                         <!-- Line item row -->
                         <template if:false={row.isPhase}>
                             <tr key={row.key} class={row.rowClass}
+                                style={row.rowStyle}
                                 draggable="true"
                                 data-id={row.Id}
                                 data-phase={row.phase}
@@ -148,19 +163,19 @@
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handleDrop}>
-                                <td class="sticky-left-0">
+                                <td class="sticky-left-0" style={row.stickyBgStyle}>
                                     <input type="checkbox"
                                            data-id={row.Id}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
                                 </td>
-                                <td class="sticky-left-1">
+                                <td class="sticky-left-1" style={row.stickyBgStyle}>
                                     <span class="drag-handle" data-id={row.Id}>⠿</span>
                                 </td>
-                                <td class="type-icon-cell sticky-left-2">
+                                <td class="type-icon-cell sticky-left-2" style={row.stickyBgStyle}>
                                     <span class={row.iconClass} title={row.Item_Type__c}>{row.icon}</span>
                                 </td>
-                                <td class="sticky-left-3">
+                                <td class="sticky-left-3" style={row.stickyBgStyle}>
                                     <div class={row.nameWrapClass}>
                                         <span class="item-name">{row.displayName}</span>
                                         <span class="info-icon" title="View details">ⓘ</span>

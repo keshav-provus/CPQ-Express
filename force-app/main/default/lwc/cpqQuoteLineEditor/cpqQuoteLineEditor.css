@@ -91,14 +91,7 @@ thead .sticky-left-3 {
     background: #f9fafb;
 }
 
-tbody tr .sticky-left-0,
-tbody tr .sticky-left-1,
-tbody tr .sticky-left-2,
-tbody tr .sticky-left-3 {
-    background: inherit;
-}
-
-/* White bg for normal item rows */
+/* White bg for normal item rows (overridden by inline style for phase items) */
 .item-row .sticky-left-0,
 .item-row .sticky-left-1,
 .item-row .sticky-left-2,
@@ -111,21 +104,6 @@ tbody tr .sticky-left-3 {
 .item-row:hover .sticky-left-2,
 .item-row:hover .sticky-left-3 {
     background: #f9fafb;
-}
-
-/* In-phase items sticky bg */
-.item-row.in-phase .sticky-left-0,
-.item-row.in-phase .sticky-left-1,
-.item-row.in-phase .sticky-left-2,
-.item-row.in-phase .sticky-left-3 {
-    background: #fafbff;
-}
-
-.item-row.in-phase:hover .sticky-left-0,
-.item-row.in-phase:hover .sticky-left-1,
-.item-row.in-phase:hover .sticky-left-2,
-.item-row.in-phase:hover .sticky-left-3 {
-    background: #f3f5fc;
 }
 
 /* Total row sticky bg */
@@ -171,20 +149,13 @@ table.li-table td {
 }
 
 .item-row:hover td {
-    background: #f9fafb;
+    background: inherit;
+    filter: brightness(0.97);
 }
 
 /* Items inside a named phase */
 .item-row.in-phase td {
-    border-bottom: 1px solid #edf0f7;
-}
-
-.item-row.in-phase {
-    background: #fafbff;
-}
-
-.item-row.in-phase:hover td {
-    background: #f3f5fc;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 /* Name indent for items inside phases */
@@ -222,29 +193,16 @@ table.li-table td {
 }
 
 /* ── Phase rows ── */
-.phase-row {
-    background: #f3f6fc;
-}
-
 .phase-row td {
     font-size: 12px;
     font-weight: 600;
     color: #374151;
     padding: 8px 10px;
-    border-bottom: 1px solid #dde5f5;
-    background: #f3f6fc;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 .phase-row td.phase-cell {
-    background: #f3f6fc;
-}
-
-/* Phase row sticky cells need matching bg */
-.phase-row .sticky-left-0,
-.phase-row .sticky-left-1,
-.phase-row .sticky-left-2,
-.phase-row .sticky-left-3 {
-    background: #f3f6fc;
+    /* bg set by inline style for color coding */
 }
 
 .phase-name-td {
@@ -258,10 +216,49 @@ table.li-table td {
     white-space: nowrap;
 }
 
-.date-cell-inner {
+/* ── Phase Date Placeholder ── */
+.phase-date-wrap {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+}
+
+.phase-date-placeholder {
+    font-size: 11px;
+    color: #9ca3af;
+    font-style: italic;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.phase-date-placeholder:hover {
+    color: #0176d3;
+    background: rgba(1, 118, 211, 0.06);
+}
+
+.phase-date-input {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #374151;
+    font-size: 11px;
+    padding: 1px 2px;
+    width: 105px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+}
+
+.phase-date-input:hover {
+    border-color: #d1d5db;
+}
+
+.phase-date-input:focus {
+    border-color: #0176d3;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(1, 118, 211, 0.15);
 }
 
 .phase-label {
@@ -306,10 +303,6 @@ table.li-table td {
     color: #16a34a;
     font-size: 12px;
     font-variant-numeric: tabular-nums;
-}
-
-.phase-total-cell {
-    text-align: right;
 }
 
 /* ── Total row ── */
@@ -468,43 +461,4 @@ table.li-table input[type="checkbox"] {
     height: 15px;
     cursor: pointer;
     accent-color: #0176d3;
-}
-
-/* ── Phase Actions ── */
-.delete-phase-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-    margin: 0;
-    color: #9ca3af;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-.delete-phase-btn:hover {
-    color: #dc2626;
-}
-
-.phase-date-cell input[type="date"] {
-    background: transparent;
-    border: 1px solid transparent;
-    color: #374151;
-    font-size: 11px;
-    padding: 1px 2px;
-    width: 105px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: inherit;
-    line-height: 1;
-}
-.phase-date-cell input[type="date"]:hover {
-    border-color: #d1d5db;
-}
-.phase-date-cell input[type="date"]:focus {
-    border-color: #0176d3;
-    outline: none;
-    background: #fff;
-    box-shadow: 0 0 0 2px rgba(1, 118, 211, 0.15);
 }

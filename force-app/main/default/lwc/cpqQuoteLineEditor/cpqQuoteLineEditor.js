@@ -6,6 +6,18 @@ import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList'
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
+// Pastel color palette for phases
+const PHASE_COLORS = [
+    { bg: '#EFF6FF', border: '#BFDBFE', itemBg: '#F5F9FF' },  // Sky Blue
+    { bg: '#F0FDF4', border: '#BBF7D0', itemBg: '#F5FFF8' },  // Mint Green
+    { bg: '#FFFBEB', border: '#FDE68A', itemBg: '#FFFEF5' },  // Warm Amber
+    { bg: '#FDF4FF', border: '#F0ABFC', itemBg: '#FEF9FF' },  // Soft Purple
+    { bg: '#FFF1F2', border: '#FECDD3', itemBg: '#FFF8F8' },  // Rose Pink
+    { bg: '#F0FDFA', border: '#99F6E4', itemBg: '#F5FEFC' },  // Teal
+    { bg: '#FFF7ED', border: '#FED7AA', itemBg: '#FFFCF5' },  // Peach
+    { bg: '#F5F3FF', border: '#DDD6FE', itemBg: '#FAF8FF' },  // Lavender
+];
+
 export default class CpqQuoteLineEditor extends LightningElement {
     @api recordId;
     @api lineItems = [];
@@ -21,6 +33,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     @track itemPhaseOverrides = {};
     @track editingPhaseName = null;
     @track editingPhaseValue = '';
+    @track revealedDateFields = {};
 
     _snapshotJson = '';
     _dragItemId = null;
@@ -138,7 +151,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         let promises = [];
         
-        // Items to delete (that are not already part of a deleted phase)
         idsToDelete.forEach(id => {
             const item = this.lineItems.find(i => i.Id === id);
             const itemPhase = this._getEffectivePhase(item);
@@ -147,14 +159,12 @@ export default class CpqQuoteLineEditor extends LightningElement {
             }
         });
 
-        // Phases to delete
         phasesToDelete.forEach(phaseName => {
             promises.push(deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName }));
         });
 
         Promise.all(promises)
             .then(() => {
-                // Local cleanup for phases
                 phasesToDelete.forEach(phaseName => {
                     this.customPhases = this.customPhases.filter(p => p !== phaseName);
                     this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
@@ -241,14 +251,18 @@ export default class CpqQuoteLineEditor extends LightningElement {
     formatNumber(value) {
         if (value === null || value === undefined) return '0';
         return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
         }).format(value);
     }
 
     // ─── Phase helpers ───
     _getEffectivePhase(item) {
         return this.itemPhaseOverrides[item.Id] || item.Phase__c || null;
+    }
+
+    _getPhaseColor(phaseIndex) {
+        return PHASE_COLORS[phaseIndex % PHASE_COLORS.length];
     }
 
     // ─── Collapse / Expand All ───
@@ -267,14 +281,29 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleToggleCollapseAll() {
         const names = this.allPhaseNames;
         if (this.isAllCollapsed) {
-            // Expand all
             this.collapsedPhases = {};
         } else {
-            // Collapse all
             const newCollapsed = {};
             names.forEach(name => { newCollapsed[name] = true; });
             this.collapsedPhases = newCollapsed;
         }
+    }
+
+    // ─── Date placeholder click ───
+    handleDatePlaceholderClick(event) {
+        const phase = event.target.dataset.phase;
+        const field = event.target.dataset.field;
+        const key = `${phase}__${field}`;
+        this.revealedDateFields = { ...this.revealedDateFields, [key]: true };
+
+        // Focus the date input after render
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        setTimeout(() => {
+            const input = this.template.querySelector(
+                `input[type="date"][data-phase="${phase}"][data-field="${field}"]`
+            );
+            if (input) input.focus();
+        }, 50);
     }
 
     // ─── Compute aggregated data for collapsed phases ───
@@ -292,7 +321,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         }
 
         const count = items.length;
-        let totalQty = 0;
         let totalBaseRate = 0;
         let totalUnitPrice = 0;
         let totalDiscount = 0;
@@ -301,7 +329,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         let maxEnd = null;
 
         items.forEach(item => {
-            totalQty += (item.Quantity__c || 0);
             totalBaseRate += (item.Base_Rate__c || 0);
             totalUnitPrice += (item.Unit_Price__c || 0);
             totalDiscount += (item.Discount_Percent__c || 0);
@@ -343,7 +370,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const unphasedItems = [];
         const phaseItemsMap = new Map();
 
-        // Initialize phase buckets from phaseOrder
         const phases = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
         phases.forEach(p => phaseItemsMap.set(p, []));
 
@@ -370,21 +396,30 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         const rows = [];
 
-        // 1) Phase groups first (matching screenshot order)
+        // 1) Phase groups first
         const phaseNames = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
-        // Add any phases from phaseItemsMap that aren't in phaseNames
         phaseItemsMap.forEach((_, name) => {
             if (!phaseNames.includes(name)) phaseNames.push(name);
         });
 
-        phaseNames.forEach(name => {
+        phaseNames.forEach((name, phaseIndex) => {
             const items = phaseItemsMap.get(name) || [];
             const isCollapsed = this.collapsedPhases[name] || false;
             const isEditing = this.editingPhaseName === name;
             const details = this.phaseDetails[name] || {};
+            const color = this._getPhaseColor(phaseIndex);
 
             // Compute aggregates for collapsed mode
             const agg = this._computePhaseAggregates(items);
+
+            // Check if date fields should show input or placeholder
+            const startKey = `${name}__startDate`;
+            const endKey = `${name}__endDate`;
+            const hasStartDate = !!(details.startDate) || this.revealedDateFields[startKey];
+            const hasEndDate = !!(details.endDate) || this.revealedDateFields[endKey];
+
+            const phaseBgStyle = `background-color: ${color.bg};`;
+            const phaseRowStyle = `background-color: ${color.bg}; border-left: 3px solid ${color.border};`;
 
             rows.push({
                 key: `phase-${name}`,
@@ -397,29 +432,35 @@ export default class CpqQuoteLineEditor extends LightningElement {
                 editValue: isEditing ? this.editingPhaseValue : name,
                 startDate: details.startDate || '',
                 endDate: details.endDate || '',
+                hasStartDate: hasStartDate,
+                hasEndDate: hasEndDate,
                 isSelected: this.selectedPhases[name] || false,
                 phaseRowClass: 'phase-row',
-                // Aggregated values for collapsed mode
+                phaseRowStyle: phaseRowStyle,
+                phaseBgStyle: phaseBgStyle,
                 ...agg
             });
 
             // Items under phase (only if not collapsed)
             if (!isCollapsed) {
                 [...items].sort(sortFn).forEach(item => {
-                    rows.push(this._buildItemRow(item, name, qtyUnit, true));
+                    rows.push(this._buildItemRow(item, name, qtyUnit, true, color));
                 });
             }
         });
 
         // 2) Unphased items after phases
         [...unphasedItems].sort(sortFn).forEach(item => {
-            rows.push(this._buildItemRow(item, null, qtyUnit, false));
+            rows.push(this._buildItemRow(item, null, qtyUnit, false, null));
         });
 
         return rows;
     }
 
-    _buildItemRow(item, phaseName, qtyUnit, isIndented) {
+    _buildItemRow(item, phaseName, qtyUnit, isIndented, color) {
+        const rowBg = color ? `background-color: ${color.itemBg};` : '';
+        const stickyBg = color ? `background-color: ${color.itemBg};` : 'background-color: #fff;';
+
         return {
             key: `item-${item.Id}`,
             isPhase: false,
@@ -445,7 +486,9 @@ export default class CpqQuoteLineEditor extends LightningElement {
             isSelected: this.selectedIds[item.Id] || false,
             isIndented: isIndented,
             nameWrapClass: isIndented ? 'name-wrap-indented' : 'name-wrap',
-            rowClass: `item-row${isIndented ? ' in-phase' : ''}`
+            rowClass: `item-row${isIndented ? ' in-phase' : ''}`,
+            rowStyle: rowBg,
+            stickyBgStyle: stickyBg
         };
     }
 
@@ -516,18 +559,15 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         this._takeSnapshot();
 
-        // Update customPhases
         this.customPhases = this.customPhases.map(p => p === oldName ? newName : p);
         this.phaseOrder = this.phaseOrder.map(p => p === oldName ? newName : p);
 
-        // Update itemPhaseOverrides
         const newOverrides = {};
         Object.entries(this.itemPhaseOverrides).forEach(([id, phase]) => {
             newOverrides[id] = phase === oldName ? newName : phase;
         });
         this.itemPhaseOverrides = newOverrides;
 
-        // Update collapsed state
         if (this.collapsedPhases[oldName] !== undefined) {
             const newCollapsed = { ...this.collapsedPhases };
             newCollapsed[newName] = newCollapsed[oldName];
@@ -535,7 +575,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
             this.collapsedPhases = newCollapsed;
         }
 
-        // Update phase details map
         if (this.phaseDetails[oldName]) {
             const newDetails = { ...this.phaseDetails };
             newDetails[newName] = newDetails[oldName];
@@ -543,10 +582,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
             this.phaseDetails = newDetails;
         }
 
-        // Persist phase list
         this._savePhaseListData();
 
-        // Update items that have Phase__c = oldName in the database
         this.lineItems.forEach(item => {
             const effectivePhase = this.itemPhaseOverrides[item.Id] || item.Phase__c;
             if (effectivePhase === newName || item.Phase__c === oldName) {
@@ -555,13 +592,11 @@ export default class CpqQuoteLineEditor extends LightningElement {
             }
         });
 
-        // Refresh to pick up server changes
         setTimeout(() => {
             this.dispatchEvent(new CustomEvent('refresh'));
         }, 500);
     }
 
-    // ─── Inline editing & Phase Logic ───
     // ─── Validation Helpers ───
     _validateItemAgainstPhase(item, phaseName, itemStart = null, itemEnd = null) {
         if (!phaseName) return true;
@@ -596,44 +631,9 @@ export default class CpqQuoteLineEditor extends LightningElement {
         return true;
     }
 
-    handleDeletePhase(event) {
-        const phaseName = event.target.dataset.phase;
-        if (!confirm(`Are you sure you want to delete ${phaseName} and all its items?`)) return;
-
-        this._takeSnapshot();
-
-        // Server-side
-        deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName })
-            .then(() => {
-                // Client-side layer cleanup
-                this.customPhases = this.customPhases.filter(p => p !== phaseName);
-                this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
-                if (this.phaseDetails[phaseName]) {
-                    const newDetails = { ...this.phaseDetails };
-                    delete newDetails[phaseName];
-                    this.phaseDetails = newDetails;
-                }
-                this._savePhaseListData();
-
-                this.dispatchEvent(new CustomEvent('refresh'));
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Deleted',
-                    message: `${phaseName} deleted.`,
-                    variant: 'success'
-                }));
-            })
-            .catch(error => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body?.message || 'Error deleting phase',
-                    variant: 'error'
-                }));
-            });
-    }
-
     handlePhaseDetailChange(event) {
         const phaseName = event.target.dataset.phase;
-        const field = event.target.dataset.field; // 'startDate' or 'endDate'
+        const field = event.target.dataset.field;
         const val = event.target.value;
 
         const details = this.phaseDetails[phaseName] || {};
@@ -711,7 +711,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleDragOver(event) {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
-        // Add visual indicator
         const row = event.currentTarget;
         if (row.classList.contains('item-row') || row.classList.contains('phase-row')) {
             row.classList.add('drag-over');
@@ -725,7 +724,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     handleDrop(event) {
         event.preventDefault();
         event.currentTarget.classList.remove('drag-over');
-        const dropTargetId = event.currentTarget.dataset.id; // Moving before this item
+        const dropTargetId = event.currentTarget.dataset.id;
         const targetPhase = event.currentTarget.dataset.phase || '';
 
         const item = this.lineItems.find(i => i.Id === this._dragItemId);
@@ -744,7 +743,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
             return;
         }
 
-        // Build current order if not set
         if (this.localOrder.length === 0) {
             this.localOrder = this.lineItems.map(i => i.Id);
         }
@@ -758,7 +756,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         newOrder.splice(insertIdx, 0, this._dragItemId);
         this.localOrder = newOrder;
 
-        // Move to target phase if different
         const currentPhase = this._dragSourcePhase || '';
         if (targetPhase !== currentPhase) {
             const newPhaseValue = targetPhase || null;
@@ -791,7 +788,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         }
 
         if (this._dragItemId) {
-            // Item dropped onto phase header — move item into this phase
             this._takeSnapshot();
             this.itemPhaseOverrides = {
                 ...this.itemPhaseOverrides,
@@ -810,7 +806,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
         event.currentTarget.classList.remove('drag-over');
 
         if (this._dragItemId) {
-            // Item dropped outside all phases — remove from phase
             this._takeSnapshot();
             this.itemPhaseOverrides = {
                 ...this.itemPhaseOverrides,

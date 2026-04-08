@@ -12,6 +12,7 @@ import { wire } from 'lwc';
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
     @api quoteData;
+    @api lineItems = [];
 
     get quoteName() {
         return this.quoteData?.Name || 'N/A';
@@ -21,9 +22,40 @@ export default class CpqQuoteHeader extends LightningElement {
         return this.quoteData?.Total_Amount__c || 0;
     }
 
+    get subtotal() {
+        // Subtotal = sum of Qty * UnitPrice (before discount)
+        if (!this.lineItems || this.lineItems.length === 0) return this.totalAmount;
+        let sub = 0;
+        this.lineItems.forEach(item => {
+            sub += (item.Quantity__c || 0) * (item.Unit_Price__c || 0);
+        });
+        return sub;
+    }
+
+    get discountAmount() {
+        // Discount is subtotal - totalAmount (net)
+        const sub = this.subtotal;
+        const net = this.totalAmount;
+        return sub > 0 ? sub - net : 0;
+    }
+
+    get discountDisplayAmount() {
+        const disc = this.discountAmount;
+        // Show as negative
+        return disc > 0 ? -disc : 0;
+    }
+
+    get discountPercent() {
+        const sub = this.subtotal;
+        if (sub <= 0) return '0.0';
+        const pct = (this.discountAmount / sub) * 100;
+        return pct.toFixed(1);
+    }
+
     get margin() {
+        // Margin_Percent__c is a Percent field type: Salesforce stores 49.2 for 49.2%
         const pct = this.quoteData?.Margin_Percent__c;
-        return pct != null ? (pct * 100).toFixed(2) : '0.00';
+        return pct != null ? pct.toFixed(1) : '0.0';
     }
 
     get marginAmount() {
