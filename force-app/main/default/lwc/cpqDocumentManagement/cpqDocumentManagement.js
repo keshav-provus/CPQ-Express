@@ -41,8 +41,7 @@ export default class CpqDocumentManagement extends NavigationMixin(LightningElem
     get selectedVersionUrl() {
         const selected = this.versions.find(v => v.Id === this.selectedVersionId);
         if (selected && selected.ContentVersionId__c) {
-            // Simplified URL for preview
-            return `/sfc/servlet.shepherd/version/download/${selected.ContentVersionId__c}?asPdf=true`;
+            return `/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId=${selected.ContentVersionId__c}&operationContext=CHATTER`;
         }
         return null;
     }
