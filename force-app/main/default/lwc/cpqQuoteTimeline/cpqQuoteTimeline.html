@@ -1,0 +1,106 @@
+<template>
+    <div class="timeline-wrapper">
+        <!-- Legend -->
+        <div class="timeline-toolbar">
+            <div class="legend">
+                <span class="legend-item"><span class="dot product-dot"></span> Product</span>
+                <span class="legend-item"><span class="dot addon-dot"></span> Add-on</span>
+                <span class="legend-item"><span class="dot role-dot"></span> Resource Role</span>
+            </div>
+        </div>
+
+        <!-- Gantt Area -->
+        <div class="gantt-container">
+            <!-- Left Panel: Issues & Duration -->
+            <div class="gantt-left">
+                <!-- Left Header -->
+                <div class="gantt-left-header">
+                    <span class="col-issues">Issues</span>
+                    <span class="col-duration">Duration</span>
+                </div>
+                <!-- Left Rows -->
+                <div class="gantt-left-body">
+                    <template for:each={ganttRows} for:item="row">
+                        <template if:true={row.isPhaseHeader}>
+                            <div key={row.key} class="gantt-left-row phase-header-row">
+                                <span class="phase-name">{row.name}</span>
+                            </div>
+                        </template>
+                        <template if:false={row.isPhaseHeader}>
+                            <div key={row.key} class="gantt-left-row item-row">
+                                <div class="item-name-cell">
+                                    <span class={row.dotClass}></span>
+                                    <span class="item-label" title={row.name}>{row.name}</span>
+                                </div>
+                                <span class="item-duration">{row.durationLabel}</span>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Right Panel: Timeline Chart -->
+            <div class="gantt-right" onscroll={handleGanttScroll}>
+                <!-- Right Header: Month labels -->
+                <div class="gantt-right-header">
+                    <div class="month-labels" style={monthLabelsStyle}>
+                        <template for:each={monthColumns} for:item="m">
+                            <div key={m.key} class="month-col" style={m.style}>
+                                <template if:true={m.showYear}>
+                                    <span class="year-label">{m.year}</span>
+                                </template>
+                                <span class="month-label">{m.label}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <!-- Right Rows: Bars -->
+                <div class="gantt-right-body">
+                    <div class="gantt-chart-area" style={chartAreaStyle}>
+                        <!-- Month grid lines -->
+                        <template for:each={monthColumns} for:item="m">
+                            <div key={m.key} class="grid-line" style={m.gridLineStyle}></div>
+                        </template>
+
+                        <!-- Bars -->
+                        <template for:each={ganttRows} for:item="row">
+                            <template if:true={row.isPhaseHeader}>
+                                <div key={row.key} class="chart-row phase-chart-row"></div>
+                            </template>
+                            <template if:false={row.isPhaseHeader}>
+                                <div key={row.key} class="chart-row item-chart-row">
+                                    <template if:true={row.hasBar}>
+                                        <div class={row.barClass}
+                                             style={row.barStyle}
+                                             data-id={row.id}
+                                             onmouseenter={handleBarHover}
+                                             onmouseleave={handleBarLeave}>
+                                            <span class="bar-icon">{row.barIcon}</span>
+                                            <span class="bar-label">{row.barLabel}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <template if:true={tooltipVisible}>
+            <div class="tooltip" style={tooltipStyle}>
+                <div class="tooltip-header">{tooltipData.name}</div>
+                <table class="tooltip-table">
+                    <tr><td class="tt-label">Type:</td><td class="tt-value">{tooltipData.type}</td></tr>
+                    <tr><td class="tt-label">Quantity:</td><td class="tt-value">{tooltipData.quantity}</td></tr>
+                    <tr><td class="tt-label">Unit Price:</td><td class="tt-value">{tooltipData.unitPrice}</td></tr>
+                    <tr><td class="tt-label">Total:</td><td class="tt-value">{tooltipData.total}</td></tr>
+                    <tr><td class="tt-label">Discount:</td><td class="tt-value">{tooltipData.discount}</td></tr>
+                    <tr><td class="tt-label">Start Date:</td><td class="tt-value">{tooltipData.startDate}</td></tr>
+                    <tr><td class="tt-label">End Date:</td><td class="tt-value">{tooltipData.endDate}</td></tr>
+                </table>
+            </div>
+        </template>
+    </div>
+</template>

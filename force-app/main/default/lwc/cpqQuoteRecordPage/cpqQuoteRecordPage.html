@@ -37,10 +37,11 @@
                 </template>
 
                 <template if:true={isTimeline}>
-                    <div class="empty-state">
-                        <div class="icon">📅</div>
-                        <p>Timeline view will be implemented soon.</p>
-                    </div>
+                    <c-cpq-quote-timeline
+                        record-id={recordId}
+                        quote-data={quoteData}
+                        line-items={lineItems}>
+                    </c-cpq-quote-timeline>
                 </template>
 
                 <template if:true={isPdfs}>

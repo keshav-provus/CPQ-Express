@@ -8,11 +8,6 @@
                         <h3 class="card-title">Version History</h3>
                         <span class="version-badge">{versionCountLabel}</span>
                     </div>
-                    <div class="card-actions">
-                        <button class="btn" onclick={handleDownloadPdf} disabled={noVersionSelected}>
-                            ⬇ Download
-                        </button>
-                    </div>
                 </div>
 
                 <div class="versions-list">
@@ -58,24 +53,42 @@
 
             <!-- Right: Preview -->
             <div class="preview-card">
-                <template if:true={isLoading}>
-                    <div class="preview-loading">
-                        <div class="spinner"></div>
-                        <p>Loading preview…</p>
+                <template if:true={hasSelectedVersion}>
+                    <div class="preview-content">
+                        <!-- Preview image -->
+                        <div class="preview-image-wrap">
+                            <img src={previewImageUrl}
+                                 alt="Document preview"
+                                 class="preview-image"
+                                 onerror={handleImageError}>
+                            <template if:true={previewImageFailed}>
+                                <div class="preview-fallback">
+                                    <div class="fallback-icon">📄</div>
+                                    <p>Preview not available yet</p>
+                                    <p class="fallback-sub">Salesforce is generating the preview. Try refreshing in a moment.</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Action bar at bottom -->
+                        <div class="preview-actions">
+                            <div class="preview-info">
+                                <span class="preview-ver-name">{selectedVersionLabel}</span>
+                                <span class="preview-ver-title">{selectedVersionTitle}</span>
+                            </div>
+                            <div class="preview-btns">
+                                <button class="btn" onclick={handleOpenPreview}>
+                                    Open in New Tab
+                                </button>
+                                <button class="btn btn-primary" onclick={handleDownloadPdf}>
+                                    ⬇ Download
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </template>
 
-                <template if:true={selectedVersionUrl}>
-                    <div class="preview-frame">
-                        <iframe src={selectedVersionUrl}
-                                class="pdf-iframe"
-                                title="PDF Preview"
-                                onload={handleIframeLoad}
-                                onerror={handleIframeError}></iframe>
-                    </div>
-                </template>
-
-                <template if:true={showPlaceholder}>
+                <template if:false={hasSelectedVersion}>
                     <div class="preview-empty">
                         <div class="empty-icon">📄</div>
                         <p class="empty-title">Select a version to preview</p>

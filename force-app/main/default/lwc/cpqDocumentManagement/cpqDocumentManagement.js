@@ -8,9 +8,9 @@ export default class CpqDocumentManagement extends LightningElement {
     @api quoteName = '';
 
     @track versions = [];
-    @track selectedVersionId;
+    @track selectedVersionId = null; // Don't auto-select
     @track wiredVersionsResult;
-    @track isLoading = false;
+    @track previewImageFailed = false;
 
     @wire(getQuoteVersions, { quoteId: '$recordId' })
     wiredVersions(result) {
@@ -27,12 +27,7 @@ export default class CpqDocumentManagement extends LightningElement {
                     initials: this._getInitials(v.CreatedBy?.Name)
                 };
             });
-
-            // Auto-select first version
-            if (!this.selectedVersionId && this.versions.length > 0) {
-                this.selectedVersionId = this.versions[0].Id;
-                this.isLoading = true;
-            }
+            // Do NOT auto-select — this prevents auto-download
             this._updateCardSelection();
         }
     }
@@ -45,43 +40,69 @@ export default class CpqDocumentManagement extends LightningElement {
         return this.versions ? String(this.versions.length) : '0';
     }
 
-    get noVersionSelected() {
-        return !this.selectedVersionId;
+    get hasSelectedVersion() {
+        return !!this.selectedVersionId;
     }
 
-    get selectedVersionUrl() {
-        const selected = this.versions.find(v => v.Id === this.selectedVersionId);
-        if (selected && selected.ContentVersionId__c) {
-            return `/sfc/servlet.shepherd/version/download/${selected.ContentVersionId__c}?operationContext=S1`;
+    get selectedVersion() {
+        return this.versions.find(v => v.Id === this.selectedVersionId);
+    }
+
+    get selectedVersionLabel() {
+        const v = this.selectedVersion;
+        return v ? v.Version_Label__c : '';
+    }
+
+    get selectedVersionTitle() {
+        const v = this.selectedVersion;
+        return v ? v.Title__c : '';
+    }
+
+    /**
+     * Uses the rendition API which returns an IMAGE (not a PDF download).
+     * This is safe to put in an <img> tag — won't trigger file download.
+     */
+    get previewImageUrl() {
+        const v = this.selectedVersion;
+        if (v && v.ContentVersionId__c) {
+            return `/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId=${v.ContentVersionId__c}&operationContext=CHATTER`;
         }
-        return null;
-    }
-
-    get showPlaceholder() {
-        return !this.selectedVersionUrl && !this.isLoading;
+        return '';
     }
 
     handleVersionSelect(event) {
         const newId = event.currentTarget.dataset.id;
         if (newId !== this.selectedVersionId) {
             this.selectedVersionId = newId;
-            this.isLoading = true;
+            this.previewImageFailed = false;
             this._updateCardSelection();
         }
     }
 
-    handleIframeLoad() {
-        this.isLoading = false;
+    handleImageError() {
+        // Rendition not ready yet (Salesforce generates them async)
+        this.previewImageFailed = true;
     }
 
-    handleIframeError() {
-        this.isLoading = false;
+    handleOpenPreview() {
+        const v = this.selectedVersion;
+        if (v && v.ContentVersionId__c) {
+            // Opens in a new browser tab — the browser's built-in PDF viewer will render it
+            window.open(`/sfc/servlet.shepherd/version/download/${v.ContentVersionId__c}`, '_blank');
+        }
     }
 
     handleDownloadPdf() {
-        const selected = this.versions.find(v => v.Id === this.selectedVersionId);
-        if (selected && selected.ContentVersionId__c) {
-            window.open(`/sfc/servlet.shepherd/version/download/${selected.ContentVersionId__c}`, '_blank');
+        const v = this.selectedVersion;
+        if (v && v.ContentVersionId__c) {
+            // Create a hidden link to force download
+            const link = document.createElement('a');
+            link.href = `/sfc/servlet.shepherd/version/download/${v.ContentVersionId__c}`;
+            link.download = `${v.Version_Label__c || 'Quote'}.pdf`;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } else {
             this.dispatchEvent(new ShowToastEvent({
                 title: 'No Version Selected',

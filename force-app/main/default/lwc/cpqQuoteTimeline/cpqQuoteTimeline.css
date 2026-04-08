@@ -1,0 +1,351 @@
+:host {
+    display: block;
+    background: #f3f4f6;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.timeline-wrapper {
+    position: relative;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ── Toolbar / Legend ── */
+.timeline-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.legend {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.product-dot { background: #3b82f6; }
+.addon-dot   { background: #f59e0b; }
+.role-dot    { background: #10b981; }
+
+/* ── Gantt Container ── */
+.gantt-container {
+    display: flex;
+    height: calc(100vh - 320px);
+    min-height: 400px;
+}
+
+/* ── Left Panel (Issues + Duration) ── */
+.gantt-left {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+}
+
+.gantt-left-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-bottom: 2px solid #e5e7eb;
+    flex-shrink: 0;
+    min-height: 44px;
+}
+
+.col-issues {
+    flex: 1;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.col-duration {
+    width: 80px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.gantt-left-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ── Left Rows ── */
+.gantt-left-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.gantt-left-row.phase-header-row {
+    padding: 8px 12px;
+    background: #f9fafb;
+    min-height: 32px;
+}
+
+.gantt-left-row.item-row {
+    padding: 6px 12px 6px 20px;
+    min-height: 36px;
+}
+
+.phase-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-name-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.item-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #111;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-duration {
+    width: 80px;
+    text-align: right;
+    font-size: 11px;
+    color: #9ca3af;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* ── Right Panel (Chart) ── */
+.gantt-right {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.gantt-right-header {
+    flex-shrink: 0;
+    overflow: hidden;
+    border-bottom: 2px solid #e5e7eb;
+    background: #f9fafb;
+    min-height: 44px;
+}
+
+.month-labels {
+    display: flex;
+    position: relative;
+}
+
+.month-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 10px;
+    border-left: 1px solid #e5e7eb;
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.year-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.month-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.gantt-right-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ── Chart Area ── */
+.gantt-chart-area {
+    position: relative;
+    min-height: 100%;
+}
+
+/* ── Grid Lines ── */
+.grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #f3f4f6;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ── Chart Rows ── */
+.chart-row {
+    position: relative;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.phase-chart-row {
+    min-height: 32px;
+    background: #f9fafb;
+}
+
+.item-chart-row {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+/* ── Gantt Bars ── */
+.gantt-bar {
+    position: absolute;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+    transition: filter 0.15s, box-shadow 0.15s;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.gantt-bar:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 5;
+}
+
+.bar-icon {
+    font-size: 12px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.bar-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+    position: absolute;
+    z-index: 100;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    min-width: 220px;
+    max-width: 300px;
+}
+
+.tooltip-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tooltip-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tooltip-table td {
+    padding: 2px 0;
+    font-size: 12px;
+    vertical-align: top;
+}
+
+.tt-label {
+    color: #6b7280;
+    font-weight: 500;
+    width: 80px;
+    white-space: nowrap;
+}
+
+.tt-value {
+    color: #111;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ── Scrollbar styling ── */
+.gantt-right::-webkit-scrollbar,
+.gantt-left-body::-webkit-scrollbar,
+.gantt-right-body::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.gantt-right::-webkit-scrollbar-thumb,
+.gantt-left-body::-webkit-scrollbar-thumb,
+.gantt-right-body::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.gantt-right::-webkit-scrollbar-track,
+.gantt-left-body::-webkit-scrollbar-track,
+.gantt-right-body::-webkit-scrollbar-track {
+    background: transparent;
+}
