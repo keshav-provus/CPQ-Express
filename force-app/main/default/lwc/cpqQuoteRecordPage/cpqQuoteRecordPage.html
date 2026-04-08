@@ -28,7 +28,6 @@
                 <template if:true={isLineItems}>
                     <c-cpq-quote-line-editor 
                         record-id={recordId}
-                        quote-data={quoteData}
                         line-items={lineItems}
                         onrefresh={handleRefresh}
                         onopenwizard={handleOpenWizard}>
@@ -36,10 +35,9 @@
                 </template>
 
                 <template if:true={isTimeline}>
-                    <div class="empty-state">
-                        <div class="icon">📅</div>
-                        <p>Timeline view will be implemented soon.</p>
-                    </div>
+                    <c-cpq-resource-timeline
+                        record-id={recordId}>
+                    </c-cpq-resource-timeline>
                 </template>
 
                 <template if:true={isPdfs}>

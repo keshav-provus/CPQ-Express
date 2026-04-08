@@ -1,0 +1,19 @@
+{
+    "orgName": "Provus CPQ Express",
+    "edition": "Enterprise",
+    "features": [
+        "EnableSetPasswordInApi"
+    ],
+    "settings": {
+        "lightningExperienceSettings": {
+            "enableS1DesktopEnabled": true
+        },
+        "mobileSettings": {
+            "enableS1EncryptedStoragePref2": false
+        },
+        "userManagementSettings": {
+            "enableEnhancedPermsetMgmt": true
+        }
+    },
+    "adminEmail": "h.karthiknair@gmail.com"
+}

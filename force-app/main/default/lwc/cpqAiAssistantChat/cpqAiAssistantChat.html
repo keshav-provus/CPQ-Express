@@ -1,0 +1,16 @@
+<template>
+    <div class="chat-container">
+        <div class="chat-header slds-p-around_small slds-theme_shade">
+            <span class="slds-text-heading_small">AI Assistant</span>
+        </div>
+        <div class="chat-messages slds-p-around_small">
+            <div class="message assistant">
+                <p>Hello! I'm your CPQ AI Assistant. How can I help you today?</p>
+            </div>
+        </div>
+        <div class="chat-input slds-p-around_small">
+            <lightning-input type="text" placeholder="Type a message..." variant="label-hidden"></lightning-input>
+            <lightning-button-icon icon-name="utility:send" variant="bare" alternative-text="Send" class="slds-m-left_small"></lightning-button-icon>
+        </div>
+    </div>
+</template>

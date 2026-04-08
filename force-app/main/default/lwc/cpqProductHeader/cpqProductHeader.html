@@ -21,8 +21,8 @@
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.06)] border border-transparent transition-all hover:translate-y-[-2px]">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-indigo-50 rounded-lg flex items-center justify-center">
-                        <lightning-icon icon-name="utility:moneybag" size="small" variant="brand"></lightning-icon>
+                    <div class="p-2 bg-indigo-50 rounded-lg">
+                        <span class="material-symbols-outlined text-indigo-600">payments</span>
                     </div>
                     <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">+4.2%</span>
                 </div>
@@ -31,8 +31,8 @@
             </div>
             <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.06)] border border-transparent transition-all hover:translate-y-[-2px]">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-purple-50 rounded-lg flex items-center justify-center">
-                        <lightning-icon icon-name="utility:chart" size="small" class="purple-icon"></lightning-icon>
+                    <div class="p-2 bg-purple-50 rounded-lg">
+                        <span class="material-symbols-outlined text-purple-600">pie_chart</span>
                     </div>
                     <span class="text-xs font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">Benchmark</span>
                 </div>
@@ -41,13 +41,11 @@
             </div>
             <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.06)] border border-transparent transition-all hover:translate-y-[-2px]">
                 <div class="flex justify-between items-start mb-4">
-                    <div class="p-2 bg-amber-50 rounded-lg flex items-center justify-center">
-                        <lightning-icon icon-name="utility:tag" size="small" class="amber-icon"></lightning-icon>
+                    <div class="p-2 bg-amber-50 rounded-lg">
+                        <span class="material-symbols-outlined text-amber-600">percent</span>
                     </div>
                     <template if:false={isEditingDiscount}>
-                        <button onclick={handleEditDiscount} class="p-1 hover:bg-surface-container-high rounded transition-colors group">
-                             <lightning-icon icon-name="utility:edit" size="xx-small" class="text-outline group-hover:text-primary"></lightning-icon>
-                        </button>
+                        <button onclick={handleEditDiscount} class="material-symbols-outlined text-sm text-outline hover:text-primary transition-colors">edit</button>
                     </template>
                 </div>
                 <p class="text-outline text-[10px] font-bold uppercase tracking-widest mb-1">Default Discount</p>
@@ -57,12 +55,8 @@
                 <template if:true={isEditingDiscount}>
                     <div class="flex items-center gap-2 mt-1">
                         <input type="number" class="w-20 bg-surface-container-high border-none rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-primary/40" value={editedDiscount} oninput={handleDiscountChange}>
-                        <button onclick={handleSaveDiscount} class="p-1 hover:bg-green-50 rounded transition-colors">
-                            <lightning-icon icon-name="utility:check" size="xx-small" variant="success"></lightning-icon>
-                        </button>
-                        <button onclick={handleCancelDiscount} class="p-1 hover:bg-red-50 rounded transition-colors">
-                            <lightning-icon icon-name="utility:close" size="xx-small" variant="error"></lightning-icon>
-                        </button>
+                        <button onclick={handleSaveDiscount} class="material-symbols-outlined text-green-600">check</button>
+                        <button onclick={handleCancelDiscount} class="material-symbols-outlined text-red-600">close</button>
                     </div>
                 </template>
             </div>

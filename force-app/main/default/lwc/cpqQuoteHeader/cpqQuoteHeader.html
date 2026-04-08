@@ -7,29 +7,11 @@
                     <span class="breadcrumb-link">Quotes</span>
                     <span class="breadcrumb-sep">›</span>
                     <strong class="breadcrumb-current">{quoteName}</strong>
-                    <span class={badgeClass} data-status={status}>{status}</span>
+                    <span class="badge" data-status={status}>{status}</span>
                 </div>
                 <a class="click-desc" onclick={handleAiAssistant}>✏ Click to edit description</a>
             </div>
             <div class="top-actions">
-                <!-- Draft: Show Submit for Approval -->
-                <template if:true={isDraft}>
-                    <button class="btn btn-outline-submit" onclick={handleSubmitForApproval}>Submit for Approval</button>
-                </template>
-
-                <!-- Pending Approval: Show Recall, Approve, Reject -->
-                <template if:true={isPendingApproval}>
-                    <button class="btn btn-outline-action" onclick={handleRecall}>
-                        <span class="btn-icon">↩</span> Recall
-                    </button>
-                    <button class="btn btn-outline-action" onclick={handleApprove}>
-                        <span class="btn-icon">✓</span> Approve
-                    </button>
-                    <button class="btn btn-outline-action" onclick={handleReject}>
-                        <span class="btn-icon">✕</span> Reject
-                    </button>
-                </template>
-
                 <div class="btn-split">
                     <button class="btn-main" onclick={handleGeneratePdf}>⬇ Generate PDF</button>
                     <button class="btn-caret" onclick={handleGeneratePdf}>▾</button>

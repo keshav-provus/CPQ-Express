@@ -1,241 +1,68 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import updateLineItem from '@salesforce/apex/QuoteLineItemController.updateLineItem';
 import deleteLineItem from '@salesforce/apex/QuoteLineItemController.deleteLineItem';
-import deletePhaseItems from '@salesforce/apex/QuoteLineItemController.deletePhaseItems';
 import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList';
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-
-const PHASE_COLORS = [
-    'hsla(210, 100%, 97%, 1)', // Light Blue
-    'hsla(140, 100%, 97%, 1)', // Light Green
-    'hsla(35, 100%, 96%, 1)',  // Light Amber
-    'hsla(280, 100%, 97%, 1)', // Light Purple
-    'hsla(340, 100%, 97%, 1)', // Light Pink
-    'hsla(180, 100%, 96%, 1)', // Light Teal
-    'hsla(20, 100%, 97%, 1)',  // Light Orange
-    'hsla(60, 100%, 96%, 1)'   // Light Yellow
-];
+import { refreshApex } from '@salesforce/apex';
 
 export default class CpqQuoteLineEditor extends LightningElement {
     @api recordId;
     @api lineItems = [];
-    @api quoteData;
 
     @track collapsedPhases = {};
     @track customPhases = [];
-    @track selectedIds = {};
-    @track selectedPhases = {};
-    @track localOrder = [];
-    @track phaseOrder = [];
-    @track phaseDetails = {};
-    @track itemPhaseOverrides = {};
-    @track editingPhaseName = null;
-    @track editingPhaseValue = '';
-
-    _snapshotJson = '';
-    _dragItemId = null;
-    _dragSourcePhase = null;
     wiredPhaseList;
 
     @wire(getPhaseList, { quoteId: '$recordId' })
     wiredPhases(result) {
         this.wiredPhaseList = result;
         if (result.data) {
-            let raw = result.data.trim();
-            if (raw.startsWith('{')) {
-                try {
-                    let data = JSON.parse(raw);
-                    this.phaseOrder = data.order || [];
-                    this.phaseDetails = data.details || {};
-                    this.customPhases = [...this.phaseOrder];
-                } catch(e) { console.error('Error parsing Phase_List__c', e); }
-            } else {
-                let phases = raw.split(',').filter(p => p.trim() !== '');
-                this.customPhases = phases;
-                if (this.phaseOrder.length === 0) {
-                    this.phaseOrder = [...phases];
-                }
-            }
+            this.customPhases = result.data.split(',').filter(p => p.trim() !== '');
         }
     }
 
-    _savePhaseListData() {
-        const payload = JSON.stringify({
-            order: this.phaseOrder,
-            details: this.phaseDetails
-        });
-        savePhaseList({ quoteId: this.recordId, phaseList: payload });
-    }
-
-    // ─── Snapshot for Undo ───
-    _takeSnapshot() {
-        this._snapshotJson = JSON.stringify({
-            localOrder: this.localOrder,
-            phaseOrder: this.phaseOrder,
-            phaseDetails: this.phaseDetails,
-            itemPhaseOverrides: this.itemPhaseOverrides,
-            customPhases: this.customPhases
-        });
-    }
-
-    get isUndoDisabled() {
-        return this._snapshotJson === '';
-    }
-
-    get undoBtnClass() {
-        return `btn ${this.isUndoDisabled ? 'btn-disabled' : ''}`;
-    }
-
-    handleUndo() {
-        if (this._snapshotJson === '') return;
-        const snap = JSON.parse(this._snapshotJson);
-        this.localOrder = snap.localOrder;
-        this.phaseOrder = snap.phaseOrder;
-        this.phaseDetails = snap.phaseDetails || {};
-        this.itemPhaseOverrides = snap.itemPhaseOverrides;
-        this.customPhases = snap.customPhases;
-        this._snapshotJson = '';
-        this.dispatchEvent(new ShowToastEvent({
-            title: 'Undone',
-            message: 'Last change has been reverted.',
-            variant: 'success'
-        }));
-    }
-
-    // ─── Selection ───
-    get hasSelected() {
-        return Object.values(this.selectedIds).some(v => v) || 
-               Object.values(this.selectedPhases).some(v => v);
-    }
-
-    toggleSelect(event) {
-        const id = event.target.dataset.id;
-        const phase = event.target.dataset.targetPhase;
+    get groupedPhases() {
+        const phases = {};
+        const allPhaseNames = ['Default', ...this.customPhases];
         
-        if (id) {
-            this.selectedIds = { ...this.selectedIds, [id]: event.target.checked };
-        } else if (phase) {
-            this.selectedPhases = { ...this.selectedPhases, [phase]: event.target.checked };
-        }
-    }
+        allPhaseNames.forEach(name => {
+            phases[name] = {
+                name: name,
+                items: [],
+                isCollapsed: this.collapsedPhases[name] || false,
+                toggleIcon: this.collapsedPhases[name] ? '▶' : '▼'
+            };
+        });
 
-    toggleSelectAll(event) {
-        const checked = event.target.checked;
-        const newSel = {};
-        this.lineItems.forEach(item => { newSel[item.Id] = checked; });
-        this.selectedIds = newSel;
-
-        const newPhaseSel = {};
-        this.phaseOrder.forEach(p => { newPhaseSel[p] = checked; });
-        this.selectedPhases = newPhaseSel;
-    }
-
-    handleDeleteSelected() {
-        const idsToDelete = Object.entries(this.selectedIds)
-            .filter(([, v]) => v)
-            .map(([k]) => k);
-        const phasesToDelete = Object.entries(this.selectedPhases)
-            .filter(([, v]) => v)
-            .map(([k]) => k);
-
-        if (idsToDelete.length === 0 && phasesToDelete.length === 0) return;
-
-        this._takeSnapshot();
-
-        let promises = [];
-        
-        // Items to delete (that are not already part of a deleted phase)
-        idsToDelete.forEach(id => {
-            const item = this.lineItems.find(i => i.Id === id);
-            const itemPhase = this._getEffectivePhase(item);
-            if (!phasesToDelete.includes(itemPhase)) {
-                promises.push(deleteLineItem({ itemId: id }));
+        this.lineItems.forEach(item => {
+            const phaseName = item.Phase__c || 'Default';
+            if (!phases[phaseName]) {
+                phases[phaseName] = {
+                    name: phaseName,
+                    items: [],
+                    isCollapsed: this.collapsedPhases[phaseName] || false,
+                    toggleIcon: this.collapsedPhases[phaseName] ? '▶' : '▼'
+                };
             }
+            const processedItem = {
+                ...item,
+                icon: item.Item_Type__c === 'Resource Role' ? '👤' : item.Item_Type__c === 'Product' ? '📦' : '➕',
+                formattedNetTotal: this.formatCurrency(item.Net_Total__c),
+                formattedUnitPrice: this.formatCurrency(item.Unit_Price__c),
+                formattedBaseRate: this.formatCurrency(item.Base_Rate__c),
+                startDateFormatted: item.Start_Date__c ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-',
+                endDateFormatted: item.End_Date__c ? new Date(item.End_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : '-'
+            };
+            phases[phaseName].items.push(processedItem);
         });
 
-        // Phases to delete
-        phasesToDelete.forEach(phaseName => {
-            promises.push(deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName }));
-        });
-
-        Promise.all(promises)
-            .then(() => {
-                // Local cleanup for phases
-                phasesToDelete.forEach(phaseName => {
-                    this.customPhases = this.customPhases.filter(p => p !== phaseName);
-                    this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
-                    if (this.phaseDetails[phaseName]) {
-                        const newDetails = { ...this.phaseDetails };
-                        delete newDetails[phaseName];
-                        this.phaseDetails = newDetails;
-                    }
-                });
-                if (phasesToDelete.length > 0) {
-                    this._savePhaseListData();
-                }
-
-                this.selectedIds = {};
-                this.selectedPhases = {};
-                this.dispatchEvent(new CustomEvent('refresh'));
-                
-                const msg = `${idsToDelete.length} item(s) and ${phasesToDelete.length} phase(s) deleted.`;
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Deleted',
-                    message: msg,
-                    variant: 'success'
-                }));
-            })
-            .catch(error => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body?.message || 'Error deleting selected content',
-                    variant: 'error'
-                }));
-            });
+        return Object.values(phases).filter(p => p.name === 'Default' || p.items.length > 0 || this.customPhases.includes(p.name));
     }
 
-    // ─── Helpers ───
-    get timePeriodMetric() {
-        return this.quoteData?.Time_Period_Metric__c || '';
-    }
-
-    _getDisplayName(item) {
-        if (item.Item_Type__c === 'Resource Role') {
-            return item.Resource_Role__r?.Name__c || item.Resource_Role__r?.Name || item.Name;
-        }
-        if (item.Item_Type__c === 'Product') {
-            return item.Product__r?.Name || item.Name;
-        }
-        if (item.Item_Type__c === 'Add-on') {
-            return item.Add_On__r?.Name__c || item.Add_On__r?.Name || item.Name;
-        }
-        return item.Name;
-    }
-
-    _getIcon(type) {
-        if (type === 'Resource Role') return '👤';
-        if (type === 'Product') return '⚙';
-        if (type === 'Add-on') return '➕';
-        return '•';
-    }
-
-    _getIconClass(type) {
-        if (type === 'Resource Role') return 'type-icon role-icon';
-        if (type === 'Product') return 'type-icon product-icon';
-        if (type === 'Add-on') return 'type-icon addon-icon';
-        return 'type-icon';
-    }
-
-    _getQtyUnit(metric) {
-        if (!metric) return 'item(s)';
-        const m = metric.toLowerCase();
-        if (m === 'days') return 'day(s)';
-        if (m === 'weeks') return 'week(s)';
-        if (m === 'months') return 'month(s)';
-        if (m === 'quarters') return 'quarter(s)';
-        if (m === 'years') return 'year(s)';
-        return 'item(s)';
+    get grandTotal() {
+        const total = this.lineItems.reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
+        return this.formatCurrency(total);
     }
 
     formatCurrency(value) {
@@ -245,370 +72,47 @@ export default class CpqQuoteLineEditor extends LightningElement {
         }).format(value || 0);
     }
 
-    // ─── Phase helpers ───
-    _getEffectivePhase(item) {
-        return this.itemPhaseOverrides[item.Id] || item.Phase__c || null;
-    }
-
-    // ─── Build flat rows ───
-    get flatRows() {
-        const metric = this.timePeriodMetric;
-        const qtyUnit = this._getQtyUnit(metric);
-
-        // Group items by effective phase
-        const unphasedItems = [];
-        const phaseItemsMap = new Map();
-
-        // Initialize phase buckets from phaseOrder
-        const phases = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
-        phases.forEach(p => phaseItemsMap.set(p, []));
-
-        this.lineItems.forEach(item => {
-            const phase = this._getEffectivePhase(item);
-            if (!phase || phase === 'Default') {
-                unphasedItems.push(item);
-            } else {
-                if (!phaseItemsMap.has(phase)) {
-                    phaseItemsMap.set(phase, []);
-                }
-                phaseItemsMap.get(phase).push(item);
-            }
-        });
-
-        // Sort items by localOrder if available
-        const orderMap = {};
-        this.localOrder.forEach((id, idx) => { orderMap[id] = idx; });
-        const sortFn = (a, b) => {
-            const oa = orderMap[a.Id] !== undefined ? orderMap[a.Id] : 9999;
-            const ob = orderMap[b.Id] !== undefined ? orderMap[b.Id] : 9999;
-            return oa - ob;
-        };
-
-        const rows = [];
-
-        // 1) Unphased items at top (no phase header, look like root-level items)
-        [...unphasedItems].sort(sortFn).forEach(item => {
-            rows.push(this._buildItemRow(item, null, qtyUnit, false));
-        });
-
-        // 2) Phase groups
-        const phaseNames = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
-        // Add any phases from phaseItemsMap that aren't in phaseNames
-        phaseItemsMap.forEach((_, name) => {
-            if (!phaseNames.includes(name)) phaseNames.push(name);
-        });
-
-        phaseNames.forEach(name => {
-            const items = phaseItemsMap.get(name) || [];
-
-            // Phase header row
-            const phaseIndex = phaseNames.indexOf(name);
-            const bgColor = phaseIndex >= 0 ? PHASE_COLORS[phaseIndex % PHASE_COLORS.length] : 'transparent';
-            const rowStyle = `background-color: ${bgColor} !important;`;
-            const borderStyle = phaseIndex >= 0 ? `border-left: 4px solid ${bgColor.replace('97%', '70%').replace('96%', '70%')};` : '';
-
-            const isEditing = this.editingPhaseName === name;
-            const details = this.phaseDetails[name] || {};
-            rows.push({
-                key: `phase-${name}`,
-                isPhase: true,
-                name: name,
-                toggleIcon: this.collapsedPhases[name] ? 'utility:chevronright' : 'utility:chevrondown',
-                isCollapsed: this.collapsedPhases[name] || false,
-                itemCount: items.length,
-                isEditing: isEditing,
-                editValue: isEditing ? this.editingPhaseValue : name,
-                startDate: details.startDate || '',
-                endDate: details.endDate || '',
-                isSelected: this.selectedPhases[name] || false,
-                rowStyle: rowStyle + borderStyle
-            });
-
-            // Items under phase (only if not collapsed)
-            if (!this.collapsedPhases[name]) {
-                [...items].sort(sortFn).forEach(item => {
-                    rows.push(this._buildItemRow(item, name, qtyUnit, true, rowStyle));
-                });
-            }
-        });
-
-        return rows;
-    }
-
-    _buildItemRow(item, phaseName, qtyUnit, isIndented, rowStyle = '') {
-        return {
-            key: `item-${item.Id}`,
-            isPhase: false,
-            Id: item.Id,
-            phase: phaseName || '',
-            displayName: this._getDisplayName(item),
-            Item_Type__c: item.Item_Type__c,
-            icon: this._getIcon(item.Item_Type__c),
-            iconClass: this._getIconClass(item.Item_Type__c),
-            Name: item.Name,
-            Quantity__c: item.Quantity__c,
-            Discount_Percent__c: item.Discount_Percent__c || 0,
-            startDateFormatted: item.Start_Date__c
-                ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-                : '-',
-            endDateFormatted: item.End_Date__c
-                ? new Date(item.End_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
-                : '-',
-            formattedBaseRate: this.formatCurrency(item.Base_Rate__c),
-            formattedUnitPrice: this.formatCurrency(item.Unit_Price__c),
-            formattedNetTotal: this.formatCurrency(item.Net_Total__c),
-            qtyUnit: qtyUnit,
-            isSelected: this.selectedIds[item.Id] || false,
-            isIndented: isIndented,
-            rowClass: `item-row${isIndented ? ' in-phase' : ''}`,
-            rowStyle: rowStyle
-        };
-    }
-
-    get grandTotal() {
-        const total = this.lineItems.reduce((sum, item) => sum + (item.Net_Total__c || 0), 0);
-        return this.formatCurrency(total);
-    }
-
-    // ─── Phase actions ───
     togglePhase(event) {
-        const phase = event.target.dataset.phase || event.currentTarget.dataset.phase;
+        const phase = event.target.dataset.phase;
         this.collapsedPhases = { ...this.collapsedPhases, [phase]: !this.collapsedPhases[phase] };
     }
 
     handleCollapseAll() {
         const newCollapsed = {};
-        const allNames = this.phaseOrder.length > 0
-            ? [...this.phaseOrder]
-            : [...this.customPhases];
-        allNames.forEach(name => { newCollapsed[name] = true; });
+        this.groupedPhases.forEach(p => {
+            newCollapsed[p.name] = true;
+        });
         this.collapsedPhases = newCollapsed;
     }
 
     handleAddPhase() {
-        this._takeSnapshot();
         const nextPhaseNum = this.customPhases.length + 1;
         const newPhaseName = `Phase ${nextPhaseNum}`;
         this.customPhases = [...this.customPhases, newPhaseName];
-        this.phaseOrder = [...this.phaseOrder, newPhaseName];
-        this.phaseDetails = { ...this.phaseDetails, [newPhaseName]: {} };
-        this._savePhaseListData();
-        this.dispatchEvent(new ShowToastEvent({
-            title: 'Success',
-            message: `Phase "${newPhaseName}" added`,
-            variant: 'success'
-        }));
+        savePhaseList({ quoteId: this.recordId, phaseList: this.customPhases.join(',') })
+            .then(() => {
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Success',
+                    message: `Phase "${newPhaseName}" added`,
+                    variant: 'success'
+                }));
+            });
     }
 
     handleOpenWizard(event) {
         const phase = event.target.dataset.phase;
         this.dispatchEvent(new CustomEvent('openwizard', {
-            detail: { phase: phase || '' }
+            detail: { phase }
         }));
-    }
-
-    // ─── Phase name editing ───
-    handlePhaseNameDblClick(event) {
-        const name = event.currentTarget.dataset.phase;
-        this.editingPhaseName = name;
-        this.editingPhaseValue = name;
-    }
-
-    handlePhaseNameChange(event) {
-        this.editingPhaseValue = event.target.value;
-    }
-
-    handlePhaseNameBlur() {
-        this._commitPhaseRename();
-    }
-
-    handlePhaseNameKeyDown(event) {
-        if (event.key === 'Enter') {
-            this._commitPhaseRename();
-        } else if (event.key === 'Escape') {
-            this.editingPhaseName = null;
-            this.editingPhaseValue = '';
-        }
-    }
-
-    _commitPhaseRename() {
-        const oldName = this.editingPhaseName;
-        const newName = this.editingPhaseValue.trim();
-        this.editingPhaseName = null;
-        this.editingPhaseValue = '';
-
-        if (!newName || newName === oldName) return;
-
-        this._takeSnapshot();
-
-        // Update customPhases
-        this.customPhases = this.customPhases.map(p => p === oldName ? newName : p);
-        this.phaseOrder = this.phaseOrder.map(p => p === oldName ? newName : p);
-
-        // Update itemPhaseOverrides
-        const newOverrides = {};
-        Object.entries(this.itemPhaseOverrides).forEach(([id, phase]) => {
-            newOverrides[id] = phase === oldName ? newName : phase;
-        });
-        this.itemPhaseOverrides = newOverrides;
-
-        // Update collapsed state
-        if (this.collapsedPhases[oldName] !== undefined) {
-            const newCollapsed = { ...this.collapsedPhases };
-            newCollapsed[newName] = newCollapsed[oldName];
-            delete newCollapsed[oldName];
-            this.collapsedPhases = newCollapsed;
-        }
-
-        // Update phase details map
-        if (this.phaseDetails[oldName]) {
-            const newDetails = { ...this.phaseDetails };
-            newDetails[newName] = newDetails[oldName];
-            delete newDetails[oldName];
-            this.phaseDetails = newDetails;
-        }
-
-        // Persist phase list
-        this._savePhaseListData();
-
-        // Update items that have Phase__c = oldName in the database
-        this.lineItems.forEach(item => {
-            const effectivePhase = this.itemPhaseOverrides[item.Id] || item.Phase__c;
-            if (effectivePhase === newName || item.Phase__c === oldName) {
-                const updateObj = { Id: item.Id, Phase__c: newName };
-                updateLineItem({ item: updateObj }).catch(err => console.error(err));
-            }
-        });
-
-        // Refresh to pick up server changes
-        setTimeout(() => {
-            this.dispatchEvent(new CustomEvent('refresh'));
-        }, 500);
-    }
-
-    // ─── Inline editing & Phase Logic ───
-    // ─── Validation Helpers ───
-    _validateItemAgainstPhase(item, phaseName, itemStart = null, itemEnd = null) {
-        if (!phaseName) return true;
-        const details = this.phaseDetails[phaseName];
-        if (!details || (!details.startDate && !details.endDate)) return true;
-
-        const pStart = details.startDate ? new Date(details.startDate) : null;
-        const pEnd = details.endDate ? new Date(details.endDate) : null;
-        const iStart = new Date(itemStart || item.Start_Date__c);
-        const iEnd = new Date(itemEnd || item.End_Date__c);
-
-        if (pStart && iStart < pStart) return false;
-        if (pEnd && iEnd > pEnd) return false;
-        return true;
-    }
-
-    _validatePhaseAgainstItems(phaseName, newStart, newEnd) {
-        const pStart = newStart ? new Date(newStart) : null;
-        const pEnd = newEnd ? new Date(newEnd) : null;
-
-        const items = this.lineItems.filter(i => {
-            const eff = this.itemPhaseOverrides[i.Id] || i.Phase__c;
-            return eff === phaseName;
-        });
-
-        for (const item of items) {
-            const iStart = new Date(item.Start_Date__c);
-            const iEnd = new Date(item.End_Date__c);
-            if (pStart && iStart < pStart) return false;
-            if (pEnd && iEnd > pEnd) return false;
-        }
-        return true;
-    }
-
-    handleDeletePhase(event) {
-        const phaseName = event.target.dataset.phase;
-        if (!confirm(`Are you sure you want to delete ${phaseName} and all its items?`)) return;
-
-        this._takeSnapshot();
-
-        // Server-side
-        deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName })
-            .then(() => {
-                // Client-side layer cleanup
-                this.customPhases = this.customPhases.filter(p => p !== phaseName);
-                this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
-                if (this.phaseDetails[phaseName]) {
-                    const newDetails = { ...this.phaseDetails };
-                    delete newDetails[phaseName];
-                    this.phaseDetails = newDetails;
-                }
-                this._savePhaseListData();
-
-                this.dispatchEvent(new CustomEvent('refresh'));
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Deleted',
-                    message: `${phaseName} deleted.`,
-                    variant: 'success'
-                }));
-            })
-            .catch(error => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body?.message || 'Error deleting phase',
-                    variant: 'error'
-                }));
-            });
-    }
-
-    handlePhaseDetailChange(event) {
-        const phaseName = event.target.dataset.phase;
-        const field = event.target.dataset.field; // 'startDate' or 'endDate'
-        const val = event.target.value;
-
-        const details = this.phaseDetails[phaseName] || {};
-
-        this._takeSnapshot();
-        this.phaseDetails = {
-            ...this.phaseDetails,
-            [phaseName]: { ...details, [field]: val }
-        };
-        this._savePhaseListData();
     }
 
     handleUpdateItem(event) {
         const itemId = event.target.dataset.id;
         const field = event.target.dataset.field;
-        let value = event.target.value;
-
-        const item = this.lineItems.find(i => i.Id === itemId);
-        const phaseName = this._getEffectivePhase(item);
-
-        if (field === 'Start_Date__c' || field === 'End_Date__c') {
-            const iStart = field === 'Start_Date__c' ? value : item.Start_Date__c;
-            const iEnd = field === 'End_Date__c' ? value : item.End_Date__c;
-            if (!this._validateItemAgainstPhase(item, phaseName, iStart, iEnd)) {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Invalid Dates',
-                    message: 'Item dates must be within the phase start and end dates.',
-                    variant: 'error'
-                }));
-                event.target.value = item[field];
-                return;
-            }
-        }
-
-        this._takeSnapshot();
-        let finalValue = value;
-
-        if (field === 'Discount_Percent__c') {
-            finalValue = parseFloat(value) || 0;
-            if (finalValue > 100) finalValue = 100;
-            if (finalValue < 0) finalValue = 0;
-            event.target.value = finalValue;
-        } else if (field === 'Quantity__c') {
-            finalValue = parseFloat(value) || 0;
-            if (finalValue < 0) finalValue = 0;
-            event.target.value = finalValue;
-        }
+        const value = event.target.value;
 
         const updateObj = { Id: itemId };
-        updateObj[field] = finalValue;
+        updateObj[field] = value;
 
         updateLineItem({ item: updateObj })
             .then(() => {
@@ -616,143 +120,15 @@ export default class CpqQuoteLineEditor extends LightningElement {
             })
             .catch(error => {
                 console.error('Update error', error);
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body?.message || 'Error updating item',
-                    variant: 'error'
-                }));
             });
     }
 
-    // ─── Drag & Drop ───
-    handleDragStart(event) {
-        this._dragItemId = event.currentTarget.dataset.id;
-        this._dragSourcePhase = event.currentTarget.dataset.phase || null;
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', this._dragItemId);
-        event.currentTarget.classList.add('dragging');
-    }
-
-    handleDragOver(event) {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'move';
-        // Add visual indicator
-        const row = event.currentTarget;
-        if (row.classList.contains('item-row') || row.classList.contains('phase-row')) {
-            row.classList.add('drag-over');
-        }
-    }
-
-    handleDragLeave(event) {
-        event.currentTarget.classList.remove('drag-over');
-    }
-
-    handleDrop(event) {
-        event.preventDefault();
-        event.currentTarget.classList.remove('drag-over');
-        const dropTargetId = event.currentTarget.dataset.id; // Moving before this item
-        const targetPhase = event.currentTarget.dataset.phase || '';
-
-        const item = this.lineItems.find(i => i.Id === this._dragItemId);
-        if (targetPhase && !this._validateItemAgainstPhase(item, targetPhase)) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Invalid Phase',
-                message: 'This item dates are outside the target phase duration.',
-                variant: 'error'
-            }));
-            return;
-        }
-
-        this._takeSnapshot();
-        if (!this._dragItemId || this._dragItemId === dropTargetId) {
-            this._cleanupDrag();
-            return;
-        }
-
-        // Build current order if not set
-        if (this.localOrder.length === 0) {
-            this.localOrder = this.lineItems.map(i => i.Id);
-        }
-
-        const newOrder = [...this.localOrder];
-        const fromIdx = newOrder.indexOf(this._dragItemId);
-        const toIdx = newOrder.indexOf(dropTargetId);
-
-        if (fromIdx >= 0) newOrder.splice(fromIdx, 1);
-        const insertIdx = toIdx >= 0 ? toIdx : newOrder.length;
-        newOrder.splice(insertIdx, 0, this._dragItemId);
-        this.localOrder = newOrder;
-
-        // Move to target phase if different
-        const currentPhase = this._dragSourcePhase || '';
-        if (targetPhase !== currentPhase) {
-            const newPhaseValue = targetPhase || null;
-            this.itemPhaseOverrides = {
-                ...this.itemPhaseOverrides,
-                [this._dragItemId]: newPhaseValue
-            };
-            const updateObj = { Id: this._dragItemId };
-            updateObj.Phase__c = newPhaseValue || '';
-            updateLineItem({ item: updateObj })
-                .then(() => this.dispatchEvent(new CustomEvent('refresh')));
-        }
-
-        this._cleanupDrag();
-    }
-
-    handlePhaseDrop(event) {
-        event.preventDefault();
-        event.currentTarget.classList.remove('drag-over');
-        const targetPhase = event.currentTarget.dataset.phase;
-
-        const item = this.lineItems.find(i => i.Id === this._dragItemId);
-        if (targetPhase && !this._validateItemAgainstPhase(item, targetPhase)) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Invalid Phase',
-                message: 'This item dates are outside the target phase duration.',
-                variant: 'error'
-            }));
-            return;
-        }
-
-        if (this._dragItemId) {
-            // Item dropped onto phase header — move item into this phase
-            this._takeSnapshot();
-            this.itemPhaseOverrides = {
-                ...this.itemPhaseOverrides,
-                [this._dragItemId]: targetPhase
-            };
-            const updateObj = { Id: this._dragItemId, Phase__c: targetPhase };
-            updateLineItem({ item: updateObj })
-                .then(() => this.dispatchEvent(new CustomEvent('refresh')));
-        }
-
-        this._cleanupDrag();
-    }
-
-    handleDropToRoot(event) {
-        event.preventDefault();
-        event.currentTarget.classList.remove('drag-over');
-
-        if (this._dragItemId) {
-            // Item dropped outside all phases — remove from phase
-            this._takeSnapshot();
-            this.itemPhaseOverrides = {
-                ...this.itemPhaseOverrides,
-                [this._dragItemId]: null
-            };
-            const updateObj = { Id: this._dragItemId, Phase__c: '' };
-            updateLineItem({ item: updateObj })
-                .then(() => this.dispatchEvent(new CustomEvent('refresh')));
-        }
-        this._cleanupDrag();
-    }
-
-    _cleanupDrag() {
-        this._dragItemId = null;
-        this._dragSourcePhase = null;
-        this.template.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
-        this.template.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    handleDelete(event) {
+        const itemId = event.target.dataset.id;
+        deleteLineItem({ itemId })
+            .then(() => {
+                this.dispatchEvent(new CustomEvent('refresh'));
+            });
     }
 
     handleToast(event) {

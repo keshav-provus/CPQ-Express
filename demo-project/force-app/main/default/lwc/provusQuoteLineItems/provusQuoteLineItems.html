@@ -1,0 +1,196 @@
+<template>
+    <div class="line-items-container">
+
+        <!-- TOP BAR -->
+        <div class="line-items-header">
+            <div class="header-left">
+                <button class="btn-collapse" onclick={handleCollapseAll}>
+                    › Collapse All
+                </button>
+            </div>
+            <div class="header-right">
+                <button class="btn-add-phase" onclick={handleAddPhase}>
+                    + Add Phase
+                </button>
+                <button class="btn-add-item" onclick={handleAddItem}>
+                    + Add Item
+                </button>
+            </div>
+        </div>
+
+        <!-- LINE ITEMS TABLE -->
+        <div class="table-wrapper">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="col-check">
+                            <input type="checkbox" onchange={handleSelectAll} checked={isAllSelected} />
+                        </th>
+                        <th class="col-drag"></th>
+                        <th class="col-name">Name</th>
+                        <th class="col-task">Task</th>
+                        <th class="col-date">Start Date</th>
+                        <th class="col-date">End Date</th>
+                        <th class="col-qty">Quantity</th>
+                        <th class="col-rate">Base Rate</th>
+                        <th class="col-price">Unit Price</th>
+                        <th class="col-disc">Discount %</th>
+                        <th class="col-total">Total Price</th>
+                    </tr>
+                </thead>
+                <!-- ROOT DROP TARGET (Out of Phases) -->
+                <tbody
+                    class="root-drop-zone"
+                    data-phase=""
+                    ondragover={handleDragOver}
+                    ondragleave={handleDragLeave}
+                    ondrop={handleDrop}>
+                    <template if:true={isEmpty}>
+                        <tr>
+                            <td colspan="11" class="empty-cell">
+                                No line items found. Click "+ Add Item" to get started.
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+
+                <!-- Iterate over Computed displayRows which contains both Phase Headers & Items -->
+                <tbody>
+                    <template for:each={displayRows} for:item="row" for:index="index">
+
+                        <!-- PHASE HEADER ROW -->
+                        <template if:true={row.isPhase}>
+                            <tr key={row.phaseName}
+                                class={row.dragOverClass}
+                                data-phase={row.phaseName}
+                                ondragover={handleDragOver}
+                                ondragleave={handleDragLeave}
+                                ondrop={handleDrop}>
+
+                                <td class="check-col">
+                                    <input type="checkbox" data-phase={row.phaseName} onchange={handleSelectPhase} checked={row.phaseSelected} />
+                                </td>
+                                <td class="drag-cell">⠿</td>
+                                <td colspan="9" class="phase-name-cell">
+                                    <span class="chevron-btn" data-phase={row.phaseName} onclick={handleTogglePhase}>
+                                        {row.chevron}
+                                    </span>
+                                    <span class="phase-title">{row.phaseName}</span>
+                                    <button class="btn-add-to-phase"
+                                            data-phase={row.phaseName}
+                                            onclick={handleAddItem}>+ ADD ITEM</button>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <!-- LINE ITEM ROW -->
+                        <template if:true={row.isItem}>
+                            <tr key={row.record.Id}
+                                class={row.rowClass}
+                                draggable="true"
+                                data-id={row.record.Id}
+                                ondragstart={handleDragStart}>
+
+                                <td class="check-col">
+                                    <input type="checkbox" data-id={row.record.Id} onchange={handleSelectItem} checked={row.record.selected} />
+                                </td>
+                                <td class="drag-cell">⠿</td>
+                                <td class="name-cell">
+                                    <div class="name-content">
+                                        <span class={row.record.typeIconClass}>{row.record.typeIcon}</span>
+                                        <span class="name-text">{row.record.Name}</span>
+                                        <span class="info-icon">ℹ️</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="inline-input" placeholder="Add task..."
+                                           value={row.record.Task__c} data-id={row.record.Id}
+                                           data-field="Task__c" onchange={handleFieldChange} />
+                                </td>
+                                <td>
+                                    <input type="date" class="inline-input"
+                                           value={row.record.Start_Date__c} data-id={row.record.Id}
+                                           data-field="Start_Date__c" onchange={handleFieldChange} />
+                                </td>
+                                <td>
+                                    <input type="date" class="inline-input"
+                                           value={row.record.End_Date__c}
+                                           readonly disabled/>
+                                </td>
+                                <td>
+                                    <input type="number" class="inline-input num-input"
+                                           value={row.record.Quantity__c} min="0" step="0.1"
+                                           data-id={row.record.Id} data-field="Quantity__c"
+                                           onchange={handleFieldChange} />
+                                </td>
+                                <td class="rate-cell">{row.record.formattedBaseRate}</td>
+                                <td>
+                                    <span class="unit-price-link" data-id={row.record.Id} onclick={handleUnitPriceClick}>
+                                        {row.record.formattedUnitPrice}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="discount-input-wrap">
+                                        <input type="number" class="inline-input num-input"
+                                               value={row.record.Discount_Percent__c} min="0" max="100"
+                                               data-id={row.record.Id} data-field="Discount_Percent__c"
+                                               onchange={handleFieldChange} />
+                                        <span class="pct-sign">%</span>
+                                    </div>
+                                </td>
+                                <td class="total-cell">{row.record.formattedTotal}</td>
+                            </tr>
+                        </template>
+
+                    </template>
+                </tbody>
+
+                <!-- TOTAL ROW -->
+                <tfoot>
+                    <tr class="total-row root-drop-zone"
+                        data-phase=""
+                        ondragover={handleDragOver}
+                        ondragleave={handleDragLeave}
+                        ondrop={handleDrop}>
+                        <td colspan="10" class="total-label">
+                            <strong>Total</strong>
+                        </td>
+                        <td class="total-amount">
+                            <strong>{grandTotal}</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- FLOATING SELECTION BAR -->
+        <template if:true={hasSelection}>
+            <div class="selection-bar-container">
+                <div class="selection-bar">
+                    <div class="selection-info">
+                        <strong>{selectedCount}</strong> selected
+                    </div>
+                    <div class="selection-divider">|</div>
+                    <button class="btn-clear-selection" onclick={handleClearSelection}>
+                        Clear
+                    </button>
+                    <button class="btn-bulk-delete" onclick={handleBulkDelete}>
+                        <span class="trash-icon">🗑️</span> Delete
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    </div>
+
+    <!-- ADD ITEMS MODAL -->
+    <c-provus-add-items-modal
+        is-open={showAddModal}
+        quote-id={quoteId}
+        target-phase={targetPhase}
+        onclose={handleModalClose}
+        onitemsadded={handleItemsAdded}>
+    </c-provus-add-items-modal>
+
+</template>
