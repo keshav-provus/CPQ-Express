@@ -68,14 +68,49 @@
                       <div class="filter-row">
                         <span style="font-size:11px;color:var(--color-text-secondary);margin-right:8px;">Filter by account:</span>
                         <div class="search-container">
-                            <lightning-input 
-                                class="account-search-input" 
-                                type="search" 
-                                placeholder="Search account..." 
-                                variant="label-hidden" 
-                                value={searchTerm} 
-                                onchange={handleSearchChange}>
-                            </lightning-input>
+                            <div class="slds-form-element" style="flex:1;">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-combobox_container">
+                                        <div class={dropdownClasses} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox">
+                                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                                <lightning-input 
+                                                    class="account-search-input" 
+                                                    type="search" 
+                                                    placeholder="Search account..." 
+                                                    variant="label-hidden" 
+                                                    value={searchTerm} 
+                                                    onchange={handleSearchChange}
+                                                    onclick={handleSearchClick}
+                                                    onblur={handleSearchBlur}
+                                                    autocomplete="off">
+                                                </lightning-input>
+                                            </div>
+                                            <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" style="margin-top:2px;">
+                                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                    <template for:each={filteredAccountOptions} for:item="acc">
+                                                        <li key={acc} role="presentation" class="slds-listbox__item" onmousedown={handleAccountSelect} data-val={acc}>
+                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                                <span class="slds-media__body">
+                                                                    <span class="slds-truncate" title={acc}>{acc}</span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                    <template if:false={filteredAccountOptions.length}>
+                                                        <li role="presentation" class="slds-listbox__item">
+                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                                <span class="slds-media__body">
+                                                                    <span class="slds-truncate" title="No results">No matching accounts</span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <lightning-button 
                                 label="Done" 
                                 onclick={handleSearchSubmit} 

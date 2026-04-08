@@ -21,6 +21,10 @@ export default class CpqProductRecordPage extends LightningElement {
     @track kpiDuration = 'N/A';
     @track kpiPeakUsage = 'N/A';
 
+    @track isDropdownOpen = false;
+    @track uniqueAccounts = [];
+    @track filteredAccountOptions = [];
+
     isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     gridColor = this.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
     textColor = this.isDark ? '#9B99A8' : '#777587';
@@ -53,6 +57,8 @@ export default class CpqProductRecordPage extends LightningElement {
                 color: colors[i % colors.length]
             }));
             this.filteredQuotes = [...this.allQuotes];
+            this.uniqueAccounts = [...new Set(this.allQuotes.map(q => q.accountName))].sort();
+            this.filteredAccountOptions = [...this.uniqueAccounts];
             this.calculateKPIs();
         }
     }
@@ -86,6 +92,30 @@ export default class CpqProductRecordPage extends LightningElement {
 
     handleSearchChange(event) {
         this.searchTerm = event.target.value;
+        const term = this.searchTerm.toLowerCase();
+        this.filteredAccountOptions = this.uniqueAccounts.filter(acc => acc.toLowerCase().includes(term));
+        this.isDropdownOpen = true;
+    }
+
+    handleSearchClick() {
+        this.isDropdownOpen = true;
+    }
+
+    handleSearchBlur() {
+        // Delay to allow handleAccountSelect to fire
+        setTimeout(() => {
+            this.isDropdownOpen = false;
+        }, 200);
+    }
+
+    handleAccountSelect(event) {
+        this.searchTerm = event.currentTarget.dataset.val;
+        this.isDropdownOpen = false;
+        this.handleSearchSubmit();
+    }
+
+    get dropdownClasses() {
+        return `slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click ${this.isDropdownOpen ? 'slds-is-open' : ''}`;
     }
 
     handleSearchSubmit() {
@@ -96,6 +126,7 @@ export default class CpqProductRecordPage extends LightningElement {
             this.filteredQuotes = this.allQuotes.filter(q => q.accountName.toLowerCase().includes(term));
         }
         
+        this.isDropdownOpen = false;
         setTimeout(() => {
             this.drawGantt();
         }, 0);
