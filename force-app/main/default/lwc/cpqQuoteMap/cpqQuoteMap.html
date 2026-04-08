@@ -3,11 +3,11 @@
         <div class="card-header">
             <div>
                 <h2 class="card-title">Customer Growth</h2>
-                <p class="card-subtitle">of the week based on country</p>
+                <p class="card-subtitle">of the week based on {filterBy}</p>
             </div>
-            <select class="filter-dropdown">
-                <option>country</option>
-                <option>city</option>
+            <select class="filter-dropdown" onchange={handleFilterChange}>
+                <option value="country">country</option>
+                <option value="city">city</option>
             </select>
         </div>
         

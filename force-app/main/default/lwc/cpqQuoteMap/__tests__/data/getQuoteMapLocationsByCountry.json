@@ -1,0 +1,18 @@
+[
+  {
+    "value": "United States",
+    "title": "United States",
+    "description": "Quotes: 5, Avg Amount: $1000.00",
+    "location": {
+      "Country": "United States"
+    }
+  },
+  {
+    "value": "Canada",
+    "title": "Canada",
+    "description": "Quotes: 2, Avg Amount: $500.00",
+    "location": {
+      "Country": "Canada"
+    }
+  }
+]
