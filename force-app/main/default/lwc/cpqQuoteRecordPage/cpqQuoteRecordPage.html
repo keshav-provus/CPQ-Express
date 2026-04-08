@@ -28,6 +28,7 @@
                 <template if:true={isLineItems}>
                     <c-cpq-quote-line-editor 
                         record-id={recordId}
+                        quote-data={quoteData}
                         line-items={lineItems}
                         onrefresh={handleRefresh}
                         onopenwizard={handleOpenWizard}>

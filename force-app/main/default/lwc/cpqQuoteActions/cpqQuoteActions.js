@@ -1,16 +1,16 @@
 import { LightningElement, api } from 'lwc';
-import { showToastEvent } from 'lightning/platformShowToastEvent';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
-import submitQuote from '@salesforce/apex/QuoteController.submitQuote';
+import submitForApproval from '@salesforce/apex/QuoteController.submitForApproval';
 
 export default class CpqQuoteActions extends LightningElement {
     @api recordId;
 
     async handleSubmit() {
         try {
-            await submitQuote({ quoteId: this.recordId });
+            await submitForApproval({ quoteId: this.recordId });
             this.dispatchEvent(
-                new showToastEvent({
+                new ShowToastEvent({
                     title: 'Success',
                     message: 'Quote submitted for approval.',
                     variant: 'success'
@@ -20,7 +20,7 @@ export default class CpqQuoteActions extends LightningElement {
             await notifyRecordUpdateAvailable([{ recordId: this.recordId }]);
         } catch (error) {
             this.dispatchEvent(
-                new showToastEvent({
+                new ShowToastEvent({
                     title: 'Error submitting quote',
                     message: error.body ? error.body.message : 'Unknown error',
                     variant: 'error'

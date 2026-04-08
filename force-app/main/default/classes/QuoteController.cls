@@ -128,15 +128,58 @@ public with sharing class QuoteController {
     }
 
     /**
-     * @description Submits a Quote via Apex.
+     * @description Submits a Quote for Approval - sets status to 'Pending Approval'.
      * @param quoteId Quote ID.
      */
     @AuraEnabled
-    public static void submitQuote(Id quoteId) {
+    public static void submitForApproval(Id quoteId) {
         try {
-            service.submitQuote(quoteId);
+            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Pending Approval');
+            update q;
         } catch (Exception e) {
-            throw new AuraHandledException('Error submitting quote: ' + e.getMessage());
+            throw new AuraHandledException('Error submitting for approval: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * @description Recalls a Quote from Approval - sets status back to 'Draft'.
+     * @param quoteId Quote ID.
+     */
+    @AuraEnabled
+    public static void recallApproval(Id quoteId) {
+        try {
+            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Draft');
+            update q;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error recalling approval: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * @description Approves a Quote - sets status to 'Approved'.
+     * @param quoteId Quote ID.
+     */
+    @AuraEnabled
+    public static void approveQuote(Id quoteId) {
+        try {
+            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Approved');
+            update q;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error approving quote: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * @description Rejects a Quote - sets status to 'Rejected'.
+     * @param quoteId Quote ID.
+     */
+    @AuraEnabled
+    public static void rejectQuote(Id quoteId) {
+        try {
+            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Rejected');
+            update q;
+        } catch (Exception e) {
+            throw new AuraHandledException('Error rejecting quote: ' + e.getMessage());
         }
     }
 
@@ -148,31 +191,21 @@ public with sharing class QuoteController {
     public static void recalculateQuoteTotals(Id quoteId) {
         try {
             List<Quote_Line_Item__c> qlis = [
-                SELECT Net_Total__c, Total_Line_Cost__c, Quantity__c, End_Date__c
+                SELECT Net_Total__c, Total_Line_Cost__c
                 FROM Quote_Line_Item__c
                 WHERE Quote__c = :quoteId
             ];
 
             Decimal revenue = 0;
             Decimal totalCost = 0;
-            Date maxEnd = null;
 
             for(Quote_Line_Item__c item : qlis) {
                 if(item.Net_Total__c != null) revenue += item.Net_Total__c;
                 if(item.Total_Line_Cost__c != null) totalCost += item.Total_Line_Cost__c;
-                if(item.End_Date__c != null) {
-                    if(maxEnd == null || item.End_Date__c > maxEnd) maxEnd = item.End_Date__c;
-                }
             }
 
-            Quote__c q = [SELECT Id, End_Date__c FROM Quote__c WHERE Id = :quoteId LIMIT 1];
-
+            Quote__c q = new Quote__c(Id = quoteId);
             q.Margin_Amount__c = revenue - totalCost;
-            q.Margin_Percent__c = (revenue > 0) ? (q.Margin_Amount__c / revenue) * 100 : 0;
-
-            if (maxEnd != null && (q.End_Date__c == null || maxEnd > q.End_Date__c)) {
-                q.End_Date__c = maxEnd;
-            }
 
             update q;
         } catch (Exception e) {
