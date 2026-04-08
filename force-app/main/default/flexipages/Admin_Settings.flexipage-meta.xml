@@ -4,6 +4,7 @@
         <itemInstances>
             <componentInstance>
                 <componentName>adminSettings</componentName>
+                <identifier>adminSettingsComponent</identifier>
             </componentInstance>
         </itemInstances>
         <name>main</name>
