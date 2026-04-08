@@ -162,6 +162,10 @@ public with sharing class QuoteController {
     @AuraEnabled
     public static void approveQuote(Id quoteId) {
         try {
+            String role = getCurrentUserRole();
+            if (role != 'Manager' && role != 'Admin') {
+                throw new AuraHandledException('Only Managers and Admins can approve quotes.');
+            }
             Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Approved');
             update q;
         } catch (Exception e) {
@@ -176,6 +180,10 @@ public with sharing class QuoteController {
     @AuraEnabled
     public static void rejectQuote(Id quoteId) {
         try {
+            String role = getCurrentUserRole();
+            if (role != 'Manager' && role != 'Admin') {
+                throw new AuraHandledException('Only Managers and Admins can reject quotes.');
+            }
             Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Rejected');
             update q;
         } catch (Exception e) {
