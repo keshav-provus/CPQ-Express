@@ -139,14 +139,7 @@
 
         <!-- Right column -->
         <div class="right-col">
-            <div class="approval-card">
-                <h3>Approval History</h3>
-                <p class="sub">Track the approval process for this quote.</p>
-                <div class="approval-empty">
-                    <div class="icon">📄</div>
-                    <p>No approval history yet.<br>Submit this quote for approval to see the approval process.</p>
-                </div>
-            </div>
+            <c-cpq-approval-history quote={quoteData}></c-cpq-approval-history>
             <div class="cost-audit">
                 <h3>Cost Change Audit</h3>
                 <p class="sub">Track cost changes for line items in this quote.</p>
