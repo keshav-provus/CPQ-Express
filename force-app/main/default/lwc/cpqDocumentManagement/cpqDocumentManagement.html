@@ -1,80 +1,87 @@
 <template>
-    <div class="doc-mgmt-page">
-        <!-- Breadcrumb & Header -->
-        <div class="page-header">
-            <div class="header-left">
-                <div class="breadcrumb">
-                    <span class="bc-item">Quotes</span>
-                    <span class="bc-sep">›</span>
-                    <span class="bc-item">{quoteName}</span>
-                    <span class="bc-sep">›</span>
-                    <span class="bc-item active">Document Management</span>
+    <div class="doc-wrapper">
+        <div class="doc-layout">
+            <!-- Left: Version List -->
+            <div class="versions-card">
+                <div class="card-header">
+                    <div class="card-title-row">
+                        <h3 class="card-title">Version History</h3>
+                        <span class="version-badge">{versionCountLabel}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn" onclick={handleDownloadPdf} disabled={noVersionSelected}>
+                            ⬇ Download
+                        </button>
+                    </div>
                 </div>
-                <h1 class="page-title">Document Management</h1>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick={handleShareQuote}>
-                    <span class="icon"></span> Share Quote
-                </button>
-                <button class="btn btn-primary" onclick={handleExportPdf}>
-                    <span class="icon"></span> Export PDF
-                </button>
-            </div>
-        </div>
 
-        <div class="doc-mgmt-container">
-            <!-- Sidebar: Version History -->
-            <div class="version-sidebar">
-                <h2 class="sidebar-title">VERSION HISTORY</h2>
+                <div class="versions-list">
+                    <template if:true={hasVersions}>
+                        <template for:each={versions} for:item="v">
+                            <div key={v.Id}
+                                 class={v.cardClass}
+                                 onclick={handleVersionSelect}
+                                 data-id={v.Id}>
 
-                <template if:true={versions}>
-                <template for:each={versions} for:item="v">
-                    <div key={v.Id}
-                         class={v.cardClass}
-                         onclick={handleVersionSelect}
-                         data-id={v.Id}>
+                                <div class="ver-top">
+                                    <span class={v.badgeClass}>{v.statusLabel}</span>
+                                    <span class="ver-time">{v.timeAgo}</span>
+                                </div>
 
-                        <div class="card-header">
-                            <span class={v.badgeClass}>{v.statusLabel}</span>
-                            <span class="time-ago">{v.timeAgo}</span>
-                        </div>
+                                <div class="ver-label">{v.Version_Label__c}</div>
+                                <div class="ver-title">{v.Title__c}</div>
 
-                        <div class="version-title">{v.Version_Label__c} - {v.Title__c}</div>
-                        <p class="version-desc">{v.Description__c}</p>
+                                <template if:true={v.Description__c}>
+                                    <p class="ver-desc">{v.Description__c}</p>
+                                </template>
 
-                        <div class="card-footer">
-                            <div class="user-info">
-                                <div class="avatar-circle">{v.initials}</div>
-                                <span class="user-name">{v.CreatedBy.Name}</span>
+                                <div class="ver-footer">
+                                    <div class="ver-user">
+                                        <div class="ver-avatar">{v.initials}</div>
+                                        <span class="ver-username">{v.CreatedBy.Name}</span>
+                                    </div>
+                                    <span class="ver-filetype">PDF</span>
+                                </div>
                             </div>
-                            <span class="doc-filename">DOC_{v.Name}.pdf</span>
+                        </template>
+                    </template>
+
+                    <template if:false={hasVersions}>
+                        <div class="empty-state">
+                            <div class="empty-icon">📄</div>
+                            <p class="empty-title">No PDFs generated yet</p>
+                            <p class="empty-sub">Use "Generate PDF" in the header to create your first document.</p>
                         </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Right: Preview -->
+            <div class="preview-card">
+                <template if:true={isLoading}>
+                    <div class="preview-loading">
+                        <div class="spinner"></div>
+                        <p>Loading preview…</p>
                     </div>
                 </template>
-            </template>
 
-            <template if:false={hasVersions}>
-                <div class="empty-versions">
-                    No versions generated yet.
-                </div>
-            </template>
-        </div>
-
-            <!-- Main Content: PDF Preview -->
-            <div class="pdf-preview-area">
-                <div class="pdf-frame-container">
                 <template if:true={selectedVersionUrl}>
-                    <iframe src={selectedVersionUrl} class="pdf-iframe"></iframe>
-                </template>
-                <template if:false={selectedVersionUrl}>
-                    <div class="preview-placeholder">
-                        <div class="placeholder-content">
-                            <div class="icon">📄</div>
-                            <p>Select a version to preview</p>
-                        </div>
+                    <div class="preview-frame">
+                        <iframe src={selectedVersionUrl}
+                                class="pdf-iframe"
+                                title="PDF Preview"
+                                onload={handleIframeLoad}
+                                onerror={handleIframeError}></iframe>
                     </div>
                 </template>
-                </div>
+
+                <template if:true={showPlaceholder}>
+                    <div class="preview-empty">
+                        <div class="empty-icon">📄</div>
+                        <p class="empty-title">Select a version to preview</p>
+                        <p class="empty-sub">Click on any version from the sidebar to view the document.</p>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
