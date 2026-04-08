@@ -2,11 +2,13 @@
     <div class="line-items-tab">
         <div class="line-items-toolbar">
             <button class="btn" onclick={handleCollapseAll}>▸ Collapse All</button>
-            <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
-            <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
-            <button class="btn btn-primary" data-phase="" onclick={handleOpenWizard}>+ Add Item</button>
-            <template if:true={hasSelected}>
-                <button class="btn btn-danger" onclick={handleDeleteSelected}>🗑 Delete Selected</button>
+            <template if:true={isEditable}>
+                <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
+                <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
+                <button class="btn btn-primary" data-phase="" onclick={handleOpenWizard}>+ Add Item</button>
+                <template if:true={hasSelected}>
+                    <button class="btn btn-danger" onclick={handleDeleteSelected}>🗑 Delete Selected</button>
+                </template>
             </template>
         </div>
         <div class="line-items-table-wrap"

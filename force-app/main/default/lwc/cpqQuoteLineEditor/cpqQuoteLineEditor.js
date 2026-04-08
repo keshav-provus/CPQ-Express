@@ -68,6 +68,10 @@ export default class CpqQuoteLineEditor extends LightningElement {
         savePhaseList({ quoteId: this.recordId, phaseList: payload });
     }
 
+    get isEditable() {
+        return this.quoteData?.Status__c === 'Draft';
+    }
+
     // ─── Snapshot for Undo ───
     _takeSnapshot() {
         this._snapshotJson = JSON.stringify({

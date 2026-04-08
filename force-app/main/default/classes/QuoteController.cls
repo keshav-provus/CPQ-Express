@@ -313,4 +313,13 @@ public with sharing class QuoteController {
             ORDER BY CreatedDate DESC
         ];
     }
+
+    /**
+     * @description Gets the current user's CPQ Role.
+     * @return String CPQ_Role__c from User record.
+     */
+    @AuraEnabled(cacheable=true)
+    public static String getCurrentUserRole() {
+        return [SELECT CPQ_Role__c FROM User WHERE Id = :UserInfo.getUserId()].CPQ_Role__c;
+    }
 }

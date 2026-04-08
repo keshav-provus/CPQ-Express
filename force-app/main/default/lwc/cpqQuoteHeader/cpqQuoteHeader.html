@@ -22,12 +22,14 @@
                     <button class="btn btn-outline-action" onclick={handleRecall}>
                         <span class="btn-icon">↩</span> Recall
                     </button>
-                    <button class="btn btn-outline-action" onclick={handleApprove}>
-                        <span class="btn-icon">✓</span> Approve
-                    </button>
-                    <button class="btn btn-outline-action" onclick={handleReject}>
-                        <span class="btn-icon">✕</span> Reject
-                    </button>
+                    <template if:true={isManagerOrAdmin}>
+                        <button class="btn btn-outline-action" onclick={handleApprove}>
+                            <span class="btn-icon">✓</span> Approve
+                        </button>
+                        <button class="btn btn-outline-action" onclick={handleReject}>
+                            <span class="btn-icon">✕</span> Reject
+                        </button>
+                    </template>
                 </template>
 
                 <div class="btn-split">

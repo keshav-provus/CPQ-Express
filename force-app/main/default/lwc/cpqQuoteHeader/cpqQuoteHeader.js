@@ -6,6 +6,7 @@ import approveQuote from '@salesforce/apex/QuoteController.approveQuote';
 import rejectQuote from '@salesforce/apex/QuoteController.rejectQuote';
 import generateQuotePdf from '@salesforce/apex/QuoteController.generateQuotePdf';
 import getTemplates from '@salesforce/apex/QuoteTemplateController.getTemplates';
+import getCurrentUserRole from '@salesforce/apex/QuoteController.getCurrentUserRole';
 import { wire } from 'lwc';
 
 export default class CpqQuoteHeader extends LightningElement {
@@ -65,6 +66,14 @@ export default class CpqQuoteHeader extends LightningElement {
 
     get timePeriod() {
         return this.quoteData?.Time_Period_Metric__c || 'Months';
+    }
+
+    @wire(getCurrentUserRole)
+    wiredRole;
+
+    get isManagerOrAdmin() {
+        const role = this.wiredRole?.data;
+        return role === 'Manager' || role === 'Admin';
     }
 
     handleRefresh() {

@@ -68,7 +68,14 @@ public with sharing class AdminSettingsController {
     @AuraEnabled
     public static Id createUser(String firstName, String lastName, String email, String username, String role) {
         try {
-            Profile standardProfile = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+            List<Profile> profiles = [SELECT Id FROM Profile WHERE Name = :role LIMIT 1];
+            Id profileId;
+            if (profiles.isEmpty()) {
+                profiles = [SELECT Id FROM Profile WHERE Name = 'Standard User' LIMIT 1];
+            }
+            if (!profiles.isEmpty()) {
+                profileId = profiles[0].Id;
+            }
 
             // Generate a unique alias (up to 8 chars)
             String alias = (firstName != null ? firstName.substring(0, 1) : '') + (lastName != null ? (lastName.length() > 7 ? lastName.substring(0, 7) : lastName) : '');
@@ -82,7 +89,7 @@ public with sharing class AdminSettingsController {
                 Email = email,
                 Username = username,
                 Alias = alias.toLowerCase(),
-                ProfileId = standardProfile.Id,
+                ProfileId = profileId,
                 TimeZoneSidKey = 'America/Los_Angeles',
                 LocaleSidKey = 'en_US',
                 EmailEncodingKey = 'UTF-8',
@@ -92,6 +99,8 @@ public with sharing class AdminSettingsController {
             );
 
             insert newUser;
+
+            assignPermissionSet(newUser.Id, role);
 
             System.resetPassword(newUser.Id, true); // true sends email to user
 
@@ -115,11 +124,41 @@ public with sharing class AdminSettingsController {
     @AuraEnabled
     public static void updateUserRole(Id userId, String newRole) {
         try {
-            User u = [SELECT Id, CPQ_Role__c FROM User WHERE Id = :userId LIMIT 1];
+            User u = [SELECT Id, CPQ_Role__c, ProfileId FROM User WHERE Id = :userId LIMIT 1];
             u.CPQ_Role__c = newRole;
+
+            List<Profile> profiles = [SELECT Id FROM Profile WHERE Name = :newRole LIMIT 1];
+            if (!profiles.isEmpty()) {
+                u.ProfileId = profiles[0].Id;
+            }
+
             update u;
+
+            assignPermissionSet(userId, newRole);
+
         } catch (Exception e) {
             throw new AuraHandledException('Error updating user role: ' + e.getMessage());
+        }
+    }
+
+    private static void assignPermissionSet(Id userId, String role) {
+        if (role == 'User' || role == 'Manager') {
+            String permSetName = role == 'User' ? 'CPQ_User' : 'CPQ_Manager';
+            List<PermissionSet> permSets = [SELECT Id FROM PermissionSet WHERE Name = :permSetName LIMIT 1];
+
+            if (!permSets.isEmpty()) {
+                // Delete existing CPQ assignments for this user
+                List<PermissionSetAssignment> existing = [SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = :userId AND PermissionSet.Name IN ('CPQ_User', 'CPQ_Manager')];
+                if (!existing.isEmpty()) {
+                    delete existing;
+                }
+
+                PermissionSetAssignment psa = new PermissionSetAssignment(
+                    AssigneeId = userId,
+                    PermissionSetId = permSets[0].Id
+                );
+                insert psa;
+            }
         }
     }
 }
