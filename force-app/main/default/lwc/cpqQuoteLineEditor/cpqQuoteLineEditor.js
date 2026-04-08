@@ -25,6 +25,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     @track collapsedPhases = {};
     @track customPhases = [];
     @track selectedIds = {};
+    @track selectedPhases = {};
     @track localOrder = [];
     @track phaseOrder = [];
     @track phaseDetails = {};
@@ -104,12 +105,19 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
     // ─── Selection ───
     get hasSelected() {
-        return Object.values(this.selectedIds).some(v => v);
+        return Object.values(this.selectedIds).some(v => v) || 
+               Object.values(this.selectedPhases).some(v => v);
     }
 
     toggleSelect(event) {
         const id = event.target.dataset.id;
-        this.selectedIds = { ...this.selectedIds, [id]: event.target.checked };
+        const phase = event.target.dataset.targetPhase;
+        
+        if (id) {
+            this.selectedIds = { ...this.selectedIds, [id]: event.target.checked };
+        } else if (phase) {
+            this.selectedPhases = { ...this.selectedPhases, [phase]: event.target.checked };
+        }
     }
 
     toggleSelectAll(event) {
@@ -117,29 +125,71 @@ export default class CpqQuoteLineEditor extends LightningElement {
         const newSel = {};
         this.lineItems.forEach(item => { newSel[item.Id] = checked; });
         this.selectedIds = newSel;
+
+        const newPhaseSel = {};
+        this.phaseOrder.forEach(p => { newPhaseSel[p] = checked; });
+        this.selectedPhases = newPhaseSel;
     }
 
     handleDeleteSelected() {
         const idsToDelete = Object.entries(this.selectedIds)
             .filter(([, v]) => v)
             .map(([k]) => k);
-        if (idsToDelete.length === 0) return;
+        const phasesToDelete = Object.entries(this.selectedPhases)
+            .filter(([, v]) => v)
+            .map(([k]) => k);
 
-        const promises = idsToDelete.map(id => deleteLineItem({ itemId: id }));
+        if (idsToDelete.length === 0 && phasesToDelete.length === 0) return;
+
+        this._takeSnapshot();
+
+        let promises = [];
+        
+        // Items to delete (that are not already part of a deleted phase)
+        idsToDelete.forEach(id => {
+            const item = this.lineItems.find(i => i.Id === id);
+            const itemPhase = this._getEffectivePhase(item);
+            if (!phasesToDelete.includes(itemPhase)) {
+                promises.push(deleteLineItem({ itemId: id }));
+            }
+        });
+
+        // Phases to delete
+        phasesToDelete.forEach(phaseName => {
+            promises.push(deletePhaseItems({ quoteId: this.recordId, phaseName: phaseName }));
+        });
+
         Promise.all(promises)
             .then(() => {
+                // Local cleanup for phases
+                phasesToDelete.forEach(phaseName => {
+                    this.customPhases = this.customPhases.filter(p => p !== phaseName);
+                    this.phaseOrder = this.phaseOrder.filter(p => p !== phaseName);
+                    if (this.phaseDetails[phaseName]) {
+                        const newDetails = { ...this.phaseDetails };
+                        delete newDetails[phaseName];
+                        this.phaseDetails = newDetails;
+                    }
+                });
+                if (phasesToDelete.length > 0) {
+                    this._savePhaseListData();
+                }
+
                 this.selectedIds = {};
+                this.selectedPhases = {};
                 this.dispatchEvent(new CustomEvent('refresh'));
+                
+                const msg = `${idsToDelete.length} item(s) and ${phasesToDelete.length} phase(s) deleted.`;
                 this.dispatchEvent(new ShowToastEvent({
                     title: 'Deleted',
-                    message: `${idsToDelete.length} item(s) deleted.`,
+                    message: msg,
                     variant: 'success'
                 }));
             })
             .catch(error => {
                 this.dispatchEvent(new ShowToastEvent({
                     title: 'Error',
-                    message: error.body?.message || 'Error deleting items',
+                    message: error.body?.message || 'Error deleting selected content',
                     variant: 'error'
                 }));
             });
@@ -270,6 +320,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
                 editValue: isEditing ? this.editingPhaseValue : name,
                 startDate: details.startDate || '',
                 endDate: details.endDate || '',
+                isSelected: this.selectedPhases[name] || false,
                 rowStyle: rowStyle + borderStyle
             });
 

@@ -39,7 +39,12 @@
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handlePhaseDrop}>
-                                <td></td>
+                                <td>
+                                    <input type="checkbox"
+                                           data-target-phase={row.name}
+                                           checked={row.isSelected}
+                                           onchange={toggleSelect}>
+                                </td>
                                 <td>
                                     <span class="drag-handle phase-drag"
                                           draggable="true"
