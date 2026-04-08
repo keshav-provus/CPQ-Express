@@ -5,6 +5,8 @@ import recallApproval from '@salesforce/apex/QuoteController.recallApproval';
 import approveQuote from '@salesforce/apex/QuoteController.approveQuote';
 import rejectQuote from '@salesforce/apex/QuoteController.rejectQuote';
 import generateQuotePdf from '@salesforce/apex/QuoteController.generateQuotePdf';
+import getTemplates from '@salesforce/apex/QuoteTemplateController.getTemplates';
+import { wire } from 'lwc';
 
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
@@ -84,6 +86,28 @@ export default class CpqQuoteHeader extends LightningElement {
     @track pdfTitle = '';
     @track pdfDescription = '';
     @track isGenerating = false;
+    @track templateOptions = [];
+    @track selectedTemplateId = '';
+
+    @wire(getTemplates)
+    wiredTemplates({ error, data }) {
+        if (data) {
+            this.templateOptions = data.map(t => ({
+                label: t.Name,
+                value: t.Id
+            }));
+            const defaultTemplate = data.find(t => t.Is_Default__c);
+            if (defaultTemplate) {
+                this.selectedTemplateId = defaultTemplate.Id;
+            } else if (data.length > 0) {
+                this.selectedTemplateId = data[0].Id;
+            }
+        }
+    }
+
+    handleTemplateChange(event) {
+        this.selectedTemplateId = event.detail.value;
+    }
 
     handleGeneratePdf() {
         this.isPdfModalOpen = true;
@@ -107,7 +131,8 @@ export default class CpqQuoteHeader extends LightningElement {
             await generateQuotePdf({
                 quoteId: this.recordId,
                 title: this.pdfTitle,
-                description: this.pdfDescription
+                description: this.pdfDescription,
+                templateId: this.selectedTemplateId
             });
 
             this.dispatchEvent(
