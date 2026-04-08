@@ -3,13 +3,13 @@
         <div class="wizard-panel">
             <div class="wizard-header">
                 <h2>Add Quote Line Items</h2>
-                <p>Select Products, Add-ons, Resource Roles to add to your quote.</p>
+                <p>Select items to add to your quote.</p>
                 <button class="wizard-close" onclick={closeWizard}>✕</button>
             </div>
             <div class="wizard-tabs">
-                <div class={rolesTabClass} data-tab="roles" onclick={switchWizardTab}>👤 Resource Roles ({rolesCount})</div>
-                <div class={productsTabClass} data-tab="products" onclick={switchWizardTab}>📦 Products ({productsCount})</div>
-                <div class={addonsTabClass} data-tab="addons" onclick={switchWizardTab}>➕ Add-ons ({addonsCount})</div>
+                <div class={rolesTabClass} data-tab="roles" onclick={switchWizardTab}>{rolesTabLabel}</div>
+                <div class={productsTabClass} data-tab="products" onclick={switchWizardTab}>{productsTabLabel}</div>
+                <div class={addonsTabClass} data-tab="addons" onclick={switchWizardTab}>{addonsTabLabel}</div>
             </div>
             <div class="wizard-search">
                 <input type="text" placeholder="Search by name, description, or ID..." oninput={handleSearch} value={searchQuery}>

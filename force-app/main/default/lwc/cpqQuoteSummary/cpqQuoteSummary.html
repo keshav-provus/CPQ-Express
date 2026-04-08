@@ -26,11 +26,11 @@
                         Cost: <lightning-formatted-number value={laborCost} format-style="currency"></lightning-formatted-number> •
                         Margin: <lightning-formatted-number value={laborMargin} format-style="currency"></lightning-formatted-number>
                     </div>
-                    <div class="rev-sub">{laborCount} Resource Roles</div>
+                    <div class="rev-sub">{laborCountLabel}</div>
                 </div>
                 <div class="rev-card">
                     <div class="rev-header">
-                        <span class="rev-label">📦 Products Revenue</span>
+                        <span class="rev-label">📦 {productPlural} Revenue</span>
                         <span class="rev-pct">↘ {productPercentage}%</span>
                     </div>
                     <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency"></lightning-formatted-number></div>
@@ -38,11 +38,11 @@
                         Cost: <lightning-formatted-number value={productCost} format-style="currency"></lightning-formatted-number> •
                         Margin: <lightning-formatted-number value={productMargin} format-style="currency"></lightning-formatted-number>
                     </div>
-                    <div class="rev-sub">{productCount} Products</div>
+                    <div class="rev-sub">{productCountLabel}</div>
                 </div>
                 <div class="rev-card">
                     <div class="rev-header">
-                        <span class="rev-label">➕ Add-ons Revenue</span>
+                        <span class="rev-label">➕ {addOnPlural} Revenue</span>
                         <span class="rev-pct">↘ {addonPercentage}%</span>
                     </div>
                     <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency"></lightning-formatted-number></div>
@@ -50,7 +50,7 @@
                         Cost: <lightning-formatted-number value={addonCost} format-style="currency"></lightning-formatted-number> •
                         Margin: <lightning-formatted-number value={addonMargin} format-style="currency"></lightning-formatted-number>
                     </div>
-                    <div class="rev-sub">{addonCount} Add-on Items</div>
+                    <div class="rev-sub">{addonCountLabel}</div>
                 </div>
             </div>
 
@@ -72,14 +72,14 @@
                                 <div class="bar cost" style={productCostStyle}></div>
                                 <div class="bar margin" style={productMarginStyle}></div>
                             </div>
-                            <div class="bar-label">Products</div>
+                            <div class="bar-label">{productPlural}</div>
                         </div>
                         <div class="bar-group">
                             <div class="bars">
                                 <div class="bar cost" style={addonCostStyle}></div>
                                 <div class="bar margin" style={addonMarginStyle}></div>
                             </div>
-                            <div class="bar-label">Add-ons</div>
+                            <div class="bar-label">{addOnPlural}</div>
                         </div>
                     </div>
                     <div class="chart-legend">
@@ -113,7 +113,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Phase</th><th>Labor</th><th>Products</th><th>Add-ons</th><th>Total</th><th>Items</th>
+                            <th>Phase</th><th>Labor</th><th>{productPlural}</th><th>{addOnPlural}</th><th>Total</th><th>Items</th>
                         </tr>
                     </thead>
                     <tbody>

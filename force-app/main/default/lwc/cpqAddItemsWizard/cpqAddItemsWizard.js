@@ -2,6 +2,7 @@ import { LightningElement, api, wire, track } from 'lwc';
 import getResourceRoles from '@salesforce/apex/QuoteController.getResourceRoles';
 import getProducts from '@salesforce/apex/QuoteController.getProducts';
 import getAddOns from '@salesforce/apex/QuoteController.getAddOns';
+import getSettings from '@salesforce/apex/CPQSettingsController.getSettings';
 import addLineItems from '@salesforce/apex/QuoteLineItemController.addLineItems';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
@@ -13,6 +14,23 @@ export default class CpqAddItemsWizard extends LightningElement {
     @track searchQuery = '';
     @track wizardSelections = { roles: [], products: [], addons: [] };
     @track isLoading = false;
+
+    @track settings = {};
+
+    @wire(getSettings)
+    wiredSettings({ data, error }) {
+        if (data) {
+            this.settings = data;
+        }
+    }
+
+    get resourceRolePlural() { return this.settings.Resource_Role_Plural__c || 'Resource Roles'; }
+    get productPlural() { return this.settings.Product_Plural__c || 'Products'; }
+    get addOnPlural() { return this.settings.Add_On_Plural__c || 'Add-ons'; }
+
+    get rolesTabLabel() { return `👤 ${this.resourceRolePlural} (${this.rolesCount})`; }
+    get productsTabLabel() { return `📦 ${this.productPlural} (${this.productsCount})`; }
+    get addonsTabLabel() { return `➕ ${this.addOnPlural} (${this.addonsCount})`; }
 
     wiredRoles;
     wiredProducts;
