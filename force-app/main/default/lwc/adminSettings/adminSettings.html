@@ -1,0 +1,264 @@
+<template>
+    <div class="slds-grid slds-grid_vertical-stretch" style="min-height: 100vh; background-color: #f3f3f3;">
+
+        <!-- Left Sidebar Navigation -->
+        <div class="slds-col slds-size_1-of-6 slds-theme_default slds-p-around_medium" style="border-right: 1px solid #dddbda;">
+            <div class="slds-text-heading_medium slds-m-bottom_large slds-p-left_small"><b>Admin Settings</b></div>
+            <ul class="slds-has-block-links_space slds-nav-vertical">
+                <li class="slds-nav-vertical__item" class={companyNavClass} onclick={handleNavCompany}>
+                    <a href="javascript:void(0);" class="slds-nav-vertical__action">Company Information</a>
+                </li>
+                <li class="slds-nav-vertical__item" class={pdfNavClass} onclick={handleNavPDF}>
+                    <a href="javascript:void(0);" class="slds-nav-vertical__action">PDF Templates</a>
+                </li>
+                <li class="slds-nav-vertical__item" class={teamNavClass} onclick={handleNavTeam}>
+                    <a href="javascript:void(0);" class="slds-nav-vertical__action">Team Configuration</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="slds-col slds-size_5-of-6 slds-p-around_large">
+            <div if:true={isLoading} class="slds-is-relative">
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </div>
+
+            <!-- Company Information Panel -->
+            <template if:true={isCompanyInfo}>
+                <lightning-card title="Company Information" icon-name="standard:account">
+                    <div class="slds-p-around_medium">
+                        <lightning-input label="Company Name" name="Company_Name__c" value={companySettings.Company_Name__c} onchange={handleSettingChange}></lightning-input>
+                        <lightning-input label="Primary Contact" name="Primary_Contact__c" value={companySettings.Primary_Contact__c} onchange={handleSettingChange}></lightning-input>
+
+                        <h3 class="slds-section__title slds-m-top_medium slds-m-bottom_small">Address Details</h3>
+                        <lightning-input label="Street Address" name="Street_Address__c" value={companySettings.Street_Address__c} onchange={handleSettingChange}></lightning-input>
+
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="City" name="City__c" value={companySettings.City__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="State/Province" name="State_Province__c" value={companySettings.State_Province__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                        </div>
+
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="Zip/Postal Code" name="Zip_Postal_Code__c" value={companySettings.Zip_Postal_Code__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="Country" name="Country__c" value={companySettings.Country__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                        </div>
+
+                        <div class="slds-m-top_large">
+                            <lightning-button variant="brand" label="Save Changes" onclick={handleSaveCompanySettings} disabled={isLoading}></lightning-button>
+                        </div>
+                    </div>
+                </lightning-card>
+            </template>
+
+            <!-- PDF Template Manager Panel -->
+            <template if:true={isPDF}>
+                <c-cpq-template-manager></c-cpq-template-manager>
+            </template>
+
+            <!-- Team Configuration Panel -->
+            <template if:true={isTeam}>
+                <lightning-card title="Team Overview" icon-name="standard:team_member">
+                    <div slot="actions">
+                        <lightning-button label="Add Member" variant="brand" onclick={openAddUserModal}></lightning-button>
+                    </div>
+
+                    <div class="slds-p-around_medium">
+                        <!-- License Info -->
+                        <div class="slds-box slds-m-bottom_medium slds-theme_shade slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                            <div>
+                                <span class="slds-text-heading_small slds-m-right_small">Salesforce Licenses Usage</span>
+                            </div>
+                            <div>
+                                <span class="slds-text-heading_medium slds-text-color_success">
+                                    <b>{usedLicenses} / {totalLicenses}</b>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Team Datatable -->
+                        <template if:true={hasTeamMembers}>
+                            <lightning-datatable
+                                key-field="Id"
+                                data={teamMembers}
+                                columns={teamColumns}
+                                onrowaction={handleTeamRowAction}
+                                hide-checkbox-column>
+                            </lightning-datatable>
+                        </template>
+                        <template if:false={hasTeamMembers}>
+                            <div class="slds-text-align_center slds-p-around_medium slds-text-color_weak">
+                                No standard users found.
+                            </div>
+                        </template>
+                    </div>
+                </lightning-card>
+            </template>
+
+        </div>
+    </div>
+
+    <!-- Edit Role Modal -->
+    <template if:true={isEditRoleModalOpen}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeEditRoleModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">Change User Role</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                            <fieldset class="slds-form-element">
+                                <legend class="slds-form-element__legend slds-form-element__label">
+                                    <abbr class="slds-required" title="required">* </abbr>Role
+                                </legend>
+                                <div class="slds-form-element__control">
+                                    <p class="slds-m-bottom_small slds-text-color_weak">Choose a role to control access and responsibilities.</p>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="edit-role-admin" value="Admin" name="editRole" onchange={handleEditRoleChange} checked={isEditAdminRole}/>
+                                        <label for="edit-role-admin">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>Admin</b></span>
+                                                    <span class="slds-text-body_small">Full settings access and all Manager/User capabilities.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="edit-role-manager" value="Manager" name="editRole" onchange={handleEditRoleChange} checked={isEditManagerRole}/>
+                                        <label for="edit-role-manager">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>Manager</b></span>
+                                                    <span class="slds-text-body_small">Can approve/reject quotes and manage team data while inheriting User access.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="edit-role-user" value="User" name="editRole" onchange={handleEditRoleChange} checked={isEditUserRole}/>
+                                        <label for="edit-role-user">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>User</b></span>
+                                                    <span class="slds-text-body_small">Can edit own quotes, view others read-only, and manage catalog/account data.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" variant="neutral" onclick={closeEditRoleModal}></lightning-button>
+                    <lightning-button label="Save" variant="brand" onclick={handleSaveRole} class="slds-m-left_small"></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- Add User Modal -->
+    <template if:true={isAddUserModalOpen}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeAddUserModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">Create Team Member</h2>
+                    <p class="slds-m-top_x-small slds-text-color_weak">Add a team member and select a role before submitting.</p>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                            <lightning-input label="First Name" required value={newUser.firstName} onchange={handleNewUserChange} name="firstName" placeholder="Enter first name"></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                            <lightning-input label="Last Name" required value={newUser.lastName} onchange={handleNewUserChange} name="lastName" placeholder="Enter last name"></lightning-input>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                            <lightning-input type="email" label="Email" required value={newUser.email} onchange={handleNewUserChange} name="email" placeholder="Enter email address"></lightning-input>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-top_xxx-small">Email will also be used as the default username.</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_medium">
+                            <lightning-input type="email" label="Username" required value={newUser.username} onchange={handleNewUserChange} name="username" placeholder="Enter username (email format)"></lightning-input>
+                            <p class="slds-text-body_small slds-text-color_weak slds-m-top_xxx-small">Must be in email format and be unique. Defaults to the email address if not edited.</p>
+                        </div>
+
+                        <!-- Role Selection -->
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                            <fieldset class="slds-form-element">
+                                <legend class="slds-form-element__legend slds-form-element__label">
+                                    <abbr class="slds-required" title="required">* </abbr>Role
+                                </legend>
+                                <div class="slds-form-element__control">
+                                    <p class="slds-m-bottom_small slds-text-color_weak">Choose a role to control access and responsibilities.</p>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="role-admin" value="Admin" name="role" onchange={handleNewUserChange} checked={isAdminRole}/>
+                                        <label for="role-admin">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>Admin</b></span>
+                                                    <span class="slds-text-body_small">Full settings access and all Manager/User capabilities.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="role-manager" value="Manager" name="role" onchange={handleNewUserChange} checked={isManagerRole}/>
+                                        <label for="role-manager">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>Manager</b></span>
+                                                    <span class="slds-text-body_small">Can approve/reject quotes and manage team data while inheriting User access.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <div class="slds-visual-picker slds-visual-picker_medium slds-m-bottom_x-small">
+                                        <input type="radio" id="role-user" value="User" name="role" onchange={handleNewUserChange} checked={isUserRole}/>
+                                        <label for="role-user">
+                                            <span class="slds-visual-picker__figure slds-visual-picker__text slds-align_absolute-center slds-p-around_small">
+                                                <span>
+                                                    <span class="slds-text-heading_small slds-m-bottom_x-small"><b>User</b></span>
+                                                    <span class="slds-text-body_small">Can edit own quotes, view others read-only, and manage catalog/account data.</span>
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" variant="neutral" onclick={closeAddUserModal}></lightning-button>
+                    <lightning-button label="Create" variant="brand" onclick={handleCreateUser} class="slds-m-left_small"></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>
