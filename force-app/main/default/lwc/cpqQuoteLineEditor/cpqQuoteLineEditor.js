@@ -6,17 +6,6 @@ import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList'
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-const PHASE_COLORS = [
-    'hsla(210, 100%, 97%, 1)', // Light Blue
-    'hsla(140, 100%, 97%, 1)', // Light Green
-    'hsla(35, 100%, 96%, 1)',  // Light Amber
-    'hsla(280, 100%, 97%, 1)', // Light Purple
-    'hsla(340, 100%, 97%, 1)', // Light Pink
-    'hsla(180, 100%, 96%, 1)', // Light Teal
-    'hsla(20, 100%, 97%, 1)',  // Light Orange
-    'hsla(60, 100%, 96%, 1)'   // Light Yellow
-];
-
 export default class CpqQuoteLineEditor extends LightningElement {
     @api recordId;
     @api lineItems = [];
@@ -249,9 +238,100 @@ export default class CpqQuoteLineEditor extends LightningElement {
         }).format(value || 0);
     }
 
+    formatNumber(value) {
+        if (value === null || value === undefined) return '0';
+        return new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
+    }
+
     // ─── Phase helpers ───
     _getEffectivePhase(item) {
         return this.itemPhaseOverrides[item.Id] || item.Phase__c || null;
+    }
+
+    // ─── Collapse / Expand All ───
+    get allPhaseNames() {
+        return this.phaseOrder.length > 0
+            ? [...this.phaseOrder]
+            : [...this.customPhases];
+    }
+
+    get isAllCollapsed() {
+        const names = this.allPhaseNames;
+        if (names.length === 0) return false;
+        return names.every(name => this.collapsedPhases[name]);
+    }
+
+    handleToggleCollapseAll() {
+        const names = this.allPhaseNames;
+        if (this.isAllCollapsed) {
+            // Expand all
+            this.collapsedPhases = {};
+        } else {
+            // Collapse all
+            const newCollapsed = {};
+            names.forEach(name => { newCollapsed[name] = true; });
+            this.collapsedPhases = newCollapsed;
+        }
+    }
+
+    // ─── Compute aggregated data for collapsed phases ───
+    _computePhaseAggregates(items) {
+        if (!items || items.length === 0) {
+            return {
+                aggQuantity: '0',
+                aggBaseRate: this.formatCurrency(0),
+                aggUnitPrice: this.formatCurrency(0),
+                aggDiscount: '0.0%',
+                aggNetTotal: this.formatCurrency(0),
+                aggStartDate: '-',
+                aggEndDate: '-'
+            };
+        }
+
+        const count = items.length;
+        let totalQty = 0;
+        let totalBaseRate = 0;
+        let totalUnitPrice = 0;
+        let totalDiscount = 0;
+        let totalNetTotal = 0;
+        let minStart = null;
+        let maxEnd = null;
+
+        items.forEach(item => {
+            totalQty += (item.Quantity__c || 0);
+            totalBaseRate += (item.Base_Rate__c || 0);
+            totalUnitPrice += (item.Unit_Price__c || 0);
+            totalDiscount += (item.Discount_Percent__c || 0);
+            totalNetTotal += (item.Net_Total__c || 0);
+
+            if (item.Start_Date__c) {
+                const d = new Date(item.Start_Date__c);
+                if (!minStart || d < minStart) minStart = d;
+            }
+            if (item.End_Date__c) {
+                const d = new Date(item.End_Date__c);
+                if (!maxEnd || d > maxEnd) maxEnd = d;
+            }
+        });
+
+        const avgBaseRate = totalBaseRate / count;
+        const avgUnitPrice = totalUnitPrice / count;
+        const avgDiscount = totalDiscount / count;
+
+        const dateOpts = { month: 'short', day: '2-digit', year: 'numeric' };
+
+        return {
+            aggQuantity: String(count),
+            aggBaseRate: this.formatCurrency(avgBaseRate),
+            aggUnitPrice: this.formatCurrency(avgUnitPrice),
+            aggDiscount: this.formatNumber(avgDiscount) + '%',
+            aggNetTotal: this.formatCurrency(totalNetTotal),
+            aggStartDate: minStart ? minStart.toLocaleDateString('en-US', dateOpts) : '-',
+            aggEndDate: maxEnd ? maxEnd.toLocaleDateString('en-US', dateOpts) : '-'
+        };
     }
 
     // ─── Build flat rows ───
@@ -290,12 +370,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         const rows = [];
 
-        // 1) Unphased items at top (no phase header, look like root-level items)
-        [...unphasedItems].sort(sortFn).forEach(item => {
-            rows.push(this._buildItemRow(item, null, qtyUnit, false));
-        });
-
-        // 2) Phase groups
+        // 1) Phase groups first (matching screenshot order)
         const phaseNames = this.phaseOrder.length > 0 ? [...this.phaseOrder] : [...this.customPhases];
         // Add any phases from phaseItemsMap that aren't in phaseNames
         phaseItemsMap.forEach((_, name) => {
@@ -304,42 +379,47 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         phaseNames.forEach(name => {
             const items = phaseItemsMap.get(name) || [];
-
-            // Phase header row
-            const phaseIndex = phaseNames.indexOf(name);
-            const bgColor = phaseIndex >= 0 ? PHASE_COLORS[phaseIndex % PHASE_COLORS.length] : 'transparent';
-            const rowStyle = `background-color: ${bgColor} !important;`;
-            const borderStyle = phaseIndex >= 0 ? `border-left: 4px solid ${bgColor.replace('97%', '70%').replace('96%', '70%')};` : '';
-
+            const isCollapsed = this.collapsedPhases[name] || false;
             const isEditing = this.editingPhaseName === name;
             const details = this.phaseDetails[name] || {};
+
+            // Compute aggregates for collapsed mode
+            const agg = this._computePhaseAggregates(items);
+
             rows.push({
                 key: `phase-${name}`,
                 isPhase: true,
                 name: name,
-                toggleIcon: this.collapsedPhases[name] ? 'utility:chevronright' : 'utility:chevrondown',
-                isCollapsed: this.collapsedPhases[name] || false,
+                toggleIcon: isCollapsed ? 'utility:chevronright' : 'utility:chevrondown',
+                isCollapsed: isCollapsed,
                 itemCount: items.length,
                 isEditing: isEditing,
                 editValue: isEditing ? this.editingPhaseValue : name,
                 startDate: details.startDate || '',
                 endDate: details.endDate || '',
                 isSelected: this.selectedPhases[name] || false,
-                rowStyle: rowStyle + borderStyle
+                phaseRowClass: 'phase-row',
+                // Aggregated values for collapsed mode
+                ...agg
             });
 
             // Items under phase (only if not collapsed)
-            if (!this.collapsedPhases[name]) {
+            if (!isCollapsed) {
                 [...items].sort(sortFn).forEach(item => {
-                    rows.push(this._buildItemRow(item, name, qtyUnit, true, rowStyle));
+                    rows.push(this._buildItemRow(item, name, qtyUnit, true));
                 });
             }
+        });
+
+        // 2) Unphased items after phases
+        [...unphasedItems].sort(sortFn).forEach(item => {
+            rows.push(this._buildItemRow(item, null, qtyUnit, false));
         });
 
         return rows;
     }
 
-    _buildItemRow(item, phaseName, qtyUnit, isIndented, rowStyle = '') {
+    _buildItemRow(item, phaseName, qtyUnit, isIndented) {
         return {
             key: `item-${item.Id}`,
             isPhase: false,
@@ -364,8 +444,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
             qtyUnit: qtyUnit,
             isSelected: this.selectedIds[item.Id] || false,
             isIndented: isIndented,
-            rowClass: `item-row${isIndented ? ' in-phase' : ''}`,
-            rowStyle: rowStyle
+            nameWrapClass: isIndented ? 'name-wrap-indented' : 'name-wrap',
+            rowClass: `item-row${isIndented ? ' in-phase' : ''}`
         };
     }
 
@@ -378,15 +458,6 @@ export default class CpqQuoteLineEditor extends LightningElement {
     togglePhase(event) {
         const phase = event.target.dataset.phase || event.currentTarget.dataset.phase;
         this.collapsedPhases = { ...this.collapsedPhases, [phase]: !this.collapsedPhases[phase] };
-    }
-
-    handleCollapseAll() {
-        const newCollapsed = {};
-        const allNames = this.phaseOrder.length > 0
-            ? [...this.phaseOrder]
-            : [...this.customPhases];
-        allNames.forEach(name => { newCollapsed[name] = true; });
-        this.collapsedPhases = newCollapsed;
     }
 
     handleAddPhase() {

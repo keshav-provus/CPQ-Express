@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Time_Period_Count__c</fullName>
+    <defaultValue>1</defaultValue>
     <description>The number of time periods (Days, Weeks, Months, or Quarters) for the quote duration.</description>
+    <externalId>false</externalId>
     <label>Time Period Count</label>
     <precision>18</precision>
     <required>false</required>
     <scale>0</scale>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Number</type>
     <unique>false</unique>
-    <defaultValue>1</defaultValue>
 </CustomField>

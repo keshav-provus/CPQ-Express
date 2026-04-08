@@ -3,15 +3,16 @@
     <fullName>End_Date__c</fullName>
     <description>Automatically calculated end date based on start date, metric and count.</description>
     <formula>CASE(Time_Period_Metric__c,
-  "Days", Start_Date__c + Time_Period_Count__c,
-  "Weeks", Start_Date__c + (7 * Time_Period_Count__c),
-  "Months", ADDMONTHS(Start_Date__c, Time_Period_Count__c),
-  "Quarters", ADDMONTHS(Start_Date__c, 3 * Time_Period_Count__c),
+  &quot;Days&quot;, Start_Date__c + Time_Period_Count__c,
+  &quot;Weeks&quot;, Start_Date__c + (7 * Time_Period_Count__c),
+  &quot;Months&quot;, ADDMONTHS(Start_Date__c, Time_Period_Count__c),
+  &quot;Quarters&quot;, ADDMONTHS(Start_Date__c, 3 * Time_Period_Count__c),
   ADDMONTHS(Start_Date__c, Time_Period_Count__c)
 )</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
     <label>End Date</label>
     <required>false</required>
+    <trackHistory>false</trackHistory>
     <trackTrending>false</trackTrending>
     <type>Date</type>
 </CustomField>

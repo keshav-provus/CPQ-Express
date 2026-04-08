@@ -4,7 +4,7 @@
     <active>true</active>
     <description>Prevents users from editing fields on the Quote if it is not in Draft status, unless they are approving or rejecting it.</description>
     <errorConditionFormula>AND(
-  NOT(ISPICKVAL(PRIORVALUE(Status__c), "Draft")),
+  NOT(ISPICKVAL(PRIORVALUE(Status__c), &quot;Draft&quot;)),
   NOT(ISCHANGED(Status__c)),
   NOT(ISCHANGED(Margin_Amount__c)),
   NOT(ISCHANGED(Total_Amount__c)),

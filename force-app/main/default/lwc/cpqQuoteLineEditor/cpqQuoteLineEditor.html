@@ -1,7 +1,10 @@
 <template>
     <div class="line-items-tab">
         <div class="line-items-toolbar">
-            <button class="btn" onclick={handleCollapseAll}>▸ Collapse All</button>
+            <button class="btn" onclick={handleToggleCollapseAll}>
+                <template if:true={isAllCollapsed}>▸ Expand All</template>
+                <template if:false={isAllCollapsed}>▾ Collapse All</template>
+            </button>
             <template if:true={isEditable}>
                 <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
                 <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
@@ -17,46 +20,45 @@
             <table class="li-table">
                 <thead>
                     <tr>
-                        <th style="width:36px;"><input type="checkbox" onchange={toggleSelectAll}></th>
-                        <th style="width:28px;"></th>
-                        <th style="width:28px;"></th>
-                        <th style="width:200px;">Name</th>
-                        <th style="width:130px;">Task</th>
-                        <th style="width:110px;">Start Date</th>
-                        <th style="width:110px;">End Date</th>
-                        <th style="width:110px;">Quantity</th>
-                        <th style="width:90px;">Base Rate</th>
-                        <th style="width:110px;">Unit Price</th>
-                        <th style="width:90px;">Discount %</th>
-                        <th style="width:110px;">Total Price</th>
+                        <th class="col-check sticky-left-0"><input type="checkbox" onchange={toggleSelectAll}></th>
+                        <th class="col-drag sticky-left-1"></th>
+                        <th class="col-icon sticky-left-2"></th>
+                        <th class="col-name sticky-left-3">Name</th>
+                        <th class="col-task">Task</th>
+                        <th class="col-date">Start Date</th>
+                        <th class="col-date">End Date</th>
+                        <th class="col-qty">Quantity</th>
+                        <th class="col-money">Base Rate</th>
+                        <th class="col-money">Unit Price</th>
+                        <th class="col-discount">Discount %</th>
+                        <th class="col-total">Total Price</th>
                     </tr>
                 </thead>
                 <tbody>
                     <template for:each={flatRows} for:item="row">
                         <!-- Phase header row -->
                         <template if:true={row.isPhase}>
-                            <tr key={row.key} class="phase-row"
-                                style={row.rowStyle}
+                            <tr key={row.key} class={row.phaseRowClass}
                                 data-phase={row.name}
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handlePhaseDrop}>
-                                <td>
+                                <td class="sticky-left-0 phase-cell">
                                     <input type="checkbox"
                                            data-target-phase={row.name}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
                                 </td>
-                                <td>
+                                <td class="sticky-left-1 phase-cell">
                                     <span class="drag-handle phase-drag"
                                           draggable="true"
                                           data-phase={row.name}
                                           ondragstart={handleDragStart}>⠿</span>
                                 </td>
-                                <td>
+                                <td class="sticky-left-2 phase-cell">
                                     <lightning-icon icon-name={row.toggleIcon} size="xx-small" class="phase-toggle slds-m-right_xx-small" data-phase={row.name} onclick={togglePhase}></lightning-icon>
                                 </td>
-                                <td colspan="2">
+                                <td class="sticky-left-3 phase-cell phase-name-td">
                                     <div class="phase-cell-inner">
                                         <template if:false={row.isEditing}>
                                             <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
@@ -70,30 +72,68 @@
                                         </template>
                                         &nbsp;
                                         <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
-                                        <span class="phase-item-count">({row.itemCount})</span>
                                     </div>
                                 </td>
-                                <td class="phase-date-cell">
-                                    <div class="date-cell-inner">
-                                        <input type="date"
-                                               data-phase={row.name}
-                                               data-field="startDate"
-                                               value={row.startDate}
-                                               onchange={handlePhaseDetailChange}>
-                                    </div>
+                                <!-- Task column empty for phase -->
+                                <td class="phase-cell"></td>
+                                <!-- Start Date -->
+                                <td class="phase-cell phase-date-cell">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value">{row.aggStartDate}</span>
+                                    </template>
+                                    <template if:false={row.isCollapsed}>
+                                        <div class="date-cell-inner">
+                                            <input type="date"
+                                                   data-phase={row.name}
+                                                   data-field="startDate"
+                                                   value={row.startDate}
+                                                   onchange={handlePhaseDetailChange}>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td class="phase-date-cell">
-                                    <div class="date-cell-inner">
-                                        <input type="date"
-                                               data-phase={row.name}
-                                               data-field="endDate"
-                                               value={row.endDate}
-                                               onchange={handlePhaseDetailChange}>
-                                    </div>
+                                <!-- End Date -->
+                                <td class="phase-cell phase-date-cell">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value">{row.aggEndDate}</span>
+                                    </template>
+                                    <template if:false={row.isCollapsed}>
+                                        <div class="date-cell-inner">
+                                            <input type="date"
+                                                   data-phase={row.name}
+                                                   data-field="endDate"
+                                                   value={row.endDate}
+                                                   onchange={handlePhaseDetailChange}>
+                                        </div>
+                                    </template>
                                 </td>
-                                <td colspan="4"></td>
-                                <td style="text-align: right;">
-                                    <button class="btn-icon delete-phase-btn" data-phase={row.name} onclick={handleDeletePhase} title="Delete Phase and its items">🗑</button>
+                                <!-- Aggregated columns when collapsed -->
+                                <td class="phase-cell">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value">{row.aggQuantity}</span>
+                                    </template>
+                                </td>
+                                <td class="phase-cell money">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value">{row.aggBaseRate}</span>
+                                    </template>
+                                </td>
+                                <td class="phase-cell money">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value link-price">{row.aggUnitPrice}</span>
+                                    </template>
+                                </td>
+                                <td class="phase-cell">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-value">{row.aggDiscount}</span>
+                                    </template>
+                                </td>
+                                <td class="phase-cell phase-total-cell">
+                                    <template if:true={row.isCollapsed}>
+                                        <span class="phase-agg-total">{row.aggNetTotal}</span>
+                                    </template>
+                                    <template if:false={row.isCollapsed}>
+                                        <button class="btn-icon delete-phase-btn" data-phase={row.name} onclick={handleDeletePhase} title="Delete Phase and its items">🗑</button>
+                                    </template>
                                 </td>
                             </tr>
                         </template>
@@ -101,7 +141,6 @@
                         <!-- Line item row -->
                         <template if:false={row.isPhase}>
                             <tr key={row.key} class={row.rowClass}
-                                style={row.rowStyle}
                                 draggable="true"
                                 data-id={row.Id}
                                 data-phase={row.phase}
@@ -109,24 +148,23 @@
                                 ondragover={handleDragOver}
                                 ondragleave={handleDragLeave}
                                 ondrop={handleDrop}>
-                                <td>
+                                <td class="sticky-left-0">
                                     <input type="checkbox"
                                            data-id={row.Id}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
                                 </td>
-                                <td>
+                                <td class="sticky-left-1">
                                     <span class="drag-handle" data-id={row.Id}>⠿</span>
                                 </td>
-                                <td class="type-icon-cell">
+                                <td class="type-icon-cell sticky-left-2">
                                     <span class={row.iconClass} title={row.Item_Type__c}>{row.icon}</span>
                                 </td>
-                                <td>
-                                    <template if:true={row.isIndented}>
-                                        <span class="indent-spacer"></span>
-                                    </template>
-                                    <span class="item-name">{row.displayName}</span>
-                                    <span class="info-icon" title="View details">ⓘ</span>
+                                <td class="sticky-left-3">
+                                    <div class={row.nameWrapClass}>
+                                        <span class="item-name">{row.displayName}</span>
+                                        <span class="info-icon" title="View details">ⓘ</span>
+                                    </div>
                                 </td>
                                 <td>
                                     <span class="add-task-link" data-msg="Task assignment will be implemented soon" onclick={handleToast}>Add task...</span>
@@ -155,7 +193,11 @@
 
                     <!-- Total row -->
                     <tr class="total-row">
-                        <td colspan="11" style="text-align:right; font-weight:700;">Total</td>
+                        <td class="sticky-left-0 total-label-cell" colspan="1"></td>
+                        <td class="sticky-left-1 total-label-cell" colspan="1"></td>
+                        <td class="sticky-left-2 total-label-cell" colspan="1"></td>
+                        <td class="sticky-left-3 total-label-cell"><strong>Total</strong></td>
+                        <td colspan="7"></td>
                         <td class="money total-price" style="font-weight:700;">{grandTotal}</td>
                     </tr>
                 </tbody>
