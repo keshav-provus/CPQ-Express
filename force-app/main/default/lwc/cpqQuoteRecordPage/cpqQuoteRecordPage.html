@@ -43,10 +43,10 @@
                 </template>
 
                 <template if:true={isPdfs}>
-                    <div class="empty-state">
-                        <div class="icon">📑</div>
-                        <p>Generated PDFs view will be implemented soon.</p>
-                    </div>
+                    <c-cpq-document-management
+                        record-id={recordId}
+                        quote-name={quoteData.Name}>
+                    </c-cpq-document-management>
                 </template>
             </div>
         </div>

@@ -1,0 +1,81 @@
+<template>
+    <div class="doc-mgmt-page">
+        <!-- Breadcrumb & Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <div class="breadcrumb">
+                    <span class="bc-item">Quotes</span>
+                    <span class="bc-sep">›</span>
+                    <span class="bc-item">{quoteName}</span>
+                    <span class="bc-sep">›</span>
+                    <span class="bc-item active">Document Management</span>
+                </div>
+                <h1 class="page-title">Document Management</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick={handleShareQuote}>
+                    <span class="icon"></span> Share Quote
+                </button>
+                <button class="btn btn-primary" onclick={handleExportPdf}>
+                    <span class="icon"></span> Export PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="doc-mgmt-container">
+            <!-- Sidebar: Version History -->
+            <div class="version-sidebar">
+                <h2 class="sidebar-title">VERSION HISTORY</h2>
+
+                <template if:true={versions}>
+                <template for:each={versions} for:item="v">
+                    <div key={v.Id}
+                         class={v.cardClass}
+                         onclick={handleVersionSelect}
+                         data-id={v.Id}>
+
+                        <div class="card-header">
+                            <span class={v.badgeClass}>{v.statusLabel}</span>
+                            <span class="time-ago">{v.timeAgo}</span>
+                        </div>
+
+                        <div class="version-title">{v.Version_Label__c} - {v.Title__c}</div>
+                        <p class="version-desc">{v.Description__c}</p>
+
+                        <div class="card-footer">
+                            <div class="user-info">
+                                <div class="avatar-circle">{v.initials}</div>
+                                <span class="user-name">{v.CreatedBy.Name}</span>
+                            </div>
+                            <span class="doc-filename">DOC_{v.Name}.pdf</span>
+                        </div>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={hasVersions}>
+                <div class="empty-versions">
+                    No versions generated yet.
+                </div>
+            </template>
+        </div>
+
+            <!-- Main Content: PDF Preview -->
+            <div class="pdf-preview-area">
+                <div class="pdf-frame-container">
+                <template if:true={selectedVersionUrl}>
+                    <iframe src={selectedVersionUrl} class="pdf-iframe"></iframe>
+                </template>
+                <template if:false={selectedVersionUrl}>
+                    <div class="preview-placeholder">
+                        <div class="placeholder-content">
+                            <div class="icon">📄</div>
+                            <p>Select a version to preview</p>
+                        </div>
+                    </div>
+                </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
