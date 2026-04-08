@@ -34,6 +34,13 @@ public with sharing class QuoteLineItemController {
         return q.Phase_List__c;
     }
 
+    private static void checkQuoteDraftStatus(Id quoteId) {
+        Quote__c q = [SELECT Status__c FROM Quote__c WHERE Id = :quoteId LIMIT 1];
+        if (q.Status__c != 'Draft') {
+            throw new AuraHandledException('Quote cannot be modified because it is not in Draft status.');
+        }
+    }
+
     /**
      * @description Save empty phases back to the Quote.
      * @param quoteId Quote__c ID.
@@ -41,6 +48,7 @@ public with sharing class QuoteLineItemController {
      */
     @AuraEnabled
     public static void savePhaseList(Id quoteId, String phaseList) {
+        checkQuoteDraftStatus(quoteId);
         Quote__c q = new Quote__c(Id = quoteId);
         q.Phase_List__c = phaseList;
         update q;
@@ -166,6 +174,8 @@ public with sharing class QuoteLineItemController {
             LIMIT 1
         ];
 
+        checkQuoteDraftStatus(existing.Quote__c);
+
         if (existing.Quote__r.Time_Period_Metric__c != null) {
             Boolean hasChange = (item.Quantity__c != null || item.Start_Date__c != null);
             if (hasChange) {
@@ -213,6 +223,7 @@ public with sharing class QuoteLineItemController {
     public static void deleteLineItem(Id itemId) {
         Quote_Line_Item__c item = [SELECT Quote__c FROM Quote_Line_Item__c WHERE Id = :itemId LIMIT 1];
         Id quoteId = item.Quote__c;
+        checkQuoteDraftStatus(quoteId);
         delete item;
         QuoteController.recalculateQuoteTotals(quoteId);
     }
@@ -224,6 +235,7 @@ public with sharing class QuoteLineItemController {
      */
     @AuraEnabled
     public static void deletePhaseItems(Id quoteId, String phaseName) {
+        checkQuoteDraftStatus(quoteId);
         List<Quote_Line_Item__c> items = [
             SELECT Id FROM Quote_Line_Item__c 
             WHERE Quote__c = :quoteId AND Phase__c = :phaseName

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lock_Non_Draft_Quotes</fullName>
+    <active>true</active>
+    <description>Prevents users from editing fields on the Quote if it is not in Draft status, unless they are approving or rejecting it.</description>
+    <errorConditionFormula>AND(
+  NOT(ISPICKVAL(PRIORVALUE(Status__c), "Draft")),
+  NOT(ISCHANGED(Status__c)),
+  NOT(ISCHANGED(Margin_Amount__c)),
+  NOT(ISCHANGED(Total_Amount__c)),
+  NOT(ISCHANGED(Total_Cost__c)),
+  NOT(ISCHANGED(Phase_List__c))
+)</errorConditionFormula>
+    <errorMessage>Quotes can only be edited when they are in Draft status.</errorMessage>
+</ValidationRule>

@@ -143,12 +143,12 @@ public with sharing class AdminSettingsController {
 
     private static void assignPermissionSet(Id userId, String role) {
         if (role == 'User' || role == 'Manager') {
-            String permSetName = role == 'User' ? 'CPQ_User' : 'CPQ_Manager';
+            String permSetName = role == 'User' ? 'CPQ_Sales_Rep' : 'CPQ_Sales_Manager';
             List<PermissionSet> permSets = [SELECT Id FROM PermissionSet WHERE Name = :permSetName LIMIT 1];
 
             if (!permSets.isEmpty()) {
                 // Delete existing CPQ assignments for this user
-                List<PermissionSetAssignment> existing = [SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = :userId AND PermissionSet.Name IN ('CPQ_User', 'CPQ_Manager')];
+                List<PermissionSetAssignment> existing = [SELECT Id FROM PermissionSetAssignment WHERE AssigneeId = :userId AND PermissionSet.Name IN ('CPQ_Sales_Rep', 'CPQ_Sales_Manager', 'CPQ_User', 'CPQ_Manager')];
                 if (!existing.isEmpty()) {
                     delete existing;
                 }
