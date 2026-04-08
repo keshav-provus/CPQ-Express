@@ -1,0 +1,3 @@
+<apex:page controller="DynamicQuotePDFController" renderAs="pdf" applyBodyTag="false" applyHtmlTag="false" showHeader="false">
+    <apex:outputText value="{!mergedHtml}" escape="false" />
+</apex:page>

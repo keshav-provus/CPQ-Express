@@ -88,4 +88,39 @@ public with sharing class ProductController {
             throw new AuraHandledException('Error updating product: ' + e.getMessage());
         }
     }
+
+    /**
+     * @description Fetches all active products with their categories.
+     * @return List of Product__c records.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Product__c> getActiveProducts() {
+        return [
+            SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c,
+                   Active__c, Billing_Unit__c, Category__c, Category__r.Name, Description__c
+            FROM Product__c
+            WHERE Active__c = true
+            ORDER BY Name ASC
+        ];
+    }
+
+    /**
+     * @description Fetches usage history (Quote Line Items) for a specific product.
+     * @param productId Product__c ID.
+     * @return List of Quote_Line_Item__c records revealing product usage patterns across accounts.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Quote_Line_Item__c> getProductUsage(Id productId) {
+        return [
+            SELECT Id, Net_Total__c, Start_Date__c, End_Date__c, 
+                   Quote__r.Name, Quote__r.Account__c, Quote__r.Account__r.Name
+            FROM Quote_Line_Item__c
+            WHERE Product__c = :productId
+            AND Quote__r.Account__c != null
+            AND Quote__r.Status__c = 'Approved'
+            AND Start_Date__c != null
+            AND End_Date__c != null
+            ORDER BY Start_Date__c ASC
+        ];
+    }
 }
