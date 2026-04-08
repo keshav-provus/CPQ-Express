@@ -1,0 +1,30 @@
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    width: 300px;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.message {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.assistant {
+    background: #F3F4F6;
+    align-self: flex-start;
+}
+
+.chat-input {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #E5E7EB;
+}

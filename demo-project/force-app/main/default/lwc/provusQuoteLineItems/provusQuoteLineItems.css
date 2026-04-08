@@ -1,0 +1,285 @@
+.line-items-container {
+    padding: 16px;
+    background: #fff;
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+/* ── Top Bar ───────────────────────────────────────────────────────────── */
+.line-items-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.header-left .btn-collapse {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+}
+.header-left .btn-collapse:hover { color: #111827; }
+
+.header-right {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-add-phase {
+    background: none;
+    border: none;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-add-phase:hover { color: #111827; }
+
+.btn-add-item {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #111827;
+    font-weight: 500;
+}
+.btn-add-item:hover { background: #f9fafb; }
+
+/* ── Table Layout ──────────────────────────────────────────────────────── */
+.table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+    background: white;
+}
+
+.items-table th {
+    background: #f9fafb;
+    padding: 12px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.items-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+/* ── Roots & Dragging ─────────────────────────────────────────────────── */
+.root-drop-zone {
+    min-height: 20px;
+}
+
+.item-row.nested-item .name-content {
+    padding-left: 28px;
+}
+
+/* Phase row grouping */
+.phase-row {
+    background: #f9fafb;
+    transition: background 0.2s ease;
+}
+
+.phase-row.drop-target-active {
+    background: #dbeafe; /* highlight blue on drag hover */
+}
+
+.phase-name-cell {
+    font-weight: 700;
+    color: #111827;
+}
+
+.chevron-btn {
+    display: inline-block;
+    width: 20px;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 14px;
+    text-align: center;
+}
+
+.phase-title {
+    margin-right: 16px;
+}
+
+.btn-add-to-phase {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+}
+.btn-add-to-phase:hover { color: #6b7280; }
+
+.drag-cell {
+    color: #e5e7eb;
+    cursor: grab;
+    user-select: none;
+    font-size: 16px;
+    width: 24px;
+    padding: 0 4px !important;
+}
+
+.item-row:active .drag-cell {
+    cursor: grabbing;
+}
+
+/* ── Inputs ────────────────────────────────────────────────────────────── */
+.inline-input {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.inline-input:hover { border-color: #d1d5db; }
+.inline-input:focus {
+    border-color: #3b82f6;
+    background: #fff;
+    outline: none;
+}
+.num-input { max-width: 80px; text-align: right; }
+
+.unit-price-link {
+    color: #3b82f6;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dashed;
+}
+.unit-price-link:hover { color: #2563eb; }
+
+.discount-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.pct-sign { color: #6b7280; font-size: 12px; }
+
+/* ── Specific columns ──────────────────────────────────────────────────── */
+.col-check { width: 40px; text-align: center; }
+.col-drag { width: 30px; }
+.col-name { min-width: 200px; }
+
+.name-cell {
+    /* Removed flex to prevent breaking native table borders */
+}
+
+.name-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.type-icon { font-size: 14px; }
+.icon-role { color: #10b981; }
+.icon-product { color: #3b82f6; }
+.icon-addon { color: #8b5cf6; }
+
+.info-icon {
+    font-size: 12px;
+    color: #9ca3af;
+    cursor: help;
+}
+
+.rate-cell { text-align: right; color: #374151; }
+.total-cell { text-align: right; color: #3b82f6; font-weight: 500; }
+
+.empty-cell {
+    text-align: center;
+    color: #9ca3af;
+    padding: 40px !important;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.total-row {
+    background: #f9fafb;
+    border-top: 2px solid #e5e7eb;
+}
+.total-label { text-align: right; font-size: 14px; }
+.total-amount { text-align: right; font-size: 14px; color: #10b981; }
+
+/* ── Selection Bar ──────────────────────────────────────────────────────── */
+.selection-bar-container {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.selection-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fff;
+    padding: 12px 24px;
+    border-radius: 99px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    pointer-events: auto;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.selection-info {
+    font-size: 14px;
+    color: #374151;
+}
+
+.selection-divider {
+    color: #d1d5db;
+    font-weight: 300;
+}
+
+.btn-clear-selection {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-clear-selection:hover { color: #111827; }
+
+.btn-bulk-delete {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+.btn-bulk-delete:hover { background: #b91c1c; }
+
+.trash-icon { font-size: 14px; }

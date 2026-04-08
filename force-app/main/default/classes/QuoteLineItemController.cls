@@ -52,15 +52,13 @@ public with sharing class QuoteLineItemController {
      * @param resourceRoleIds List of Resource_Role__c IDs.
      * @param productIds List of Product__c IDs.
      * @param addonIds List of Add_On__c IDs.
-     * @param phase Optional phase name for the items.
      */
     @AuraEnabled
     public static void addLineItems(
             Id quoteId,
             List<Id> resourceRoleIds,
             List<Id> productIds,
-            List<Id> addonIds,
-            String phase) {
+            List<Id> addonIds) {
 
         Quote__c parentQuote = [
             SELECT Start_Date__c, End_Date__c, Time_Period_Metric__c, Time_Period_Count__c
@@ -82,6 +80,7 @@ public with sharing class QuoteLineItemController {
             for (Resource_Role__c role : roles) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
+                item.Name                = role.Name__c;
                 item.Item_Type__c        = 'Resource Role';
                 item.Resource_Role__c    = role.Id;
                 item.Base_Rate__c        = role.Price__c;
@@ -89,7 +88,6 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = role.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
-                if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);
             }
@@ -106,6 +104,7 @@ public with sharing class QuoteLineItemController {
             for (Product__c product : products) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
+                item.Name                = product.Name;
                 item.Item_Type__c        = 'Product';
                 item.Product__c          = product.Id;
                 item.Base_Rate__c        = product.Price__c;
@@ -113,7 +112,6 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = product.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
-                if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);
             }
@@ -130,6 +128,7 @@ public with sharing class QuoteLineItemController {
             for (Add_On__c addon : addons) {
                 Quote_Line_Item__c item = new Quote_Line_Item__c();
                 item.Quote__c            = quoteId;
+                item.Name                = addon.Name__c;
                 item.Item_Type__c        = 'Add-on';
                 item.Add_On__c           = addon.Id;
                 item.Base_Rate__c        = addon.Price__c;
@@ -137,7 +136,6 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = addon.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
-                if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);
             }
@@ -212,23 +210,6 @@ public with sharing class QuoteLineItemController {
         Id quoteId = item.Quote__c;
         delete item;
         QuoteController.recalculateQuoteTotals(quoteId);
-    }
-
-    /**
-     * @description Cascade delete all line items for a given phase and quote.
-     * @param quoteId Quote__c ID.
-     * @param phaseName Name of the phase.
-     */
-    @AuraEnabled
-    public static void deletePhaseItems(Id quoteId, String phaseName) {
-        List<Quote_Line_Item__c> items = [
-            SELECT Id FROM Quote_Line_Item__c 
-            WHERE Quote__c = :quoteId AND Phase__c = :phaseName
-        ];
-        if (!items.isEmpty()) {
-            delete items;
-            QuoteController.recalculateQuoteTotals(quoteId);
-        }
     }
 
     /**

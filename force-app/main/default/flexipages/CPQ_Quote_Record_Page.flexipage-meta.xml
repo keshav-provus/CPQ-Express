@@ -13,7 +13,7 @@
     <masterLabel>CPQ Quote Record Page</masterLabel>
     <sobjectType>Quote__c</sobjectType>
     <template>
-        <name>flexipage:recordHomeSingleColTemplateDesktop</name>
+        <name>flexipage:recordHomeTemplateDesktop</name>
     </template>
     <type>RecordPage</type>
 </FlexiPage>
