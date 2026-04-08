@@ -1,5 +1,6 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import generateQuotePdf from '@salesforce/apex/QuoteController.generateQuotePdf';
 
 export default class CpqQuoteHeader extends LightningElement {
     @api recordId;
@@ -54,14 +55,57 @@ export default class CpqQuoteHeader extends LightningElement {
         );
     }
 
+    @track isPdfModalOpen = false;
+    @track pdfTitle = '';
+    @track pdfDescription = '';
+    @track isGenerating = false;
+
     handleGeneratePdf() {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Info',
-                message: 'PDF generation feature coming soon',
-                variant: 'info'
-            })
-        );
+        this.isPdfModalOpen = true;
+    }
+
+    closePdfModal() {
+        this.isPdfModalOpen = false;
+    }
+
+    handlePdfTitleChange(event) {
+        this.pdfTitle = event.target.value;
+    }
+
+    handlePdfDescChange(event) {
+        this.pdfDescription = event.target.value;
+    }
+
+    async confirmGeneratePdf() {
+        this.isGenerating = true;
+        try {
+            await generateQuotePdf({
+                quoteId: this.recordId,
+                title: this.pdfTitle,
+                description: this.pdfDescription
+            });
+
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Success',
+                    message: 'Quote PDF generated successfully',
+                    variant: 'success'
+                })
+            );
+
+            this.isPdfModalOpen = false;
+            this.isGenerating = false;
+            this.handleRefresh();
+        } catch (error) {
+            this.dispatchEvent(
+                new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body ? error.body.message : error.message,
+                    variant: 'error'
+                })
+            );
+            this.isGenerating = false;
+        }
     }
 
     handleAiAssistant() {

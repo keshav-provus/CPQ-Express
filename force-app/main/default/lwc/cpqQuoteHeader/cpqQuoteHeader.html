@@ -58,5 +58,28 @@
                 <strong class="value">{timePeriod}</strong>
             </div>
         </div>
+
+        <!-- PDF Confirmation Modal -->
+        <template if:true={isPdfModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <h2 class="slds-text-heading_medium">Generate PDF</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-input label="Title" value={pdfTitle} onchange={handlePdfTitleChange} placeholder="e.g. Pricing Adjusted"></lightning-input>
+                        <lightning-textarea label="Description" value={pdfDescription} onchange={handlePdfDescChange} placeholder="Describe the changes in this version..."></lightning-textarea>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick={closePdfModal}>Cancel</button>
+                        <button class="slds-button slds-button_brand" onclick={confirmGeneratePdf} disabled={isGenerating}>
+                            <template if:true={isGenerating}>Generating...</template>
+                            <template if:false={isGenerating}>Generate</template>
+                        </button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
     </div>
 </template>

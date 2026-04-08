@@ -1,0 +1,297 @@
+<apex:page controller="QuotePDFController" renderAs="pdf" applyBodyTag="false" applyHtmlTag="false" showHeader="false">
+    <head>
+        <style type="text/css" media="print">
+            @page {
+                margin: 1cm;
+                @bottom-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-size: 10px;
+                }
+            }
+            body {
+                font-family: 'Helvetica', 'Arial', sans-serif;
+                font-size: 12px;
+                color: #333;
+                margin: 0;
+                padding: 0;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 40px;
+            }
+            .company-info {
+                float: left;
+                width: 50%;
+            }
+            .quote-title {
+                float: right;
+                width: 40%;
+                text-align: right;
+            }
+            .logo-placeholder {
+                background-color: #4F46E5;
+                width: 40px;
+                height: 40px;
+                border-radius: 4px;
+                display: inline-block;
+                margin-bottom: 10px;
+            }
+            .company-name {
+                font-size: 20px;
+                font-weight: bold;
+                letter-spacing: 1px;
+                color: #111;
+                margin-bottom: 10px;
+            }
+            .address-text {
+                font-size: 11px;
+                color: #666;
+                line-height: 1.4;
+            }
+            .quote-label {
+                font-size: 40px;
+                font-weight: bold;
+                color: #111;
+                margin: 0;
+            }
+            .quote-meta {
+                margin-top: 10px;
+                font-size: 12px;
+            }
+            .meta-row {
+                margin-bottom: 2px;
+            }
+            .meta-label {
+                color: #666;
+                width: 100px;
+                display: inline-block;
+            }
+            .meta-value {
+                font-weight: bold;
+                color: #111;
+            }
+            .clear {
+                clear: both;
+            }
+            .info-section {
+                margin-top: 30px;
+                margin-bottom: 40px;
+            }
+            .info-box {
+                float: left;
+                width: 48%;
+            }
+            .info-label {
+                font-size: 10px;
+                color: #666;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 8px;
+            }
+            .info-content {
+                font-size: 13px;
+                font-weight: bold;
+                color: #111;
+                line-height: 1.4;
+            }
+            .info-sub {
+                font-size: 12px;
+                font-weight: normal;
+                color: #444;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            th {
+                text-align: left;
+                font-size: 10px;
+                color: #666;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                border-bottom: 1px solid #eee;
+                padding: 10px 5px;
+            }
+            td {
+                padding: 15px 5px;
+                border-bottom: 1px solid #f9f9f9;
+                vertical-align: top;
+            }
+            .item-name {
+                font-weight: bold;
+                font-size: 13px;
+                color: #111;
+            }
+            .item-desc {
+                font-size: 11px;
+                color: #666;
+                margin-top: 4px;
+            }
+            .text-right {
+                text-align: right;
+            }
+            .totals-section {
+                margin-top: 30px;
+                float: right;
+                width: 40%;
+            }
+            .total-row {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            .total-label {
+                color: #666;
+                display: inline-block;
+                width: 120px;
+            }
+            .total-value {
+                font-weight: bold;
+                color: #111;
+                float: right;
+            }
+            .grand-total {
+                font-size: 18px;
+                border-top: 1px solid #eee;
+                padding-top: 15px;
+                margin-top: 15px;
+            }
+            .grand-total .total-value {
+                color: #4F46E5;
+            }
+            .footer-note {
+                margin-top: 100px;
+                text-align: center;
+                font-size: 10px;
+                color: #999;
+                border-top: 1px solid #eee;
+                padding-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="company-info">
+                <div class="logo-placeholder"></div>
+                <div class="company-name">{!companyName}</div>
+                <div class="address-text">
+                    {!companyAddress}<br/>
+                    {!companyEmail}
+                </div>
+            </div>
+            <div class="quote-title">
+                <div class="quote-label">QUOTE</div>
+                <div class="quote-meta">
+                    <div class="meta-row">
+                        <span class="meta-label">Quote Number:</span>
+                        <span class="meta-value">{!quote.Name}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Date Issued:</span>
+                        <span class="meta-value">{!todayDate}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Expires:</span>
+                        <span class="meta-value">
+                            <apex:outputText value="{0,date,MMM dd, yyyy}">
+                                <apex:param value="{!quote.Valid_Until__c}" />
+                            </apex:outputText>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clear"></div>
+
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-label">PREPARED FOR</div>
+                <div class="info-content">
+                    {!quote.Account__r.Name}<br/>
+                    <div class="info-sub">
+                        {!quote.Account__r.BillingStreet}<br/>
+                        {!quote.Account__r.BillingCity}, {!quote.Account__r.BillingState} {!quote.Account__r.BillingPostalCode}
+                    </div>
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">SALES REPRESENTATIVE</div>
+                <div class="info-content">
+                    {!quote.CreatedBy.Name}<br/>
+                    <div class="info-sub">
+                        Senior Account Architect<br/>
+                        {!quote.CreatedBy.Name}@precision.arch<br/>
+                        +1 (555) 012-3456
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clear"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th width="60%">PRODUCT DESCRIPTION</th>
+                    <th width="10%" class="text-right">QTY</th>
+                    <th width="15%" class="text-right">UNIT PRICE</th>
+                    <th width="15%" class="text-right">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <apex:repeat value="{!lineItems}" var="item">
+                    <tr>
+                        <td>
+                            <div class="item-name">{!item.Name__c}</div>
+                            <div class="item-desc">{!item.Task__c}</div>
+                        </td>
+                        <td class="text-right">
+                            <apex:outputText value="{0,number,###,###,##0}">
+                                <apex:param value="{!item.Quantity__c}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="text-right">
+                            <apex:outputText value="{0,number,currency}">
+                                <apex:param value="{!item.Unit_Price__c}" />
+                            </apex:outputText>
+                        </td>
+                        <td class="text-right">
+                            <apex:outputText value="{0,number,currency}">
+                                <apex:param value="{!item.Net_Total__c}" />
+                            </apex:outputText>
+                        </td>
+                    </tr>
+                </apex:repeat>
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="total-row">
+                <span class="total-label">Subtotal:</span>
+                <span class="total-value">
+                    <apex:outputText value="{0,number,currency}">
+                        <apex:param value="{!quote.Total_Amount__c}" />
+                    </apex:outputText>
+                </span>
+            </div>
+            <!-- Discount logic if needed -->
+            <!-- <div class="total-row">
+                <span class="total-label">Discount:</span>
+                <span class="total-value">-$0.00</span>
+            </div> -->
+            <div class="total-row grand-total">
+                <span class="total-label">Total Amount:</span>
+                <span class="total-value">
+                    <apex:outputText value="{0,number,currency}">
+                        <apex:param value="{!quote.Total_Amount__c}" />
+                    </apex:outputText>
+                </span>
+            </div>
+        </div>
+        <div class="clear"></div>
+
+        <div class="footer-note">
+            This quote is valid for 30 days. All pricing is subject to our Standard Terms and Conditions of Sale.
+        </div>
+    </body>
+</apex:page>

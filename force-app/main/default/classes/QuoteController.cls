@@ -206,4 +206,75 @@ public with sharing class QuoteController {
     public static List<Product__c> getProducts() {
         return [SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c FROM Product__c];
     }
+
+    /**
+     * @description Generates a PDF for the quote and saves it as a version.
+     */
+    @AuraEnabled
+    public static void generateQuotePdf(Id quoteId, String title, String description) {
+        try {
+            // 1. Get next version label
+            List<Quote_Version__c> existingVersions = [SELECT Id FROM Quote_Version__c WHERE Quote__c = :quoteId];
+            Integer nextVersion = existingVersions.size() + 1;
+            String versionLabel = 'v4.' + nextVersion; // Using v4.x as per screenshot example
+
+            // 2. Render PDF
+            PageReference pdfPage = Page.QuotePDF;
+            pdfPage.getParameters().put('id', quoteId);
+            Blob pdfBlob;
+            if (Test.isRunningTest()) {
+                pdfBlob = Blob.valueOf('Test PDF Content');
+            } else {
+                pdfBlob = pdfPage.getContentAsPDF();
+            }
+
+            // 3. Save as ContentVersion
+            ContentVersion cv = new ContentVersion();
+            cv.Title = title != null ? title : 'Quote ' + versionLabel;
+            cv.PathOnClient = 'Quote_' + quoteId + '_' + nextVersion + '.pdf';
+            cv.VersionData = pdfBlob;
+            cv.IsMajorVersion = true;
+            insert cv;
+
+            // Get ContentDocumentId
+            Id conDocId = [SELECT ContentDocumentId FROM ContentVersion WHERE Id = :cv.Id].ContentDocumentId;
+
+            // 4. Create Quote Version record
+            Quote_Version__c qv = new Quote_Version__c();
+            qv.Quote__c = quoteId;
+            qv.Version_Label__c = versionLabel;
+            qv.Title__c = title;
+            qv.Description__c = description;
+            qv.ContentVersionId__c = cv.Id;
+            qv.Is_Active__c = true;
+            insert qv;
+
+            // Deactivate other versions (optional, but requested "CURRENT ACTIVE" in UI)
+            List<Quote_Version__c> others = [SELECT Id, Is_Active__c FROM Quote_Version__c WHERE Quote__c = :quoteId AND Id != :qv.Id];
+            for (Quote_Version__c other : others) {
+                other.Is_Active__c = false;
+            }
+            if (!others.isEmpty()) {
+                update others;
+            }
+
+        } catch (Exception e) {
+            throw new AuraHandledException('Error generating PDF: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * @description Fetches version history for a quote.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Quote_Version__c> getQuoteVersions(Id quoteId) {
+        return [
+            SELECT Id, Name, Version_Label__c, Title__c, Description__c,
+                   ContentVersionId__c, Is_Active__c, CreatedDate,
+                   CreatedBy.Name, CreatedBy.SmallPhotoUrl
+            FROM Quote_Version__c
+            WHERE Quote__c = :quoteId
+            ORDER BY CreatedDate DESC
+        ];
+    }
 }

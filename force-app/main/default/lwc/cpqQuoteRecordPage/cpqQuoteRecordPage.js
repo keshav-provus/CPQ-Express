@@ -49,6 +49,10 @@ export default class CpqQuoteRecordPage extends LightningElement {
     handleRefresh() {
         refreshApex(this.wiredQuoteResult);
         refreshApex(this.wiredLinesResult);
+        const docMgmt = this.template.querySelector('c-cpq-document-management');
+        if (docMgmt) {
+            docMgmt.refresh();
+        }
     }
 
     handleOpenWizard(event) {
