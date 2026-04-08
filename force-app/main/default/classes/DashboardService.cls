@@ -297,6 +297,44 @@ public with sharing class DashboardService {
     }
 
     /**
+     * @description Premium Dashboard: Returns Lightning Map marker data aggregated by country.
+     * @return List of maps for lightning-map component.
+     */
+    public List<Map<String, Object>> getQuoteMapLocationsByCountry() {
+        List<Map<String, Object>> markers = new List<Map<String, Object>>();
+
+        List<AggregateResult> results = [
+            SELECT Account__r.BillingCountry country, COUNT(Id) quoteCount, AVG(Total_Amount__c) avgAmount
+            FROM Quote__c
+            WHERE Status__c = 'Approved' AND Account__r.BillingCountry != null
+            GROUP BY Account__r.BillingCountry
+        ];
+
+        for (AggregateResult ar : results) {
+            String country = (String) ar.get('country');
+            Integer count = (Integer) ar.get('quoteCount');
+            Decimal avgAmount = (Decimal) ar.get('avgAmount');
+            if (avgAmount != null) {
+                avgAmount = avgAmount.setScale(2);
+            } else {
+                avgAmount = 0.00;
+            }
+
+            Map<String, Object> marker = new Map<String, Object>();
+            marker.put('value', country);
+            marker.put('title', country);
+            marker.put('description', 'Quotes: ' + count + ', Avg Amount: $' + avgAmount);
+
+            Map<String, String> location = new Map<String, String>();
+            location.put('Country', country);
+            marker.put('location', location);
+
+            markers.add(marker);
+        }
+        return markers;
+    }
+
+    /**
      * @description Premium Dashboard: Returns the top 3 selling products based on Quote Line Items.
      * @return List of map containing Product info.
      */

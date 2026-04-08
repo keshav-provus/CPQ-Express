@@ -138,6 +138,18 @@ public with sharing class DashboardController {
     }
 
     /**
+     * @description Premium Dashboard: Returns Quote map marker data aggregated by country.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, Object>> getQuoteMapLocationsByCountry() {
+        try {
+            return service.getQuoteMapLocationsByCountry();
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching map markers by country: ' + e.getMessage());
+        }
+    }
+
+    /**
      * @description Premium Dashboard: Returns the top selling products.
      */
     @AuraEnabled(cacheable=true)
