@@ -1,6 +1,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import getLineItemSummary from '@salesforce/apex/QuoteLineItemController.getLineItemSummary';
 import getLineItemsByPhase from '@salesforce/apex/QuoteLineItemController.getLineItemsByPhase';
+import getSettings from '@salesforce/apex/CPQSettingsController.getSettings';
 import { refreshApex } from '@salesforce/apex';
 
 export default class CpqQuoteSummary extends LightningElement {
@@ -31,6 +32,20 @@ export default class CpqQuoteSummary extends LightningElement {
         }
     }
 
+    @track settings = {};
+
+    @wire(getSettings)
+    wiredSettings({ data, error }) {
+        if (data) {
+            this.settings = data;
+        }
+    }
+
+    get resourceRolePlural() { return this.settings.Resource_Role_Plural__c || 'Resource Roles'; }
+    get productPlural() { return this.settings.Product_Plural__c || 'Products'; }
+    get addOnPlural() { return this.settings.Add_On_Plural__c || 'Add-ons'; }
+    get addOnSingular() { return this.settings.Add_On_Singular__c || 'Add-on'; }
+
     @api
     refresh() {
         refreshApex(this.wiredSummaryResult);
@@ -51,17 +66,25 @@ export default class CpqQuoteSummary extends LightningElement {
     get laborPercentage() { return this.summaryData['Resource Role']?.percentage || 0; }
     get laborCount() { return this.summaryData['Resource Role']?.count || 0; }
 
+    get laborCountLabel() { return `${this.laborCount} ${this.resourceRolePlural}`; }
+
     get productRevenue() { return this.summaryData['Product']?.revenue || 0; }
     get productCost() { return this.summaryData['Product']?.cost || 0; }
     get productMargin() { return this.summaryData['Product']?.margin || 0; }
     get productPercentage() { return this.summaryData['Product']?.percentage || 0; }
     get productCount() { return this.summaryData['Product']?.count || 0; }
 
+    get productCountLabel() { return `${this.productCount} ${this.productPlural}`; }
+
     get addonRevenue() { return this.summaryData['Add-on']?.revenue || 0; }
     get addonCost() { return this.summaryData['Add-on']?.cost || 0; }
     get addonMargin() { return this.summaryData['Add-on']?.margin || 0; }
     get addonPercentage() { return this.summaryData['Add-on']?.percentage || 0; }
     get addonCount() { return this.summaryData['Add-on']?.count || 0; }
+
+    get addonCountLabel() {
+        return this.addonCount === 1 ? `1 ${this.addOnSingular} Item` : `${this.addonCount} ${this.addOnPlural} Items`;
+    }
 
     get hasPhases() { return this.phaseRows && this.phaseRows.length > 0; }
 

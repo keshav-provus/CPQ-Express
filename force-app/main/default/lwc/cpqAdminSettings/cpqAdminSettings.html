@@ -1,0 +1,158 @@
+<template>
+    <div class="settings-container">
+        <!-- Settings Header -->
+        <div class="settings-header">
+            <h2>Settings</h2>
+        </div>
+
+        <div class="settings-body">
+            <!-- Sidebar Navigation -->
+            <div class="settings-sidebar">
+                <ul>
+                    <li class={getGeneralTabClass} onclick={handleTabClick} data-tab="general">General</li>
+                    <li class={getCompanyInfoTabClass} onclick={handleTabClick} data-tab="companyInfo">Company Info</li>
+                    <li class={getPdfTabClass} onclick={handleTabClick} data-tab="pdf">PDF</li>
+                    <li class={getUsersTabClass} onclick={handleTabClick} data-tab="users">Users</li>
+                </ul>
+            </div>
+
+            <!-- Content Area -->
+            <div class="settings-content">
+                <template if:true={isGeneralTab}>
+                    <div class="card">
+                        <div class="card-header">
+                            <lightning-icon icon-name="utility:page" size="small" class="header-icon"></lightning-icon>
+                            <h3>Line Item Labels</h3>
+                        </div>
+                        <p class="card-subtitle">Customize labels to match your organization's terminology.</p>
+
+                        <div class="label-list">
+                            <!-- Resource Roles Row -->
+                            <div class="label-row">
+                                <div class="label-info">
+                                    <lightning-icon icon-name="utility:groups" size="small" class="row-icon"></lightning-icon>
+                                    <span class="label-title">Resource Roles</span>
+                                </div>
+                                <div class="label-values">
+                                    <template if:false={editModes.resourceRoles}>
+                                        <span class="value-text">{displayLabels.resourceRoles}</span>
+                                    </template>
+                                    <template if:true={editModes.resourceRoles}>
+                                        <div class="edit-inputs">
+                                            <lightning-input type="text" label="Singular" value={draftLabels.resourceRoleSingular} data-field="resourceRoleSingular" onchange={handleInputChange} variant="label-hidden" placeholder="Singular"></lightning-input>
+                                            <span class="separator">/</span>
+                                            <lightning-input type="text" label="Plural" value={draftLabels.resourceRolePlural} data-field="resourceRolePlural" onchange={handleInputChange} variant="label-hidden" placeholder="Plural"></lightning-input>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="label-actions">
+                                    <template if:false={editModes.resourceRoles}>
+                                        <button class="icon-btn" onclick={enableEdit} data-row="resourceRoles" title="Edit">
+                                            <lightning-icon icon-name="utility:edit" size="x-small"></lightning-icon>
+                                        </button>
+                                    </template>
+                                    <template if:true={editModes.resourceRoles}>
+                                        <button class="text-btn save-btn" onclick={saveRow} data-row="resourceRoles">Save</button>
+                                        <button class="text-btn cancel-btn" onclick={cancelEdit} data-row="resourceRoles">Cancel</button>
+                                    </template>
+                                    <button class="text-btn reset-btn" onclick={resetRow} data-row="resourceRoles">
+                                        <lightning-icon icon-name="utility:refresh" size="x-small"></lightning-icon> Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Products Row -->
+                            <div class="label-row">
+                                <div class="label-info">
+                                    <lightning-icon icon-name="utility:preview" size="small" class="row-icon"></lightning-icon>
+                                    <span class="label-title">Products</span>
+                                </div>
+                                <div class="label-values">
+                                    <template if:false={editModes.products}>
+                                        <span class="value-text">{displayLabels.products}</span>
+                                    </template>
+                                    <template if:true={editModes.products}>
+                                        <div class="edit-inputs">
+                                            <lightning-input type="text" label="Singular" value={draftLabels.productSingular} data-field="productSingular" onchange={handleInputChange} variant="label-hidden" placeholder="Singular"></lightning-input>
+                                            <span class="separator">/</span>
+                                            <lightning-input type="text" label="Plural" value={draftLabels.productPlural} data-field="productPlural" onchange={handleInputChange} variant="label-hidden" placeholder="Plural"></lightning-input>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="label-actions">
+                                    <template if:false={editModes.products}>
+                                        <button class="icon-btn" onclick={enableEdit} data-row="products" title="Edit">
+                                            <lightning-icon icon-name="utility:edit" size="x-small"></lightning-icon>
+                                        </button>
+                                    </template>
+                                    <template if:true={editModes.products}>
+                                        <button class="text-btn save-btn" onclick={saveRow} data-row="products">Save</button>
+                                        <button class="text-btn cancel-btn" onclick={cancelEdit} data-row="products">Cancel</button>
+                                    </template>
+                                    <button class="text-btn reset-btn" onclick={resetRow} data-row="products">
+                                        <lightning-icon icon-name="utility:refresh" size="x-small"></lightning-icon> Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Add-ons Row -->
+                            <div class="label-row">
+                                <div class="label-info">
+                                    <lightning-icon icon-name="utility:preview" size="small" class="row-icon"></lightning-icon>
+                                    <span class="label-title">Add-ons</span>
+                                </div>
+                                <div class="label-values">
+                                    <template if:false={editModes.addons}>
+                                        <span class="value-text">{displayLabels.addons}</span>
+                                    </template>
+                                    <template if:true={editModes.addons}>
+                                        <div class="edit-inputs">
+                                            <lightning-input type="text" label="Singular" value={draftLabels.addOnSingular} data-field="addOnSingular" onchange={handleInputChange} variant="label-hidden" placeholder="Singular"></lightning-input>
+                                            <span class="separator">/</span>
+                                            <lightning-input type="text" label="Plural" value={draftLabels.addOnPlural} data-field="addOnPlural" onchange={handleInputChange} variant="label-hidden" placeholder="Plural"></lightning-input>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="label-actions">
+                                    <template if:false={editModes.addons}>
+                                        <button class="icon-btn" onclick={enableEdit} data-row="addons" title="Edit">
+                                            <lightning-icon icon-name="utility:edit" size="x-small"></lightning-icon>
+                                        </button>
+                                    </template>
+                                    <template if:true={editModes.addons}>
+                                        <button class="text-btn save-btn" onclick={saveRow} data-row="addons">Save</button>
+                                        <button class="text-btn cancel-btn" onclick={cancelEdit} data-row="addons">Cancel</button>
+                                    </template>
+                                    <button class="text-btn reset-btn" onclick={resetRow} data-row="addons">
+                                        <lightning-icon icon-name="utility:refresh" size="x-small"></lightning-icon> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <template if:true={isCompanyInfoTab}>
+                    <div class="placeholder-card">
+                        <h3>Company Info Settings</h3>
+                        <p>Coming soon...</p>
+                    </div>
+                </template>
+
+                <template if:true={isPdfTab}>
+                    <div class="placeholder-card">
+                        <h3>PDF Settings</h3>
+                        <p>Coming soon...</p>
+                    </div>
+                </template>
+
+                <template if:true={isUsersTab}>
+                    <div class="placeholder-card">
+                        <h3>Users Settings</h3>
+                        <p>Coming soon...</p>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>
