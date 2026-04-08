@@ -8,7 +8,7 @@ public with sharing class QuoteLineItemController {
     @AuraEnabled(cacheable=true)
     public static List<Quote_Line_Item__c> getLineItems(Id quoteId) {
         return [
-            SELECT Id, Name, Item_Type__c,
+            SELECT Id, Name, Name__c, Item_Type__c,
                    Resource_Role__c, Resource_Role__r.Name, Resource_Role__r.Name__c,
                    Product__c, Product__r.Name, Product__r.Product_Code__c,
                    Add_On__c, Add_On__r.Name, Add_On__r.Name__c,
@@ -89,6 +89,7 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = role.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
+                item.Name__c             = role.Name__c != null ? role.Name__c : role.Name;
                 if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);
@@ -113,6 +114,7 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = product.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
+                item.Name__c             = product.Name;
                 if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);
@@ -137,6 +139,7 @@ public with sharing class QuoteLineItemController {
                 item.Unit_Cost__c        = addon.Cost__c;
                 item.Quantity__c         = 1;
                 item.Discount_Percent__c = 0;
+                item.Name__c             = addon.Name__c != null ? addon.Name__c : addon.Name;
                 if (String.isNotBlank(phase)) item.Phase__c = phase;
                 populateDates(item, parentQuote);
                 itemsToInsert.add(item);

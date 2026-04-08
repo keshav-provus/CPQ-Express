@@ -1,0 +1,374 @@
+{
+  "status": 1,
+  "result": {
+    "checkOnly": false,
+    "completedDate": "2026-04-08T09:50:47.000Z",
+    "createdBy": "0059H000008faN6",
+    "createdByName": "User User",
+    "createdDate": "2026-04-08T09:50:44.000Z",
+    "details": {
+      "componentFailures": [
+        {
+          "changed": false,
+          "columnNumber": 25,
+          "componentType": "ApexClass",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "classes/QuotePDFController.cls",
+          "fullName": "QuotePDFController",
+          "lineNumber": 24,
+          "problem": "No such column 'Name__c' on entity 'Quote_Line_Item__c'. If you are attempting to use a custom field, be sure to append the '__c' after the custom field name. Please reference your WSDL or the describe call for the appropriate names.",
+          "problemType": "Error",
+          "success": false
+        },
+        {
+          "changed": false,
+          "columnNumber": 34,
+          "componentType": "ApexClass",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "classes/QuotePDFControllerTest.cls",
+          "fullName": "QuotePDFControllerTest",
+          "lineNumber": 14,
+          "problem": "Field does not exist: Name__c on Quote_Line_Item__c",
+          "problemType": "Error",
+          "success": false
+        },
+        {
+          "changed": false,
+          "componentType": "ApexPage",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "pages/QuotePDF.page",
+          "fullName": "QuotePDF",
+          "problem": "Apex class 'QuotePDFController' does not exist",
+          "problemType": "Error",
+          "success": false
+        }
+      ],
+      "componentSuccesses": [
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.Quote__c",
+          "id": "00N9H000003SSBJUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.ContentVersionId__c",
+          "id": "00N9H000003SSBKUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.Description__c",
+          "id": "00N9H000003SSBLUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.Is_Active__c",
+          "id": "00N9H000003SSBMUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.Title__c",
+          "id": "00N9H000003SSBNUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomField",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:45.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c.Version_Label__c",
+          "id": "00N9H000003SSBOUA4",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "ApexClass",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "classes/QuoteController.cls",
+          "fullName": "QuoteController",
+          "id": "01p9H000001klRZQAY",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "LightningComponentBundle",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "lwc/cpqDocumentManagement",
+          "fullName": "cpqDocumentManagement",
+          "id": "0Rb9H000000DvzbSAC",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "LightningComponentBundle",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "lwc/cpqQuoteHeader",
+          "fullName": "cpqQuoteHeader",
+          "id": "0Rb9H000000DqIZSA0",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "LightningComponentBundle",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "lwc/cpqQuoteRecordPage",
+          "fullName": "cpqQuoteRecordPage",
+          "id": "0Rb9H000000Dt58SAC",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "CustomObject",
+          "created": true,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "objects/Quote_Version__c.object",
+          "fullName": "Quote_Version__c",
+          "id": "01I9H000000ncSgUAI",
+          "success": true
+        },
+        {
+          "changed": true,
+          "componentType": "",
+          "created": false,
+          "createdDate": "2026-04-08T09:50:47.000Z",
+          "deleted": false,
+          "fileName": "package.xml",
+          "fullName": "package.xml",
+          "success": true
+        }
+      ],
+      "runTestResult": {
+        "numFailures": 0,
+        "numTestsRun": 0,
+        "totalTime": 0,
+        "codeCoverage": [],
+        "codeCoverageWarnings": [],
+        "failures": [],
+        "flowCoverage": [],
+        "flowCoverageWarnings": [],
+        "successes": []
+      }
+    },
+    "done": true,
+    "id": "0Af9H000008KeRNSA0",
+    "ignoreWarnings": false,
+    "lastModifiedDate": "2026-04-08T09:50:47.000Z",
+    "numberComponentErrors": 3,
+    "numberComponentsDeployed": 11,
+    "numberComponentsTotal": 14,
+    "numberFiles": "29",
+    "numberTestErrors": 0,
+    "numberTestsCompleted": 0,
+    "numberTestsTotal": 0,
+    "rollbackOnError": true,
+    "runTestsEnabled": false,
+    "startDate": "2026-04-08T09:50:44.000Z",
+    "status": "Failed",
+    "success": false,
+    "zipSize": 21476,
+    "files": [
+      {
+        "fullName": "QuoteController",
+        "type": "ApexClass",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/classes/QuoteController.cls"
+      },
+      {
+        "fullName": "QuoteController",
+        "type": "ApexClass",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/classes/QuoteController.cls-meta.xml"
+      },
+      {
+        "fullName": "QuotePDFController",
+        "type": "ApexClass",
+        "state": "Failed",
+        "problemType": "Error",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/classes/QuotePDFController.cls",
+        "lineNumber": 24,
+        "columnNumber": 25,
+        "error": "No such column 'Name__c' on entity 'Quote_Line_Item__c'. If you are attempting to use a custom field, be sure to append the '__c' after the custom field name. Please reference your WSDL or the describe call for the appropriate names. (24:25)"
+      },
+      {
+        "fullName": "QuotePDFControllerTest",
+        "type": "ApexClass",
+        "state": "Failed",
+        "problemType": "Error",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/classes/QuotePDFControllerTest.cls",
+        "lineNumber": 14,
+        "columnNumber": 34,
+        "error": "Field does not exist: Name__c on Quote_Line_Item__c (14:34)"
+      },
+      {
+        "fullName": "QuotePDF",
+        "type": "ApexPage",
+        "state": "Failed",
+        "problemType": "Error",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/pages/QuotePDF.page",
+        "error": "Apex class 'QuotePDFController' does not exist"
+      },
+      {
+        "fullName": "Quote_Version__c.ContentVersionId__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/ContentVersionId__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c.Description__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/Description__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c.Is_Active__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/Is_Active__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c.Quote__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/Quote__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c.Title__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/Title__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c.Version_Label__c",
+        "type": "CustomField",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/fields/Version_Label__c.field-meta.xml"
+      },
+      {
+        "fullName": "Quote_Version__c",
+        "type": "CustomObject",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/objects/Quote_Version__c/Quote_Version__c.object-meta.xml"
+      },
+      {
+        "fullName": "cpqDocumentManagement",
+        "type": "LightningComponentBundle",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqDocumentManagement/cpqDocumentManagement.css"
+      },
+      {
+        "fullName": "cpqDocumentManagement",
+        "type": "LightningComponentBundle",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqDocumentManagement/cpqDocumentManagement.html"
+      },
+      {
+        "fullName": "cpqDocumentManagement",
+        "type": "LightningComponentBundle",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqDocumentManagement/cpqDocumentManagement.js"
+      },
+      {
+        "fullName": "cpqDocumentManagement",
+        "type": "LightningComponentBundle",
+        "state": "Created",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqDocumentManagement/cpqDocumentManagement.js-meta.xml"
+      },
+      {
+        "fullName": "cpqQuoteHeader",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteHeader/cpqQuoteHeader.css"
+      },
+      {
+        "fullName": "cpqQuoteHeader",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteHeader/cpqQuoteHeader.html"
+      },
+      {
+        "fullName": "cpqQuoteHeader",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteHeader/cpqQuoteHeader.js"
+      },
+      {
+        "fullName": "cpqQuoteHeader",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteHeader/cpqQuoteHeader.js-meta.xml"
+      },
+      {
+        "fullName": "cpqQuoteRecordPage",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteRecordPage/cpqQuoteRecordPage.css"
+      },
+      {
+        "fullName": "cpqQuoteRecordPage",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteRecordPage/cpqQuoteRecordPage.html"
+      },
+      {
+        "fullName": "cpqQuoteRecordPage",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteRecordPage/cpqQuoteRecordPage.js"
+      },
+      {
+        "fullName": "cpqQuoteRecordPage",
+        "type": "LightningComponentBundle",
+        "state": "Changed",
+        "filePath": "/Users/admin/work/CPQ-Express/force-app/main/default/lwc/cpqQuoteRecordPage/cpqQuoteRecordPage.js-meta.xml"
+      }
+    ],
+    "zipFileCount": 22,
+    "deployUrl": "https://page-customization-9790.scratch.my.salesforce.com/lightning/setup/DeployStatus/page?address=%2Fchangemgmt%2FmonitorDeploymentsDetails.apexp%3FasyncId%3D0Af9H000008KeRNSA0%26retURL%3D%252Fchangemgmt%252FmonitorDeployment.apexp"
+  },
+  "warnings": []
+}

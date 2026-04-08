@@ -23,7 +23,7 @@ public with sharing class QuotePDFController {
 
             lineItems = [
                 SELECT Id, Name__c, Item_Type__c, Task__c, Phase__c, Quantity__c,
-                       Unit_Price__c, Net_Total__c, Discount__c, List_Price__c
+                       Unit_Price__c, Net_Total__c, Discount_Percent__c, Base_Rate__c
                 FROM Quote_Line_Item__c
                 WHERE Quote__c = :quoteId
                 ORDER BY Phase__c, CreatedDate
