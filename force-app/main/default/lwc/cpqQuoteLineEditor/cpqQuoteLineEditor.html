@@ -24,7 +24,7 @@
                         <th class="col-drag sticky-left-1"></th>
                         <th class="col-icon sticky-left-2"></th>
                         <th class="col-name sticky-left-3">Name</th>
-                        <th class="col-task">Task</th>
+
                         <th class="col-date">Start Date</th>
                         <th class="col-date">End Date</th>
                         <th class="col-qty">Quantity</th>
@@ -75,8 +75,7 @@
                                         <a class="add-item-link" data-phase={row.name} onclick={handleOpenWizard}>+ ADD ITEM</a>
                                     </div>
                                 </td>
-                                <!-- Task column empty for phase -->
-                                <td class="phase-cell"></td>
+
                                 <!-- Start Date -->
                                 <td class="phase-cell">
                                     <template if:true={row.isCollapsed}>
@@ -181,17 +180,13 @@
                                         <span class="info-icon" title="View details">ⓘ</span>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="add-task-link" data-msg="Task assignment will be implemented soon" onclick={handleToast}>Add task...</span>
-                                    <span class="info-icon" title="Task info">ⓘ</span>
-                                </td>
+
                                 <td>{row.startDateFormatted}</td>
                                 <td>{row.endDateFormatted}</td>
                                 <td class="editable-cell">
                                     <input type="number" value={row.Quantity__c} min="0" step="0.5"
                                            data-id={row.Id} data-field="Quantity__c"
                                            onchange={handleUpdateItem}>
-                                    <span class="qty-unit">{row.qtyUnit}</span>
                                 </td>
                                 <td class="money">{row.formattedBaseRate}</td>
                                 <td class="money link-price">{row.formattedUnitPrice}</td>
@@ -212,7 +207,7 @@
                         <td class="sticky-left-1 total-label-cell" colspan="1"></td>
                         <td class="sticky-left-2 total-label-cell" colspan="1"></td>
                         <td class="sticky-left-3 total-label-cell"><strong>Total</strong></td>
-                        <td colspan="7"></td>
+                        <td colspan="6"></td>
                         <td class="money total-price" style="font-weight:700;">{grandTotal}</td>
                     </tr>
                 </tbody>

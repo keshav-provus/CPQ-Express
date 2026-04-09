@@ -1,0 +1,145 @@
+<template>
+    <div class="page-wrapper">
+        <div class="page">
+            
+            <template if:true={item}>
+                <div class="highlight-bar">
+                  <div class="hl-left">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                        <span class="hl-name">{item.Name__c}</span>
+                        <span class="hl-badge"><span class="hl-dot"></span>Resource Role</span>
+                      </div>
+                      <span class="hl-meta">{item.Name} &nbsp;·&nbsp; {item.Billing_Unit__c}ly</span>
+                    </div>
+                  </div>
+                  <div class="hl-fields">
+                    <div class="hl-field"><div class="lbl">Billing rate</div><div class="val"><lightning-formatted-number value={item.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
+                    <div class="hl-field"><div class="lbl">Cost</div><div class="val" style="color:#0F6E56;"><lightning-formatted-number value={item.Cost__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
+                    <div class="hl-field"><div class="lbl">Billing unit</div><div class="val">{item.Billing_Unit__c}</div></div>
+                    <div class="hl-field"><div class="lbl">Role ID</div><div class="val">{item.Name}</div></div>
+                  </div>
+                  <div class="hl-actions">
+                    <button class="btn">Edit</button>
+                    <button class="btn btn-primary">Configuration</button>
+                  </div>
+                </div>
+            </template>
+
+            <div class="tabs-bar">
+              <div class={timelineTabClass} data-tab="timeline" onclick={handleTabClick}>Resource timeline</div>
+              <div class={configTabClass} data-tab="config" onclick={handleTabClick}>Configuration</div>
+            </div>
+
+            <div class="main-content">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="klbl">Total revenue generated</div>
+                  <div class="kval">{formattedKpiRevenue}</div>
+                  <div class="kdelta up">Historical calculation</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="klbl">Active quotes using this</div>
+                  <div class="kval">{kpiActiveQuotes}</div>
+                  <div class="kdelta" style="color:var(--color-text-secondary);">Currently in pipeline</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="klbl">Peak utilisation</div>
+                  <div class="kval">{kpiPeakUsage}</div>
+                  <div class="kdelta" style="color:var(--color-text-secondary);">Month with most active quotes</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="klbl">Avg. contract duration</div>
+                  <div class="kval">{kpiDuration}</div>
+                  <div class="kdelta up">Average across active quotes</div>
+                </div>
+              </div>
+
+              <template if:true={isTimeline}>
+                  <div>
+                    <div class="card">
+                      <div class="card-title">
+                        <span>Resource utilisation timeline</span>
+                        <span class="ct-right">Bar width = revenue contribution &nbsp;·&nbsp; Y-axis = % of total product revenue</span>
+                      </div>
+                      <div class="filter-row">
+                        <span style="font-size:11px;color:var(--color-text-secondary);margin-right:8px;">Filter by account:</span>
+                        <div class="search-container">
+                            <div class="slds-form-element" style="flex:1;">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-combobox_container">
+                                        <div class={dropdownClasses} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox">
+                                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                                <lightning-input 
+                                                    class="account-search-input" 
+                                                    type="search" 
+                                                    placeholder="Search account..." 
+                                                    variant="label-hidden" 
+                                                    value={searchTerm} 
+                                                    onchange={handleSearchChange}
+                                                    onclick={handleSearchClick}
+                                                    onblur={handleSearchBlur}
+                                                    autocomplete="off">
+                                                </lightning-input>
+                                            </div>
+                                            <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" style="margin-top:2px;">
+                                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                    <template for:each={filteredAccountOptions} for:item="acc">
+                                                        <li key={acc} role="presentation" class="slds-listbox__item" onmousedown={handleAccountSelect} data-val={acc}>
+                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                                <span class="slds-media__body">
+                                                                    <span class="slds-truncate" title={acc}>{acc}</span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                    <template if:false={filteredAccountOptions.length}>
+                                                        <li role="presentation" class="slds-listbox__item">
+                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                                <span class="slds-media__body">
+                                                                    <span class="slds-truncate" title="No results">No matching accounts</span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <lightning-button 
+                                label="Done" 
+                                onclick={handleSearchSubmit} 
+                                variant="brand" 
+                                class="done-btn">
+                            </lightning-button>
+                        </div>
+                      </div>
+                      <div class="timeline-wrap" lwc:dom="manual"></div>
+                      <div class="legend-row" lwc:dom="manual"></div>
+                    </div>
+                  </div>
+              </template>
+
+              <template if:true={isConfig}>
+                  <div>
+                    <div class="card" style="max-width:600px;">
+                      <div class="card-title">Configuration specifications</div>
+                      <div class="details-grid">
+                        <template if:true={item}>
+                            <div class="dg-item"><div class="dlbl">Role Name</div><div class="dval">{item.Name__c}</div></div>
+                            <div class="dg-item"><div class="dlbl">Role ID</div><div class="dval">{item.Name}</div></div>
+                            <div class="dg-item"><div class="dlbl">Billing Unit</div><div class="dval">{item.Billing_Unit__c}</div></div>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+              </template>
+
+            </div>
+        </div>
+        
+        <div class="tooltip-box" lwc:dom="manual"></div>
+    </div>
+</template>

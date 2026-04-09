@@ -123,4 +123,66 @@ public with sharing class ProductController {
             ORDER BY Start_Date__c ASC
         ];
     }
+
+    // ─── Resource Roles ───
+
+    @AuraEnabled(cacheable=true)
+    public static Resource_Role__c getResourceRoleById(Id roleId) {
+        try {
+            return [
+                SELECT Id, Name, Name__c, Price__c, Cost__c, Billing_Unit__c
+                FROM Resource_Role__c
+                WHERE Id = :roleId
+                LIMIT 1
+            ];
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching resource role: ' + e.getMessage());
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Quote_Line_Item__c> getResourceRoleUsage(Id roleId) {
+        return [
+            SELECT Id, Net_Total__c, Start_Date__c, End_Date__c, 
+                   Quote__r.Name, Quote__r.Account__c, Quote__r.Account__r.Name
+            FROM Quote_Line_Item__c
+            WHERE Resource_Role__c = :roleId
+            AND Quote__r.Account__c != null
+            AND Quote__r.Status__c = 'Approved'
+            AND Start_Date__c != null
+            AND End_Date__c != null
+            ORDER BY Start_Date__c ASC
+        ];
+    }
+
+    // ─── Add-ons ───
+
+    @AuraEnabled(cacheable=true)
+    public static Add_On__c getAddOnById(Id addOnId) {
+        try {
+            return [
+                SELECT Id, Name, Name__c, Price__c, Cost__c, Billing_Unit__c
+                FROM Add_On__c
+                WHERE Id = :addOnId
+                LIMIT 1
+            ];
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching add-on: ' + e.getMessage());
+        }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Quote_Line_Item__c> getAddOnUsage(Id addOnId) {
+        return [
+            SELECT Id, Net_Total__c, Start_Date__c, End_Date__c, 
+                   Quote__r.Name, Quote__r.Account__c, Quote__r.Account__r.Name
+            FROM Quote_Line_Item__c
+            WHERE Add_On__c = :addOnId
+            AND Quote__r.Account__c != null
+            AND Quote__r.Status__c = 'Approved'
+            AND Start_Date__c != null
+            AND End_Date__c != null
+            ORDER BY Start_Date__c ASC
+        ];
+    }
 }

@@ -218,7 +218,7 @@ public with sharing class QuoteLineItemController {
 
         // Validate discount bounds
         if (item.Discount_Percent__c != null) {
-            if (item.Discount_Percent__c > 1) item.Discount_Percent__c = 1;
+            if (item.Discount_Percent__c > 100) item.Discount_Percent__c = 100;
             if (item.Discount_Percent__c < 0) item.Discount_Percent__c = 0;
         }
 

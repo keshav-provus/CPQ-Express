@@ -468,6 +468,13 @@ export default class CpqQuoteLineEditor extends LightningElement {
     _buildItemRow(item, phaseName, qtyUnit, isIndented, color) {
         const rowBg = color ? `background-color: ${color.itemBg};` : '';
         const stickyBg = color ? `background-color: ${color.itemBg};` : 'background-color: #fff;';
+        
+        let baseRateUnit = '';
+        if (item.Item_Type__c === 'Resource Role') {
+            baseRateUnit = '/hr';
+        } else {
+            baseRateUnit = '/each';
+        }
 
         return {
             key: `item-${item.Id}`,
@@ -487,7 +494,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
             endDateFormatted: item.End_Date__c
                 ? new Date(item.End_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
                 : '-',
-            formattedBaseRate: this.formatCurrency(item.Base_Rate__c),
+            formattedBaseRate: this.formatCurrency(item.Base_Rate__c) + baseRateUnit,
             formattedUnitPrice: this.formatCurrency(item.Unit_Price__c),
             formattedNetTotal: this.formatCurrency(item.Net_Total__c),
             qtyUnit: qtyUnit,
