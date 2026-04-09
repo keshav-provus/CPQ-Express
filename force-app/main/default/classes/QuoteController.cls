@@ -34,7 +34,11 @@ public with sharing class QuoteController {
                        LastModifiedById, LastModifiedBy.Name, CreatedDate, LastModifiedDate,
                        Total_Amount__c, Total_Cost__c, Margin_Percent__c, Margin_Amount__c,
                        Start_Date__c, End_Date__c, Calculated_End_Date__c, Valid_Until__c, Phase_List__c,
-                       Time_Period_Metric__c, Time_Period_Count__c
+                       Time_Period_Metric__c, Time_Period_Count__c,
+                       Submitted_By__c, Submitted_By__r.Name, Submitted_Date__c,
+                       Approved_By__c, Approved_By__r.Name, Approved_Date__c,
+                       Rejected_By__c, Rejected_By__r.Name, Rejected_Date__c,
+                       Auto_Approved__c
                 FROM Quote__c
                 WHERE Id = :recordId
                 LIMIT 1
@@ -138,11 +142,17 @@ public with sharing class QuoteController {
             Company_Settings__c settings = Company_Settings__c.getOrgDefaults();
 
             Quote__c q = new Quote__c(Id = quoteId);
+            q.Submitted_By__c = UserInfo.getUserId();
+            q.Submitted_Date__c = DateTime.now();
 
             if (settings != null && settings.Minimum_Margin__c != null && currentQuote.Margin_Percent__c >= settings.Minimum_Margin__c) {
                 q.Status__c = 'Approved';
+                q.Auto_Approved__c = true;
+                q.Approved_By__c = UserInfo.getUserId();
+                q.Approved_Date__c = DateTime.now();
             } else {
                 q.Status__c = 'Pending Approval';
+                q.Auto_Approved__c = false;
             }
 
             update q;
@@ -158,7 +168,15 @@ public with sharing class QuoteController {
     @AuraEnabled
     public static void recallApproval(Id quoteId) {
         try {
-            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Draft');
+            Quote__c q = new Quote__c(Id = quoteId);
+            q.Status__c = 'Draft';
+            q.Submitted_By__c = null;
+            q.Submitted_Date__c = null;
+            q.Approved_By__c = null;
+            q.Approved_Date__c = null;
+            q.Rejected_By__c = null;
+            q.Rejected_Date__c = null;
+            q.Auto_Approved__c = false;
             update q;
         } catch (Exception e) {
             throw new AuraHandledException('Error recalling approval: ' + e.getMessage());
@@ -176,7 +194,11 @@ public with sharing class QuoteController {
             if (role != 'Manager' && role != 'Admin') {
                 throw new AuraHandledException('Only Managers and Admins can approve quotes.');
             }
-            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Approved');
+            Quote__c q = new Quote__c(Id = quoteId);
+            q.Status__c = 'Approved';
+            q.Approved_By__c = UserInfo.getUserId();
+            q.Approved_Date__c = DateTime.now();
+            q.Auto_Approved__c = false;
             update q;
         } catch (Exception e) {
             throw new AuraHandledException('Error approving quote: ' + e.getMessage());
@@ -194,7 +216,10 @@ public with sharing class QuoteController {
             if (role != 'Manager' && role != 'Admin') {
                 throw new AuraHandledException('Only Managers and Admins can reject quotes.');
             }
-            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Rejected');
+            Quote__c q = new Quote__c(Id = quoteId);
+            q.Status__c = 'Rejected';
+            q.Rejected_By__c = UserInfo.getUserId();
+            q.Rejected_Date__c = DateTime.now();
             update q;
         } catch (Exception e) {
             throw new AuraHandledException('Error rejecting quote: ' + e.getMessage());

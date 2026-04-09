@@ -42,6 +42,10 @@ export default class CpqQuoteRecordPage extends LightningElement {
         return this.wiredQuoteResult?.data;
     }
 
+    get currencyCode() {
+        return this.wiredQuoteResult?.data?.CurrencyIsoCode || 'USD';
+    }
+
     get lineItems() {
         return this.wiredLinesResult?.data || [];
     }

@@ -2,7 +2,10 @@
     <div class="summary-tab">
         <div class="left-col">
             <!-- Details card -->
-            <div class="card">
+            <div class="card details-card">
+                <div class="card-header">
+                    <h4 class="card-title">Quote Details</h4>
+                </div>
                 <div class="detail-grid">
                     <div class="detail-item"><label>Opportunity</label><div class="val">{opportunityName}</div></div>
                     <div class="detail-item"><label>Account</label><div class="val"><a href="#">{accountName}</a></div></div>
@@ -16,94 +19,117 @@
 
             <!-- Revenue cards -->
             <div class="revenue-row">
-                <div class="rev-card">
-                    <div class="rev-header">
-                        <span class="rev-label">👤 Labor Revenue</span>
-                        <span class="rev-pct">↗ {laborPercentage}%</span>
+                <div class="rev-card labor-card">
+                    <div class="rev-accent"></div>
+                    <div class="rev-body">
+                        <div class="rev-header">
+                            <span class="rev-label"><span class="rev-icon">👤</span> Labor Revenue</span>
+                            <span class={laborMarginClass}>↗ {laborPercentage}%</span>
+                        </div>
+                        <div class="rev-amount"><lightning-formatted-number value={laborRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
+                        <div class="rev-meta">
+                            Cost: <lightning-formatted-number value={laborCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                            Margin: <lightning-formatted-number value={laborMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
+                        </div>
+                        <div class="rev-sub">{laborCount} Resource Roles</div>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={laborRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
-                    <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={laborCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={laborMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
-                    </div>
-                    <div class="rev-sub">{laborCount} Resource Roles</div>
                 </div>
-                <div class="rev-card">
-                    <div class="rev-header">
-                        <span class="rev-label">📦 Products Revenue</span>
-                        <span class="rev-pct">↘ {productPercentage}%</span>
+                <div class="rev-card product-card">
+                    <div class="rev-accent"></div>
+                    <div class="rev-body">
+                        <div class="rev-header">
+                            <span class="rev-label"><span class="rev-icon">📦</span> Products Revenue</span>
+                            <span class={productMarginClass}>↗ {productPercentage}%</span>
+                        </div>
+                        <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
+                        <div class="rev-meta">
+                            Cost: <lightning-formatted-number value={productCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                            Margin: <lightning-formatted-number value={productMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
+                        </div>
+                        <div class="rev-sub">{productCount} Products</div>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
-                    <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={productCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={productMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
-                    </div>
-                    <div class="rev-sub">{productCount} Products</div>
                 </div>
-                <div class="rev-card">
-                    <div class="rev-header">
-                        <span class="rev-label">➕ Add-ons Revenue</span>
-                        <span class="rev-pct">↘ {addonPercentage}%</span>
+                <div class="rev-card addon-card">
+                    <div class="rev-accent"></div>
+                    <div class="rev-body">
+                        <div class="rev-header">
+                            <span class="rev-label"><span class="rev-icon">➕</span> Add-ons Revenue</span>
+                            <span class={addonMarginClass}>↗ {addonPercentage}%</span>
+                        </div>
+                        <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
+                        <div class="rev-meta">
+                            Cost: <lightning-formatted-number value={addonCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                            Margin: <lightning-formatted-number value={addonMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
+                        </div>
+                        <div class="rev-sub">{addonCount} Add-on Items</div>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
-                    <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={addonCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={addonMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
-                    </div>
-                    <div class="rev-sub">{addonCount} Add-on Items</div>
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- Interactive Charts -->
             <div class="charts-row">
                 <div class="chart-card">
-                    <h4>Item Type Breakdown</h4>
-                    <div class="chart-sub">Cost and margin distribution by item type</div>
-                    <div class="bar-chart">
-                        <div class="bar-group">
-                            <div class="bars">
-                                <div class="bar cost" style={laborCostStyle}></div>
-                                <div class="bar margin" style={laborMarginStyle}></div>
-                            </div>
-                            <div class="bar-label">Labor</div>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bars">
-                                <div class="bar cost" style={productCostStyle}></div>
-                                <div class="bar margin" style={productMarginStyle}></div>
-                            </div>
-                            <div class="bar-label">Products</div>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bars">
-                                <div class="bar cost" style={addonCostStyle}></div>
-                                <div class="bar margin" style={addonMarginStyle}></div>
-                            </div>
-                            <div class="bar-label">Add-ons</div>
-                        </div>
+                    <div class="chart-header">
+                        <h4>Item Type Breakdown</h4>
+                        <span class="chart-sub">Cost and margin distribution by item type</span>
                     </div>
-                    <div class="chart-legend">
-                        <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h4>Phase Breakdown</h4>
-                    <div class="chart-sub">Cost and margin distribution by project phase</div>
                     <div class="bar-chart">
-                        <template for:each={phaseChartData} for:item="bar">
-                            <div key={bar.label} class="bar-group">
+                        <template for:each={itemTypeChartData} for:item="bar">
+                            <div key={bar.key} class={bar.barGroupClass}
+                                 data-bar={bar.key}
+                                 onmouseenter={handleBarEnter}
+                                 onmouseleave={handleBarLeave}
+                                 onclick={handleBarClick}>
                                 <div class="bars">
-                                    <div class="bar cost" style={bar.costStyle}></div>
-                                    <div class="bar margin" style={bar.marginStyle}></div>
+                                    <div class="bar cost" style={bar.costHeight}></div>
+                                    <div class="bar margin" style={bar.marginHeight}></div>
                                 </div>
                                 <div class="bar-label">{bar.label}</div>
+                                <template if:true={bar.isHovered}>
+                                    <div class="bar-tooltip">
+                                        <div class="tooltip-row"><span class="tooltip-label">Revenue:</span><span class="tooltip-val">{bar.revenueFormatted}</span></div>
+                                        <div class="tooltip-row"><span class="tooltip-label">Cost:</span><span class="tooltip-val">{bar.costFormatted}</span></div>
+                                        <div class="tooltip-row"><span class="tooltip-label">Margin:</span><span class="tooltip-val tooltip-margin">{bar.marginFormatted}</span></div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </div>
                     <div class="chart-legend">
-                        <div class="legend-item"><div class="legend-dot" style="background:#93c5fd;"></div>Cost</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#2563eb;"></div>Margin</div>
+                        <div class="legend-item"><div class="legend-dot cost-dot"></div>Cost</div>
+                        <div class="legend-item"><div class="legend-dot margin-dot"></div>Margin</div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h4>Phase Breakdown</h4>
+                        <span class="chart-sub">Cost and margin distribution by project phase</span>
+                    </div>
+                    <div class="bar-chart">
+                        <template for:each={phaseChartData} for:item="bar">
+                            <div key={bar.key} class={bar.barGroupClass}
+                                 data-bar={bar.key}
+                                 onmouseenter={handleBarEnter}
+                                 onmouseleave={handleBarLeave}
+                                 onclick={handleBarClick}>
+                                <div class="bars">
+                                    <div class="bar cost" style={bar.costHeight}></div>
+                                    <div class="bar margin" style={bar.marginHeight}></div>
+                                </div>
+                                <div class="bar-label">{bar.label}</div>
+                                <template if:true={bar.isHovered}>
+                                    <div class="bar-tooltip">
+                                        <div class="tooltip-row"><span class="tooltip-label">Total:</span><span class="tooltip-val">{bar.totalFormatted}</span></div>
+                                        <div class="tooltip-row"><span class="tooltip-label">Cost:</span><span class="tooltip-val">{bar.costFormatted}</span></div>
+                                        <div class="tooltip-row"><span class="tooltip-label">Margin:</span><span class="tooltip-val tooltip-margin">{bar.marginFormatted}</span></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><div class="legend-dot cost-dot"></div>Cost</div>
+                        <div class="legend-item"><div class="legend-dot margin-dot"></div>Margin</div>
                     </div>
                 </div>
             </div>
@@ -120,17 +146,17 @@
                         <template if:true={hasPhases}>
                             <template for:each={phaseRows} for:item="row">
                                 <tr key={row.phase}>
-                                    <td>{row.phase}</td>
+                                    <td class="phase-name-col">{row.phase}</td>
                                     <td class="link"><lightning-formatted-number value={row.labor} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
                                     <td class="link"><lightning-formatted-number value={row.products} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
                                     <td class="link"><lightning-formatted-number value={row.addons} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
-                                    <td><lightning-formatted-number value={row.total} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
-                                    <td>{row.items}</td>
+                                    <td class="total-col"><lightning-formatted-number value={row.total} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
+                                    <td class="count-col">{row.items}</td>
                                 </tr>
                             </template>
                         </template>
                         <template if:false={hasPhases}>
-                            <tr><td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">No line items added yet.</td></tr>
+                            <tr><td colspan="6" class="empty-table-msg">No line items added yet.</td></tr>
                         </template>
                     </tbody>
                 </table>
@@ -141,16 +167,42 @@
         <div class="right-col">
             <c-cpq-approval-history quote={quoteData}></c-cpq-approval-history>
             <div class="cost-audit">
-                <h3>Cost Change Audit</h3>
-                <p class="sub">Track cost changes for line items in this quote.</p>
+                <div class="audit-header">
+                    <h3>Cost Change Audit</h3>
+                    <span class="audit-count">{auditCount} changes</span>
+                </div>
+                <p class="sub">Track field changes for line items in this quote.</p>
                 <div class="history-row" onclick={toggleAuditHistory}>
-                    <span class="history-label">History (0)</span>
-                    <span class="history-caret">▾</span>
+                    <span class="history-label">{auditChevronIcon} History ({auditCount})</span>
                 </div>
                 <template if:true={showAuditHistory}>
-                    <div class="audit-empty">
-                        <p>No cost changes recorded yet.</p>
-                    </div>
+                    <template if:true={hasAuditLogs}>
+                        <div class="audit-timeline">
+                            <template for:each={auditLogs} for:item="log">
+                                <div key={log.id} class="audit-entry">
+                                    <div class="audit-dot-wrap">
+                                        <div class={log.iconClass}></div>
+                                        <div class="audit-line"></div>
+                                    </div>
+                                    <div class="audit-content">
+                                        <div class="audit-message">{log.message}</div>
+                                        <div class="audit-meta">
+                                            <span class="audit-user">{log.changedBy}</span>
+                                            <span class="audit-sep">•</span>
+                                            <span class="audit-time">{log.timeDisplay}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template if:false={hasAuditLogs}>
+                        <div class="audit-empty">
+                            <span class="audit-empty-icon">📋</span>
+                            <p>No cost changes recorded yet.</p>
+                            <p class="audit-empty-sub">Changes to line item fields will appear here.</p>
+                        </div>
+                    </template>
                 </template>
             </div>
         </div>

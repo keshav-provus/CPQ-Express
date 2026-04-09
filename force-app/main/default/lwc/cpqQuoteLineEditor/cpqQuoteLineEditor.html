@@ -185,8 +185,20 @@
                                     </div>
                                 </td>
 
-                                <td>{row.startDateFormatted}</td>
-                                <td>{row.endDateFormatted}</td>
+                                <td class="date-cell">
+                                    <input type="date" class="date-input"
+                                           value={row.Start_Date__c}
+                                           data-id={row.Id}
+                                           data-field="Start_Date__c"
+                                           onchange={handleUpdateItem}>
+                                </td>
+                                <td class="date-cell">
+                                    <input type="date" class="date-input"
+                                           value={row.End_Date__c}
+                                           data-id={row.Id}
+                                           data-field="End_Date__c"
+                                           onchange={handleUpdateItem}>
+                                </td>
                                 <td class="editable-cell">
                                     <input type="number" value={row.Quantity__c} min="0" step="0.5"
                                            data-id={row.Id} data-field="Quantity__c"

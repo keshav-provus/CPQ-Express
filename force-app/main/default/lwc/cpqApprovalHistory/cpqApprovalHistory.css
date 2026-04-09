@@ -1,22 +1,64 @@
 .approval-card {
     background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 16px;
-    height: 100%;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Header */
+.approval-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.header-left {
+    flex: 1;
 }
 
 .approval-title {
     font-size: 14px;
     font-weight: 700;
-    color: #111827;
+    color: #1a1a2e;
     margin: 0 0 4px;
+    letter-spacing: -0.01em;
 }
 
 .approval-subtitle {
     font-size: 12px;
-    color: #6b7280;
+    color: #8b8fa3;
     margin: 0 0 16px;
+}
+
+/* Status badges */
+.status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+}
+
+.status-approved {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.status-rejected {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.status-pending {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
 }
 
 /* Empty state */
@@ -24,11 +66,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 16px;
+    padding: 28px 16px;
     text-align: center;
 }
 
-.empty-icon { font-size: 32px; margin-bottom: 8px; }
+.empty-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f8f9fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.empty-icon { font-size: 24px; }
 
 .empty-text {
     font-size: 13px;
@@ -39,8 +92,9 @@
 
 .empty-subtext {
     font-size: 12px;
-    color: #9ca3af;
+    color: #b0b4c3;
     margin: 0;
+    line-height: 1.4;
 }
 
 /* History list */
@@ -53,14 +107,20 @@
 .history-entry {
     display: flex;
     gap: 12px;
-    padding-bottom: 16px;
+    padding-bottom: 18px;
+    animation: entryFadeIn 0.3s ease;
+}
+
+@keyframes entryFadeIn {
+    from { opacity: 0; transform: translateX(-6px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 
 .entry-dot-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 16px;
+    width: 18px;
 }
 
 .entry-dot {
@@ -69,18 +129,21 @@
     border-radius: 50%;
     flex-shrink: 0;
     margin-top: 3px;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
 }
 
 .dot-grey  { background: #9ca3af; }
 .dot-blue  { background: #3b82f6; }
 .dot-green { background: #10b981; }
 .dot-red   { background: #ef4444; }
+.dot-amber { background: #f59e0b; }
 
 .entry-line {
     flex: 1;
-    width: 1px;
-    background: #e5e7eb;
+    width: 2px;
+    background: #e8eaed;
     margin-top: 4px;
+    border-radius: 1px;
 }
 
 /* Entry content */
@@ -92,26 +155,52 @@
     gap: 4px;
     font-size: 13px;
     margin-bottom: 4px;
+    line-height: 1.4;
 }
 
 .entry-user {
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: #1a1a2e;
 }
 
-.entry-action { color: #6b7280; }
+.entry-action {
+    color: #8b8fa3;
+    font-weight: 500;
+}
 
 .entry-comment {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    background: #f8f9fb;
+    border: 1px solid #e8eaed;
+    border-radius: 8px;
     padding: 8px 12px;
     font-size: 12px;
     color: #374151;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    border-left: 3px solid #e8eaed;
 }
 
 .entry-time {
     font-size: 11px;
-    color: #9ca3af;
+    color: #b0b4c3;
+    font-weight: 500;
 }
+
+/* Action badges */
+.action-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.badge-submitted { background: #dbeafe; color: #1d4ed8; }
+.badge-auto { background: #ecfdf5; color: #059669; }
+.badge-approved { background: #dcfce7; color: #166534; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.badge-pending { background: #fef3c7; color: #92400e; }

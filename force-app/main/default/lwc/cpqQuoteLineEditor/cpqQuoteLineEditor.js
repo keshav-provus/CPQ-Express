@@ -511,6 +511,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
             Discount_Percent__c: item.Discount_Percent__c || 0,
             Default_Discount__c: item.Default_Discount__c || 0,
             formattedDefaultDiscount: (item.Default_Discount__c || 0) + '%',
+            Start_Date__c: item.Start_Date__c || '',
+            End_Date__c: item.End_Date__c || '',
             startDateFormatted: item.Start_Date__c
                 ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
                 : '-',

@@ -204,11 +204,16 @@ public with sharing class QuoteLineItemController {
      * @description Update a single line item.
      *   - Quantity change does NOT alter end date (quantity = count of resources).
      *   - Always recalculates quote totals (which auto-sets quote end date).
+     *   - Creates audit log entries for any changed fields.
+     *   - When dates change on hourly items, recalculates Unit_Price/Unit_Cost.
      */
     @AuraEnabled
     public static void updateLineItem(Quote_Line_Item__c item) {
         Quote_Line_Item__c existing = [
-            SELECT Quantity__c, Start_Date__c, End_Date__c, Quote__c
+            SELECT Quantity__c, Start_Date__c, End_Date__c, Quote__c,
+                   Discount_Percent__c, Default_Discount__c, Unit_Price__c, Unit_Cost__c,
+                   Base_Rate__c, Phase__c, Name__c, Item_Type__c, Billing_Unit__c,
+                   Resource_Role__c, Product__c, Add_On__c
             FROM Quote_Line_Item__c
             WHERE Id = :item.Id
             LIMIT 1
@@ -222,9 +227,134 @@ public with sharing class QuoteLineItemController {
             if (item.Discount_Percent__c < 0) item.Discount_Percent__c = 0;
         }
 
-        // Quantity change does NOT modify end date — quantity = # of resources/items
+        // ── Recalculate hourly items when dates change ──
+        Boolean datesChanged = false;
+        Date newStart = (item.Start_Date__c != null) ? item.Start_Date__c : existing.Start_Date__c;
+        Date newEnd   = (item.End_Date__c != null) ? item.End_Date__c : existing.End_Date__c;
+
+        if (item.Start_Date__c != null && item.Start_Date__c != existing.Start_Date__c) datesChanged = true;
+        if (item.End_Date__c != null && item.End_Date__c != existing.End_Date__c) datesChanged = true;
+
+        if (datesChanged && existing.Billing_Unit__c == 'Hour' && newStart != null && newEnd != null && existing.Base_Rate__c != null) {
+            Integer workingDays = countWorkingDays(newStart, newEnd);
+            List<Company_Settings__c> settings = [SELECT Working_Hours_Per_Day__c FROM Company_Settings__c LIMIT 1];
+            Decimal hpd = 8;
+            if (!settings.isEmpty() && settings[0].Working_Hours_Per_Day__c != null) {
+                hpd = settings[0].Working_Hours_Per_Day__c;
+            }
+            Decimal totalHours = workingDays * hpd;
+            item.Unit_Price__c = existing.Base_Rate__c * totalHours;
+
+            // Recalculate cost proportionally
+            if (existing.Unit_Price__c != null && existing.Unit_Price__c > 0 && existing.Unit_Cost__c != null) {
+                Decimal costRatio = existing.Unit_Cost__c / existing.Unit_Price__c;
+                item.Unit_Cost__c = item.Unit_Price__c * costRatio;
+            }
+        }
+
+        // ── Create audit log entries for changed fields ──
+        List<Quote_Audit_Log__c> auditLogs = new List<Quote_Audit_Log__c>();
+        String itemName = existing.Name__c != null ? existing.Name__c : 'Line Item';
+        Id userId = UserInfo.getUserId();
+
+        if (item.Quantity__c != null && item.Quantity__c != existing.Quantity__c) {
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'Quantity__c',
+                String.valueOf(existing.Quantity__c), String.valueOf(item.Quantity__c),
+                'Quantity changed from ' + formatNum(existing.Quantity__c) + ' to ' + formatNum(item.Quantity__c) + ' on ' + itemName, userId));
+        }
+        if (item.Discount_Percent__c != null && item.Discount_Percent__c != existing.Discount_Percent__c) {
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'Discount_Percent__c',
+                String.valueOf(existing.Discount_Percent__c) + '%', String.valueOf(item.Discount_Percent__c) + '%',
+                'Discount updated from ' + formatNum(existing.Discount_Percent__c) + '% to ' + formatNum(item.Discount_Percent__c) + '% on ' + itemName, userId));
+        }
+        if (item.Default_Discount__c != null && item.Default_Discount__c != existing.Default_Discount__c) {
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'Default_Discount__c',
+                String.valueOf(existing.Default_Discount__c) + '%', String.valueOf(item.Default_Discount__c) + '%',
+                'Default discount changed from ' + formatNum(existing.Default_Discount__c) + '% to ' + formatNum(item.Default_Discount__c) + '% on ' + itemName, userId));
+        }
+        if (item.Start_Date__c != null && item.Start_Date__c != existing.Start_Date__c) {
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'Start_Date__c',
+                String.valueOf(existing.Start_Date__c), String.valueOf(item.Start_Date__c),
+                'Start date changed to ' + String.valueOf(item.Start_Date__c) + ' on ' + itemName, userId));
+        }
+        if (item.End_Date__c != null && item.End_Date__c != existing.End_Date__c) {
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'End_Date__c',
+                String.valueOf(existing.End_Date__c), String.valueOf(item.End_Date__c),
+                'End date changed to ' + String.valueOf(item.End_Date__c) + ' on ' + itemName, userId));
+        }
+        if (item.Phase__c != null && item.Phase__c != existing.Phase__c) {
+            String oldPhase = String.isBlank(existing.Phase__c) ? 'None' : existing.Phase__c;
+            String newPhase = String.isBlank(item.Phase__c) ? 'None' : item.Phase__c;
+            auditLogs.add(createAuditLog(existing.Quote__c, existing.Id, 'Phase__c',
+                oldPhase, newPhase,
+                itemName + ' moved from ' + oldPhase + ' to ' + newPhase, userId));
+        }
+
+        if (!auditLogs.isEmpty()) {
+            insert auditLogs;
+        }
+
         update item;
         QuoteController.recalculateQuoteTotals(existing.Quote__c);
+    }
+
+    /**
+     * @description Creates an audit log record.
+     */
+    private static Quote_Audit_Log__c createAuditLog(Id quoteId, Id qliId, String field,
+            String oldVal, String newVal, String message, Id userId) {
+        Quote_Audit_Log__c log = new Quote_Audit_Log__c();
+        log.Quote__c = quoteId;
+        log.Quote_Line_Item__c = qliId;
+        log.Field_Changed__c = field;
+        log.Old_Value__c = oldVal;
+        log.New_Value__c = newVal;
+        log.Message__c = message;
+        log.Changed_By__c = userId;
+        return log;
+    }
+
+    /**
+     * @description Formats a number for audit log display.
+     */
+    private static String formatNum(Decimal val) {
+        if (val == null) return '0';
+        if (val == val.intValue()) return String.valueOf(val.intValue());
+        return String.valueOf(val);
+    }
+
+    /**
+     * @description Count working days (Mon-Fri) between two dates (inclusive).
+     */
+    private static Integer countWorkingDays(Date startDate, Date endDate) {
+        if (startDate == null || endDate == null || endDate < startDate) return 0;
+        Integer count = 0;
+        Date d = startDate;
+        while (d <= endDate) {
+            DateTime dt = DateTime.newInstance(d, Time.newInstance(0, 0, 0, 0));
+            String dayName = dt.format('EEEE');
+            if (dayName != 'Saturday' && dayName != 'Sunday') {
+                count++;
+            }
+            d = d.addDays(1);
+        }
+        return count;
+    }
+
+    /**
+     * @description Fetches audit logs for a quote, most recent first.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Quote_Audit_Log__c> getAuditLogs(Id quoteId) {
+        return [
+            SELECT Id, Field_Changed__c, Old_Value__c, New_Value__c, Message__c,
+                   Changed_By__c, Changed_By__r.Name, CreatedDate,
+                   Quote_Line_Item__c, Quote_Line_Item__r.Name__c
+            FROM Quote_Audit_Log__c
+            WHERE Quote__c = :quoteId
+            ORDER BY CreatedDate DESC
+            LIMIT 100
+        ];
     }
 
     /**
