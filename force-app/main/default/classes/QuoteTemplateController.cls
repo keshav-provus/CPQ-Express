@@ -111,15 +111,30 @@ public with sharing class QuoteTemplateController {
             data.html = files.get('HQ_Default_Quote_Template').VersionData.toString();
         }
         if (files.containsKey('HQ_CPQ_Logo')) {
-            // Re-encode binary back to base64 data URL for LWC display
-            data.logo = 'data:image/jpeg;base64,' + EncodingUtil.base64Encode(files.get('HQ_CPQ_Logo').VersionData);
+            data.logo = blobToDataUri(files.get('HQ_CPQ_Logo').VersionData);
         }
         if (files.containsKey('HQ_CPQ_Signature')) {
-            // Re-encode binary back to base64 data URL for LWC display
-            data.signature = 'data:image/jpeg;base64,' + EncodingUtil.base64Encode(files.get('HQ_CPQ_Signature').VersionData);
+            data.signature = blobToDataUri(files.get('HQ_CPQ_Signature').VersionData);
         }
         
         return data;
+    }
+
+    /**
+     * Converts a ContentVersion VersionData blob to a data URI src string.
+     * Handles two storage formats:
+     *   - NEW: raw image bytes (from EncodingUtil.base64Decode) -> base64-encode them
+     *   - OLD: UTF-8 bytes of a "data:image/...;base64,..." string -> use as-is
+     */
+    private static String blobToDataUri(Blob imageBlob) {
+        if (imageBlob == null) return '';
+        String asString = imageBlob.toString();
+        // Old format: the blob IS the text data URL
+        if (asString.startsWith('data:')) {
+            return asString;
+        }
+        // New format: the blob is raw binary bytes — encode to base64 data URI
+        return 'data:image/jpeg;base64,' + EncodingUtil.base64Encode(imageBlob);
     }
 
     // Deprecate old method by linking to new one
@@ -188,16 +203,13 @@ public with sharing class QuoteTemplateController {
         }
 
         // 4. Inject Dynamic Image Placeholders (Logo & Signature)
-        // For Visualforce PDF (Flying Saucer/iText), we must use base64-encoded data URIs.
-        // We use EncodingUtil.base64Encode() on the raw binary VersionData blob.
+        // blobToDataUri() handles both old (text data URL) and new (raw binary) storage formats.
         if (html.contains('[[Company.Logo]]') || html.contains('[[Company.Signature]]')) {
             Map<String, String> imageMap = new Map<String, String>();
             for (ContentVersion cv : [SELECT Title, VersionData FROM ContentVersion 
                                       WHERE Title IN ('HQ_CPQ_Logo', 'HQ_CPQ_Signature') 
                                       AND IsLatest = true]) {
-                // Build proper data URI from raw binary blob
-                String dataUri = 'data:image/jpeg;base64,' + EncodingUtil.base64Encode(cv.VersionData);
-                imageMap.put(cv.Title, dataUri);
+                imageMap.put(cv.Title, blobToDataUri(cv.VersionData));
             }
             
             html = replacePlaceholder(html, '[[Company.Logo]]', imageMap.get('HQ_CPQ_Logo'));
