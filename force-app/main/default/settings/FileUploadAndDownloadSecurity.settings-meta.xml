@@ -61,7 +61,7 @@
         <securityRiskFileType>false</securityRiskFileType>
     </dispositions>
     <dispositions>
-        <behavior>HYBRID</behavior>
+        <behavior>EXECUTE_IN_BROWSER</behavior>
         <fileType>PDF</fileType>
         <securityRiskFileType>false</securityRiskFileType>
     </dispositions>
