@@ -1,123 +1,245 @@
-import { LightningElement, track, wire } from 'lwc';
-import getTemplates from '@salesforce/apex/QuoteTemplateController.getTemplates';
+import { LightningElement, track } from 'lwc';
 import saveTemplate from '@salesforce/apex/QuoteTemplateController.saveTemplate';
 import setDefaultTemplate from '@salesforce/apex/QuoteTemplateController.setDefaultTemplate';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { refreshApex } from '@salesforce/apex';
-import { deleteRecord } from 'lightning/uiRecordApi';
 
 export default class CpqTemplateManager extends LightningElement {
-    @track templates = [];
-    @track isLoading = true;
-    @track isModalOpen = false;
+    @track isSaving = false;
 
-    @track newName = '';
-    @track newDesc = '';
-    @track newHtml = '';
+    // Editable fields
+    @track companyName = 'LATTICE METRIC';
+    @track companyAddress = '101 Innovation Way, Suite 400\nSan Francisco, CA 94105\nUnited States';
+    @track companyPhone = '+1 (555) 892-0192';
+    @track companyEmail = 'billing@latticemetric.io';
+    @track signerTitle = 'John Doe / CEO';
 
-    wiredTemplatesResult;
+    @track logoDataUrl = '';
+    @track signatureDataUrl = '';
 
-    @wire(getTemplates)
-    wiredTemplates(result) {
-        this.wiredTemplatesResult = result;
-        if (result.data) {
-            this.templates = result.data.map(t => ({
-                ...t,
-                cardClass: `template-card ${t.Is_Default__c ? 'active' : ''}`,
-                timeAgo: this.formatTimeAgo(t.CreatedDate)
-            }));
-            this.isLoading = false;
-        } else if (result.error) {
-            this.isLoading = false;
-            console.error('Error fetching templates:', result.error);
+    handleFieldChange(event) {
+        const field = event.target.dataset.field;
+        if (field) {
+            this[field] = event.target.value;
         }
     }
 
-    get hasTemplates() {
-        return this.templates && this.templates.length > 0;
+    triggerLogoUpload() {
+        const input = this.template.querySelector('[data-id="logoInput"]');
+        if (input) input.click();
     }
 
-    get isSaveDisabled() {
-        return !this.newName || !this.newHtml;
+    triggerSignatureUpload() {
+        const input = this.template.querySelector('[data-id="signatureInput"]');
+        if (input) input.click();
     }
 
-    openUploadModal() {
-        this.isModalOpen = true;
-    }
-
-    closeModal() {
-        this.isModalOpen = false;
-        this.newName = '';
-        this.newDesc = '';
-        this.newHtml = '';
-    }
-
-    handleNameChange(e) { this.newName = e.target.value; }
-    handleDescChange(e) { this.newDesc = e.target.value; }
-    handleHtmlChange(e) { this.newHtml = e.target.value; }
-
-    handleFileUpload(event) {
+    handleLogoUpload(event) {
         const file = event.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.newHtml = reader.result;
-                if (!this.newName) {
-                    this.newName = file.name.replace('.html', '').replace(/_/g, ' ');
-                }
-            };
-            reader.readAsText(file);
-        }
-    }
-
-    async handleSave() {
-        try {
-            await saveTemplate({
-                name: this.newName,
-                description: this.newDesc,
-                htmlContent: this.newHtml
+            this.readFileAsDataURL(file, (dataUrl) => {
+                this.logoDataUrl = dataUrl;
             });
-            this.showToast('Success', 'Template saved successfully', 'success');
-            await refreshApex(this.wiredTemplatesResult);
-            this.closeModal();
-        } catch (error) {
-            this.showToast('Error', error.body?.message || 'Error saving template', 'error');
         }
     }
 
-    async handleSetDefault(event) {
-        const id = event.target.dataset.id;
-        try {
-            await setDefaultTemplate({ templateId: id });
-            this.showToast('Success', 'Default template updated', 'success');
-            await refreshApex(this.wiredTemplatesResult);
-        } catch (error) {
-            this.showToast('Error', 'Error setting default', 'error');
+    handleSignatureUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            this.readFileAsDataURL(file, (dataUrl) => {
+                this.signatureDataUrl = dataUrl;
+            });
         }
     }
 
-    async handleDelete(event) {
-        const id = event.currentTarget.dataset.id;
+    readFileAsDataURL(file, callback) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            callback(reader.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    generateHTMLContent() {
+        // Convert multiline address to HTML line breaks
+        const formattedAddress = (this.companyAddress || '').replace(/\n/g, '<br/>');
+
+        // Note: The Apex merge logic expects specific placeholders:
+        // [[Quote.Name]], [[Quote.Total_Amount__c]], [[Quote.Start_Date__c]], [[Quote.End_Date__c]],
+        // [[Account.Name]], [[Account.Address]], [[User.Name]], [[Today]],
+        // [[LINE_ITEMS_START]] ... [[LINE_ITEMS_END]]
+        //
+        // This generated HTML uses inline styles and tables, which works best for Visualforce renderAs="pdf"
         
-        try {
-            await deleteRecord(id);
-            this.showToast('Deleted', 'Template removed', 'info');
-            await refreshApex(this.wiredTemplatesResult);
-        } catch (error) {
-            this.showToast('Error', 'Error deleting template', 'error');
-        }
+        return `
+            <html>
+            <head>
+                <style>
+                    body { font-family: sans-serif; font-size: 12px; color: #333; margin: 0; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    .header-table { margin-bottom: 40px; }
+                    .header-left { width: 60%; vertical-align: top; }
+                    .header-right { width: 40%; text-align: right; vertical-align: top; }
+                    .company-logo { max-height: 50px; max-width: 200px; margin-bottom: 20px; display: block; }
+                    .company-info { color: #666; line-height: 1.4; }
+                    .quote-badge { background-color: #f0f2f6; color: #5a6b8c; padding: 4px 12px; border-radius: 4px; font-weight: bold; font-size: 10px; display: inline-block; margin-bottom: 10px; }
+                    .quote-number { font-size: 24px; color: #2563eb; font-weight: bold; margin-bottom: 15px; }
+                    .quote-meta { color: #555; line-height: 1.5; font-size: 11px; }
+                    .meta-label { color: #888; margin-right: 5px; }
+
+                    .prepared-for { text-align: right; margin-bottom: 50px; }
+                    .prep-label { color: #8b9bb4; font-size: 10px; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+                    .prep-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 2px; }
+                    .prep-attn { color: #666; font-size: 11px; }
+
+                    .items-table { margin-bottom: 40px; }
+                    .items-table th { text-align: left; padding: 12px 8px; border-bottom: 2px solid #eee; color: #8b9bb4; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
+                    .items-table th.right { text-align: right; }
+                    .items-table td { padding: 16px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+                    .items-table td.right { text-align: right; }
+                    .item-name { font-weight: bold; color: #333; margin-bottom: 4px; font-size: 13px; }
+                    .item-desc { color: #888; font-size: 11px; font-style: italic; }
+                    .item-val { font-size: 13px; }
+                    .item-disc { color: #2563eb; font-size: 13px; }
+
+                    .summary-table { width: 50%; float: right; margin-bottom: 50px; }
+                    .summary-table td { padding: 8px; }
+                    .summary-table .s-label { color: #666; }
+                    .summary-table .s-val { text-align: right; font-weight: bold; }
+                    .summary-table .highlight { color: #2563eb; font-weight: bold; }
+                    .grand-total-row td { border-top: 2px solid #eee; padding-top: 15px !important; margin-top: 5px; }
+                    .grand-total-row .s-label { font-weight: bold; color: #333; font-size: 14px; }
+                    .grand-total-row .s-val { font-size: 24px; color: #333; }
+
+                    .clear { clear: both; }
+
+                    .footer-table { width: 100%; margin-top: 50px; page-break-inside: avoid; }
+                    .signature-box { width: 250px; text-align: center; margin: 0 auto; }
+                    .sig-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 10px; }
+                    .sig-img-container { height: 60px; margin-bottom: 10px; }
+                    .sig-img { max-height: 60px; max-width: 200px; }
+                    .sig-line { border-bottom: 1px solid #333; margin-bottom: 5px; }
+                    .sig-title { font-size: 11px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <table class="header-table">
+                    <tr>
+                        <td class="header-left">
+                            ${this.logoDataUrl ? `<img src="${this.logoDataUrl}" class="company-logo" />` : ''}
+                            <div class="company-info">
+                                <strong>${this.companyName || ''}</strong><br/>
+                                ${formattedAddress}<br/><br/>
+                                ${this.companyPhone || ''}<br/>
+                                ${this.companyEmail || ''}
+                            </div>
+                        </td>
+                        <td class="header-right">
+                            <div class="quote-badge">SALES QUOTE</div>
+                            <div class="quote-number">[[Quote.Name]]</div>
+                            <div class="quote-meta">
+                                <div><span class="meta-label">Created:</span> [[Today]]</div>
+                                <div><span class="meta-label">Expires:</span> [[Quote.End_Date__c]]</div>
+                                <div><span class="meta-label">Owner:</span> [[User.Name]]</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="prepared-for">
+                    <div class="prep-label">PREPARED FOR</div>
+                    <div class="prep-name">[[Account.Name]]</div>
+                    <div class="prep-attn">[[Account.Address]]</div>
+                </div>
+
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>PRODUCT DETAILS</th>
+                            <th class="right">QTY</th>
+                            <th class="right">LIST PRICE</th>
+                            <th class="right">NET TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        [[LINE_ITEMS_START]]
+                        <tr>
+                            <td>
+                                <div class="item-name">[[Item.Name__c]]</div>
+                                <div class="item-desc">[[Item.Item_Type__c]] - [[Item.Phase__c]]</div>
+                            </td>
+                            <td class="right item-val">[[Item.Quantity__c]]</td>
+                            <td class="right item-val">[[Item.Unit_Price__c]]</td>
+                            <td class="right item-val">[[Item.Net_Total__c]]</td>
+                        </tr>
+                        [[LINE_ITEMS_END]]
+                    </tbody>
+                </table>
+
+                <table class="summary-table">
+                    <tr>
+                        <td class="s-label">Total Cost</td>
+                        <td class="s-val">[[Quote.Total_Cost__c]]</td>
+                    </tr>
+                    <tr>
+                        <td class="s-label">Margin Amount</td>
+                        <td class="s-val">[[Quote.Margin_Amount__c]]</td>
+                    </tr>
+                    <tr>
+                        <td class="s-label highlight">Margin %</td>
+                        <td class="s-val highlight">[[Quote.Margin_Percent__c]]</td>
+                    </tr>
+                    <tr class="grand-total-row">
+                        <td class="s-label">GRAND TOTAL</td>
+                        <td class="s-val">[[Quote.Total_Amount__c]]</td>
+                    </tr>
+                </table>
+                <div class="clear"></div>
+
+                <table class="footer-table">
+                    <tr>
+                        <td align="center">
+                            <div class="signature-box">
+                                <div class="sig-label">Authorized Signature</div>
+                                <div class="sig-img-container">
+                                    ${this.signatureDataUrl ? `<img src="${this.signatureDataUrl}" class="sig-img" />` : '<div style="height:60px;"></div>'}
+                                </div>
+                                <div class="sig-line"></div>
+                                <div class="sig-title">${this.signerTitle || ''}</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `;
     }
 
-    formatTimeAgo(dateStr) {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        return date.toLocaleDateString();
+    async handleSaveTemplate() {
+        this.isSaving = true;
+        try {
+            const htmlContent = this.generateHTMLContent();
+
+            // Name the template based on timestamp to keep it unique
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const templateName = `Custom Template ${timestamp}`;
+
+            // Save the new template
+            const templateId = await saveTemplate({
+                name: templateName,
+                description: 'Generated from Interactive Builder',
+                htmlContent: htmlContent
+            });
+
+            // Set it as default so it's automatically used
+            await setDefaultTemplate({ templateId: templateId });
+
+            this.showToast('Success', 'Quote template saved and set as default!', 'success');
+        } catch (error) {
+            console.error('Error saving template:', error);
+            this.showToast('Error', error.body?.message || 'Error saving template.', 'error');
+        } finally {
+            this.isSaving = false;
+        }
     }
 
     showToast(title, message, variant) {
