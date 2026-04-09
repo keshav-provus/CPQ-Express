@@ -56,4 +56,9 @@
         <apexClass>AdminSettingsController</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>User.CPQ_Role__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
 </PermissionSet>
