@@ -5,7 +5,8 @@
             record-id={recordId}
             quote-data={quoteData}
             line-items={lineItems}
-            onrefresh={handleRefresh}>
+            onrefresh={handleRefresh}
+            onaitoggle={handleAiToggle}>
         </c-cpq-quote-header>
 
         <!-- Main Content -->
@@ -62,6 +63,20 @@
                 onclose={handleCloseWizard}
                 onsuccess={handleWizardSuccess}>
             </c-cpq-add-items-wizard>
+        </template>
+
+        <!-- AI Assistant Panel -->
+        <template if:true={isAiOpen}>
+            <div class="ai-overlay" onclick={handleAiClose}></div>
+            <div class="ai-panel-container">
+                <c-cpq-ai-assistant
+                    record-id={recordId}
+                    quote-data={quoteData}
+                    line-items={lineItems}
+                    onclose={handleAiClose}
+                    onrefresh={handleRefresh}>
+                </c-cpq-ai-assistant>
+            </div>
         </template>
     </div>
 </template>

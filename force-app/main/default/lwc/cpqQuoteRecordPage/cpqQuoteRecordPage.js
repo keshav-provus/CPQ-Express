@@ -9,6 +9,7 @@ export default class CpqQuoteRecordPage extends LightningElement {
 
     @track activeTab = 'summary';
     @track isWizardOpen = false;
+    @track isAiOpen = false;
 
     get isSummary() { return this.activeTab === 'summary'; }
     get isLineItems() { return this.activeTab === 'lineitems'; }
@@ -79,5 +80,13 @@ export default class CpqQuoteRecordPage extends LightningElement {
                 variant: 'success'
             })
         );
+    }
+
+    handleAiToggle() {
+        this.isAiOpen = !this.isAiOpen;
+    }
+
+    handleAiClose() {
+        this.isAiOpen = false;
     }
 }

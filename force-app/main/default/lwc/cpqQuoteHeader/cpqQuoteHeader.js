@@ -184,13 +184,7 @@ export default class CpqQuoteHeader extends LightningElement {
     }
 
     handleAiAssistant() {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: 'Sparkle!',
-                message: 'AI Assistant is analyzing your quote...',
-                variant: 'info'
-            })
-        );
+        this.dispatchEvent(new CustomEvent('aitoggle'));
     }
 
     async handleSubmitForApproval() {

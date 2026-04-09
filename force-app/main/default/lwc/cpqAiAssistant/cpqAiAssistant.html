@@ -1,0 +1,77 @@
+<template>
+    <div class="ai-panel">
+        <!-- Header -->
+        <div class="panel-header">
+            <div class="header-left">
+                <span class="ai-spark">✦</span>
+                <div class="header-text">
+                    <h3 class="panel-title">AI Assistant</h3>
+                    <span class={contextBadgeClass}>{contextBadge}</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="role-badge">{userRole}</span>
+                <button class="close-btn" onclick={handleClose} title="Close">✕</button>
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="chat-body">
+            <template for:each={messages} for:item="msg">
+                <div key={msg.id} class={msg.bubbleClass}>
+                    <template if:true={msg.isAssistant}>
+                        <div class="avatar ai-avatar">✦</div>
+                    </template>
+                    <div class="msg-content">
+                        <lightning-formatted-rich-text value={msg.text} class="msg-text"></lightning-formatted-rich-text>
+                        <div class="msg-time">{msg.timestamp}</div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Typing indicator -->
+            <template if:true={isTyping}>
+                <div class="message assistant-message typing-msg">
+                    <div class="avatar ai-avatar">✦</div>
+                    <div class="msg-content">
+                        <div class="typing-indicator">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <template for:each={quickActions} for:item="action">
+                <button key={action.key}
+                        class="chip"
+                        data-prompt={action.prompt}
+                        onclick={handleQuickAction}>
+                    {action.label}
+                </button>
+            </template>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-footer">
+            <div class="input-wrap">
+                <input type="text"
+                       class="chat-input"
+                       placeholder="Ask me anything about your quote..."
+                       value={inputValue}
+                       onchange={handleInputChange}
+                       onkeydown={handleKeyDown}>
+                <button class="send-btn" onclick={handleSend} title="Send">
+                    <span class="send-icon">↑</span>
+                </button>
+            </div>
+            <div class="input-hint">
+                <span class="shield-icon">🛡️</span> Secure • Respects your permissions
+            </div>
+        </div>
+    </div>
+</template>
