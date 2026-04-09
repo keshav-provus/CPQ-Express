@@ -57,7 +57,7 @@ describe('c-cpq-quote-map', () => {
         expect(lightningMapEl).not.toBeNull();
         expect(lightningMapEl.mapMarkers.length).toBe(mockGetQuoteMapLocationsByCountry.length);
         expect(lightningMapEl.mapMarkers[0].title).toBe('United States');
-        expect(lightningMapEl.mapMarkers[0].description).toBe('Quotes: 5, Avg Amount: $1000.00');
+        expect(lightningMapEl.mapMarkers[0].description).toBe('Quotes: 5, Revenue: $5000.00');
         expect(lightningMapEl.mapMarkers[0].location.Country).toBe('United States');
     });
 });

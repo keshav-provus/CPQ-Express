@@ -45,10 +45,10 @@ public class DashboardServiceTest {
             String title = (String) marker.get('title');
             if (title == 'United States') {
                 foundUS = true;
-                System.assertEquals('Quotes: 2, Avg Amount: $1500.00', marker.get('description'));
+                System.assertEquals('Quotes: 2, Revenue: $3000.00', marker.get('description'));
             } else if (title == 'Canada') {
                 foundCA = true;
-                System.assertEquals('Quotes: 1, Avg Amount: $500.00', marker.get('description'));
+                System.assertEquals('Quotes: 1, Revenue: $500.00', marker.get('description'));
             }
         }
 
