@@ -4,102 +4,156 @@
             <div class="header-content">
                 <div class="icon-circle">📄</div>
                 <div>
-                    <h2>Template Manager</h2>
-                    <p>Upload and manage custom HTML quote templates</p>
+                    <h2>Interactive Template Builder</h2>
+                    <p>Design your quote PDF layout. The fields below will be converted into a reusable template.</p>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick={openUploadModal}>
-                <span class="icon">+</span> New Template
+            <button class="btn btn-primary" onclick={handleSaveTemplate} disabled={isSaving}>
+                <span class="icon">💾</span> Save Quote Template
             </button>
         </div>
 
-        <div class="card-body">
-            <template if:true={isLoading}>
-                <div class="loader">Loading templates...</div>
-            </template>
+        <div class="card-body template-builder-body">
+            <!-- This container represents the PDF page boundary -->
+            <div class="pdf-demo-page">
 
-            <template if:false={isLoading}>
-                <div class="template-grid" if:true={hasTemplates}>
-                    <template for:each={templates} for:item="temp">
-                        <div key={temp.Id} class={temp.cardClass}>
-                            <div class="temp-header">
-                                <div class="temp-title">
-                                    <h3>{temp.Name}</h3>
-                                    <span if:true={temp.Is_Default__c} class="badge-default">DEFAULT</span>
+                <!-- HEADER SECTION -->
+                <div class="pdf-header">
+                    <div class="pdf-header-left">
+                        <!-- Logo Upload / Display -->
+                        <div class="logo-container" onclick={triggerLogoUpload}>
+                            <template if:true={logoDataUrl}>
+                                <img src={logoDataUrl} class="company-logo" alt="Company Logo"/>
+                            </template>
+                            <template if:false={logoDataUrl}>
+                                <div class="upload-placeholder logo-placeholder">
+                                    <span>Click to upload<br/>Company Logo</span>
                                 </div>
-                                <div class="temp-meta">Created {temp.timeAgo}</div>
-                            </div>
-                            <p class="temp-desc">{temp.Description__c}</p>
-                            <div class="temp-footer">
-                                <div class="actions">
-                                    <button class="btn-text" onclick={handleSetDefault} data-id={temp.Id} disabled={temp.Is_Default__c}>
-                                        Set Default
-                                    </button>
+                            </template>
+                            <input type="file" class="hidden-file-input" accept="image/png, image/jpeg" onchange={handleLogoUpload} data-id="logoInput"/>
+                        </div>
+
+                        <!-- Editable Company Info -->
+                        <div class="company-info-edit">
+                            <input type="text" class="inline-input company-name-input" value={companyName} onchange={handleFieldChange} data-field="companyName" placeholder="Company Name"/>
+                            <textarea class="inline-input company-address-input" onchange={handleFieldChange} data-field="companyAddress" placeholder="101 Innovation Way, Suite 400&#10;San Francisco, CA 94105&#10;United States">{companyAddress}</textarea>
+                            <input type="text" class="inline-input company-phone-input" value={companyPhone} onchange={handleFieldChange} data-field="companyPhone" placeholder="+1 (555) 892-0192"/>
+                            <input type="text" class="inline-input company-email-input" value={companyEmail} onchange={handleFieldChange} data-field="companyEmail" placeholder="billing@company.com"/>
+                        </div>
+                    </div>
+
+                    <div class="pdf-header-right">
+                        <div class="quote-badge">SALES QUOTE</div>
+                        <div class="quote-number-demo">#8829-REV-2</div>
+                        <div class="quote-meta-demo">
+                            <div><span class="meta-label">Created:</span> Oct 24, 2024</div>
+                            <div><span class="meta-label">Expires:</span> Nov 23, 2024</div>
+                            <div><span class="meta-label">Owner:</span> Alex Mercer</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PREPARED FOR SECTION -->
+                <div class="prepared-for-section">
+                    <div class="prepared-label">PREPARED FOR</div>
+                    <div class="client-name-demo">Horizon Digital Systems</div>
+                    <div class="client-attn-demo">Attn: Sarah Jenkins, CTO</div>
+                </div>
+
+                <!-- LINE ITEMS TABLE -->
+                <div class="line-items-section">
+                    <table class="demo-table">
+                        <thead>
+                            <tr>
+                                <th class="col-product">PRODUCT DETAILS</th>
+                                <th class="col-qty">QTY</th>
+                                <th class="col-price">LIST PRICE</th>
+                                <th class="col-disc">DISC %</th>
+                                <th class="col-total">NET TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="col-product">
+                                    <div class="product-name">Lattice Core Platform - Enterprise</div>
+                                    <div class="product-desc">Annual Subscription (Tier 3 Pricing)</div>
+                                </td>
+                                <td class="col-qty">1</td>
+                                <td class="col-price">$45,000.00</td>
+                                <td class="col-disc disc-val">15%</td>
+                                <td class="col-total">$38,250.00</td>
+                            </tr>
+                            <tr>
+                                <td class="col-product">
+                                    <div class="product-name">Edge Node Connector</div>
+                                    <div class="product-desc">Multi-region active/active setup</div>
+                                </td>
+                                <td class="col-qty">12</td>
+                                <td class="col-price">$1,200.00</td>
+                                <td class="col-disc disc-val">10%</td>
+                                <td class="col-total">$12,960.00</td>
+                            </tr>
+                            <tr>
+                                <td class="col-product">
+                                    <div class="product-name">Professional Services - Onboarding</div>
+                                    <div class="product-desc">Fixed Fee Milestone 1 & 2</div>
+                                </td>
+                                <td class="col-qty">1</td>
+                                <td class="col-price">$12,500.00</td>
+                                <td class="col-disc disc-val">0%</td>
+                                <td class="col-total">$12,500.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SUMMARY SECTION -->
+                <div class="summary-section">
+                    <div class="summary-box">
+                        <div class="summary-row">
+                            <span class="summary-label">Total Products</span>
+                            <span class="summary-val">14 Items</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Total Phases</span>
+                            <span class="summary-val">3 Active</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal</span>
+                            <span class="summary-val">$71,900.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label highlight">Combined Discount</span>
+                            <span class="summary-val highlight">-$8,190.00</span>
+                        </div>
+                        <div class="summary-row grand-total-row">
+                            <span class="summary-label">GRAND TOTAL</span>
+                            <span class="summary-val grand-total-val">$63,710.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER / SIGNATURE -->
+                <div class="pdf-footer">
+                    <div class="signature-section">
+                        <div class="signature-label">Authorized Signature</div>
+                        <div class="signature-container" onclick={triggerSignatureUpload}>
+                            <template if:true={signatureDataUrl}>
+                                <img src={signatureDataUrl} class="signature-img" alt="Authorized Signature"/>
+                            </template>
+                            <template if:false={signatureDataUrl}>
+                                <div class="upload-placeholder signature-placeholder">
+                                    <span>Click to upload<br/>Signature Image</span>
                                 </div>
-                                <button class="btn-icon-delete" onclick={handleDelete} data-id={temp.Id} title="Delete Template">
-                                    <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></svg>
-                                </button>
-                            </div>
+                            </template>
+                            <input type="file" class="hidden-file-input" accept="image/png, image/jpeg" onchange={handleSignatureUpload} data-id="signatureInput"/>
                         </div>
-                    </template>
-                </div>
-
-                <div class="empty-state" if:false={hasTemplates}>
-                    <div class="empty-icon">📂</div>
-                    <h3>No templates found</h3>
-                    <p>Start by uploading your first HTML quote template.</p>
-                </div>
-            </template>
-        </div>
-
-        <!-- Upload/Edit Modal -->
-        <template if:true={isModalOpen}>
-            <div class="modal-overlay">
-                <div class="modal-container">
-                    <div class="modal-header">
-                        <h2>Create New Template</h2>
-                        <button class="btn-close" onclick={closeModal}>&times;</button>
-                    </div>
-                    <div class="modal-content">
-                        <div class="form-group">
-                            <label>Template Name</label>
-                            <input type="text" value={newName} oninput={handleNameChange} placeholder="e.g. Premium Modern Theme"/>
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <input type="text" value={newDesc} oninput={handleDescChange} placeholder="Brief description of this layout"/>
-                        </div>
-                        
-                        <div class="upload-section">
-                            <div class="file-input-wrapper">
-                                <button class="btn-upload">📁 Upload HTML File</button>
-                                <input type="file" accept=".html" onchange={handleFileUpload}/>
-                            </div>
-                            <span class="sep">OR PASTE HTML</span>
-                        </div>
-
-                        <div class="form-group">
-                            <lightning-textarea label="HTML Content" variant="label-hidden" value={newHtml} onchange={handleHtmlChange} placeholder="Paste your HTML with placeholders here..." rows="8"></lightning-textarea>
-                        </div>
-
-                        <div class="guide-box">
-                            <h4>💡 Quick Placeholder Guide</h4>
-                            <div class="tags">
-                                <span>[[Quote.Name]]</span>
-                                <span>[[Account.Name]]</span>
-                                <span>[[Quote.Total_Amount__c]]</span>
-                                <span>[[LINE_ITEMS_START]]...[[LINE_ITEMS_END]]</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick={closeModal}>Cancel</button>
-                        <button class="btn btn-primary" onclick={handleSave} disabled={isSaveDisabled}>
-                            Save Template
-                        </button>
+                        <div class="signature-line"></div>
+                        <input type="text" class="inline-input signer-title-input" value={signerTitle} onchange={handleFieldChange} data-field="signerTitle" placeholder="Signer Name / Title"/>
                     </div>
                 </div>
+
             </div>
-        </template>
+        </div>
     </div>
 </template>
