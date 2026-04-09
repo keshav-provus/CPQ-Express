@@ -123,17 +123,21 @@ public with sharing class QuoteTemplateController {
     /**
      * Converts a ContentVersion VersionData blob to a data URI src string.
      * Handles two storage formats:
-     *   - NEW: raw image bytes (from EncodingUtil.base64Decode) -> base64-encode them
      *   - OLD: UTF-8 bytes of a "data:image/...;base64,..." string -> use as-is
+     *   - NEW: raw image bytes (from EncodingUtil.base64Decode) -> base64-encode them
+     * Raw binary blobs will throw on .toString() (not valid UTF-8), so we catch
+     * that and fall through to base64 encoding.
      */
     private static String blobToDataUri(Blob imageBlob) {
         if (imageBlob == null) return '';
-        String asString = imageBlob.toString();
-        // Old format: the blob IS the text data URL
-        if (asString.startsWith('data:')) {
-            return asString;
+        try {
+            String asString = imageBlob.toString();
+            if (asString.startsWith('data:')) {
+                return asString; // Old format: already a complete data URL
+            }
+        } catch (Exception e) {
+            // Raw binary bytes are not valid UTF-8 — fall through to base64 encode
         }
-        // New format: the blob is raw binary bytes — encode to base64 data URI
         return 'data:image/jpeg;base64,' + EncodingUtil.base64Encode(imageBlob);
     }
 
