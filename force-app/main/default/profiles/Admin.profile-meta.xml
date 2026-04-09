@@ -552,10 +552,7 @@
         <tab>Categories__c</tab>
         <visibility>DefaultOn</visibility>
     </tabVisibilities>
-    <tabVisibilities>
-        <tab>Dashboard</tab>
-        <visibility>DefaultOn</visibility>
-    </tabVisibilities>
+
     <tabVisibilities>
         <tab>Discount_Tier__c</tab>
         <visibility>DefaultOn</visibility>

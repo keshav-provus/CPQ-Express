@@ -488,10 +488,6 @@
         <visibility>Hidden</visibility>
     </tabVisibilities>
     <tabVisibilities>
-        <tab>Dashboard</tab>
-        <visibility>Hidden</visibility>
-    </tabVisibilities>
-    <tabVisibilities>
         <tab>Discount_Tier__c</tab>
         <visibility>Hidden</visibility>
     </tabVisibilities>

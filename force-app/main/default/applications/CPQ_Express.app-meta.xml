@@ -12,12 +12,11 @@
     <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
     <label>CPQ Express</label>
     <navType>Standard</navType>
-        <tabs>Quote__c</tabs>
-    <tabs>Dashboard</tabs>
+    <tabs>Quote__c</tabs>
+    <tabs>standard-Dashboard</tabs>
     <tabs>Template_Manager</tabs>
     <tabs>Categories__c</tabs>
     <tabs>Product__c</tabs>
     <tabs>Admin_Settings</tabs>
     <uiType>Lightning</uiType>
-    <utilityBar>CPQ_Express_UtilityBar</utilityBar>
 </CustomApplication>
