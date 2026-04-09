@@ -56,6 +56,35 @@
                         </div>
                     </div>
                 </lightning-card>
+
+                <!-- Currency Conversion Panel -->
+                <lightning-card title="Quote Currency Settings" icon-name="custom:custom17" class="slds-m-top_large">
+                    <div class="slds-p-around_medium">
+                        <div class="slds-text-body_regular slds-m-bottom_small">
+                            Select the primary currency for generating quotes. Updating this will geometrically convert ALL existing Quotes, Products, Add-Ons, and Resource Roles to this new currency's rate using active Standard Salesforce conversion rates.
+                        </div>
+                        <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-combobox
+                                    name="targetCurrency"
+                                    label="Org Currency"
+                                    value={companySettings.Default_Currency__c}
+                                    placeholder="Select Currency"
+                                    options={currencyOptions}
+                                    onchange={handleCurrencyChange}>
+                                </lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-button variant="brand" label="Convert Throughout Org" onclick={handleCurrencyConversion} disabled={isLoading}></lightning-button>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+
+                <!-- Work Calendar Panel -->
+                <div class="slds-m-top_large">
+                    <c-cpq-work-calendar></c-cpq-work-calendar>
+                </div>
             </template>
 
             <!-- PDF Template Manager Panel -->

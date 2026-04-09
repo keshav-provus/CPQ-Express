@@ -161,4 +161,55 @@ public with sharing class AdminSettingsController {
             }
         }
     }
+
+    // ─── Currency Settings & Batch Execution ───
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, String>> getAvailableCurrencies() {
+        List<Map<String, String>> currList = new List<Map<String, String>>();
+        List<SObject> currencies = Database.query('SELECT IsoCode, ConversionRate FROM CurrencyType WHERE IsActive = true');
+        for (SObject c : currencies) {
+            String iso = (String)c.get('IsoCode');
+            currList.add(new Map<String, String>{
+                'label' => iso,
+                'value' => iso
+            });
+        }
+        return currList;
+    }
+
+    @AuraEnabled
+    public static void triggerCurrencyConversion(String newIsoCode) {
+        Company_Settings__c s = Company_Settings__c.getOrgDefaults();
+        if (s == null) s = new Company_Settings__c();
+        s.Default_Currency__c = newIsoCode;
+        upsert s;
+
+        // Kick off batch explicitly
+        Database.executeBatch(new CurrencyConverterBatch(newIsoCode));
+    }
+
+    // ─── Work Calendar & Holidays ───
+
+    @AuraEnabled(cacheable=true)
+    public static List<CPQ_Holiday__c> getHolidays() {
+        return [SELECT Id, Date__c, Title__c FROM CPQ_Holiday__c ORDER BY Date__c ASC];
+    }
+
+    @AuraEnabled
+    public static void saveHoliday(Date holidayDate, String title) {
+        // Check if exists
+        List<CPQ_Holiday__c> existing = [SELECT Id FROM CPQ_Holiday__c WHERE Date__c = :holidayDate LIMIT 1];
+        if (existing.isEmpty()) {
+            insert new CPQ_Holiday__c(Date__c = holidayDate, Title__c = title);
+        } else {
+            existing[0].Title__c = title;
+            update existing;
+        }
+    }
+
+    @AuraEnabled
+    public static void deleteHolidayByDate(Date holidayDate) {
+        delete [SELECT Id FROM CPQ_Holiday__c WHERE Date__c = :holidayDate];
+    }
 }

@@ -81,7 +81,7 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
                                     label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(context.parsed.y);
                                 }
                                 return label;
                             }

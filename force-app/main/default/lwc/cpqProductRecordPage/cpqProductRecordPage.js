@@ -172,7 +172,7 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     get formattedKpiRevenue() {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(this.kpiRevenue);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined, minimumFractionDigits: 0 }).format(this.kpiRevenue);
     }
     
     get productPrice() {

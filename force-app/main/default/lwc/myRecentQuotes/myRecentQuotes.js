@@ -34,7 +34,7 @@ export default class MyRecentQuotes extends LightningElement {
         if (!value && value !== 0) return '$0.00';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: undefined,
             minimumFractionDigits: 2
         }).format(value);
     }

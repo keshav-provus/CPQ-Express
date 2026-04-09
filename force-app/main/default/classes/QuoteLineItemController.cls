@@ -1,20 +1,28 @@
 public with sharing class QuoteLineItemController {
 
     // ─── Working‑hours multiplier lookup ───
-    private static Decimal getWorkingHoursPerDay() {
-        List<Company_Settings__c> settings = [SELECT Working_Hours_Per_Day__c FROM Company_Settings__c LIMIT 1];
-        if (!settings.isEmpty() && settings[0].Working_Hours_Per_Day__c != null) {
-            return settings[0].Working_Hours_Per_Day__c;
-        }
-        return 8; // default
-    }
-
     private static Decimal getHoursMultiplier(String timePeriod) {
-        Decimal hpd = getWorkingHoursPerDay();
+        List<Company_Settings__c> settings = [SELECT Working_Hours_Per_Day__c, Work_Policy__c FROM Company_Settings__c LIMIT 1];
+        Decimal hpd = 8;
+        Decimal hpw = 40;
+        Decimal hpm = 160;
+
+        if (!settings.isEmpty()) {
+            Company_Settings__c s = settings[0];
+            if (s.Working_Hours_Per_Day__c != null) hpd = s.Working_Hours_Per_Day__c;
+            
+            Decimal daysPerWeek = 5;
+            if (s.Work_Policy__c == '6 Days') daysPerWeek = 6;
+            if (s.Work_Policy__c == '7 Days') daysPerWeek = 7;
+            
+            hpw = hpd * daysPerWeek;
+            hpm = hpw * 4;
+        }
+
         if (timePeriod == 'Days')      return hpd;
-        if (timePeriod == 'Weeks')     return hpd * 5;
-        if (timePeriod == 'Months')    return hpd * 5 * 4;  // 20 working days
-        if (timePeriod == 'Quarters')  return hpd * 5 * 4 * 3;
+        if (timePeriod == 'Weeks')     return hpw;
+        if (timePeriod == 'Months')    return hpm;
+        if (timePeriod == 'Quarters')  return hpm * 3;
         return hpd; // fallback
     }
 

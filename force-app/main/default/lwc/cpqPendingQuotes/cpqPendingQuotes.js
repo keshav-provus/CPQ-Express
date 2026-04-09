@@ -28,7 +28,7 @@ export default class CpqPendingQuotes extends LightningElement {
             AccountName: quote.Account__r ? quote.Account__r.Name : 'No Account',
             formattedAmount: new Intl.NumberFormat('en-US', {
                 style: 'currency',
-                currency: 'USD',
+                currency: undefined,
                 maximumFractionDigits: 0
             }).format(quote.Total_Amount__c || 0),
             formattedDate: new Date(quote.CreatedDate).toLocaleDateString('en-GB', {

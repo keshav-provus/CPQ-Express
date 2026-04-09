@@ -34,7 +34,7 @@ const PRODUCT_COLUMNS = [
         label: 'Price',
         fieldName: 'Price__c',
         type: 'currency',
-        typeAttributes: { currencyCode: 'USD' },
+        typeAttributes: { currencyCode: undefined },
         sortable: true,
         cellAttributes: { class: 'slds-text-color_success' }
     },
@@ -42,7 +42,7 @@ const PRODUCT_COLUMNS = [
         label: 'Cost',
         fieldName: 'Cost__c',
         type: 'currency',
-        typeAttributes: { currencyCode: 'USD' },
+        typeAttributes: { currencyCode: undefined },
         sortable: true
     },
     {

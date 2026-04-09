@@ -19,7 +19,7 @@ export default class CpqTopTransactions extends LightningElement {
             ...tx,
             accountName: tx.Account__r ? tx.Account__r.Name : 'No Account',
             formattedDate: new Date(tx.CreatedDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
-            formattedAmount: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(tx.Total_Amount__c || 0)
+            formattedAmount: new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined, maximumFractionDigits: 0 }).format(tx.Total_Amount__c || 0)
         }));
     }
 }

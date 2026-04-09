@@ -17,7 +17,7 @@ export default class CpqProductAddOns extends LightningElement {
         return (this.wiredAddOnsResult?.data || []).map(addon => ({
             ...addon,
             displayName: addon.Name__c || addon.Name,
-            formattedPrice: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(addon.Price__c || 0)
+            formattedPrice: new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(addon.Price__c || 0)
         }));
     }
 

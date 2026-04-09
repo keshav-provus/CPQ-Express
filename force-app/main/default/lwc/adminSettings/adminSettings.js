@@ -3,11 +3,14 @@ import getCompanySettings from '@salesforce/apex/AdminSettingsController.getComp
 import saveCompanySettings from '@salesforce/apex/AdminSettingsController.saveCompanySettings';
 import getLicenseInfo from '@salesforce/apex/AdminSettingsController.getLicenseInfo';
 import getTeamMembers from '@salesforce/apex/AdminSettingsController.getTeamMembers';
+import getAvailableCurrencies from '@salesforce/apex/AdminSettingsController.getAvailableCurrencies';
+import triggerCurrencyConversion from '@salesforce/apex/AdminSettingsController.triggerCurrencyConversion';
 import createUser from '@salesforce/apex/AdminSettingsController.createUser';
 import deactivateUser from '@salesforce/apex/AdminSettingsController.deactivateUser';
 import updateUserRole from '@salesforce/apex/AdminSettingsController.updateUserRole';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
+import LightningConfirm from 'lightning/confirm';
 
 const actions = [
     { label: 'Change Role', name: 'change_role' },
@@ -66,12 +69,23 @@ export default class AdminSettings extends LightningElement {
     @track isEditRoleModalOpen = false;
     @track editRoleUserId = null;
     @track editRoleValue = 'User';
+    
+    // Currency
+    @track currencyOptions = [];
 
     get isEditAdminRole() { return this.editRoleValue === 'Admin'; }
     get isEditManagerRole() { return this.editRoleValue === 'Manager'; }
     get isEditUserRole() { return this.editRoleValue === 'User'; }
 
     // Wires
+    @wire(getAvailableCurrencies)
+    wiredCurrencies({ data, error }) {
+        if (data) {
+            this.currencyOptions = data;
+        } else if (error) {
+            console.error('Error fetching currencies', error);
+        }
+    }
     @wire(getCompanySettings)
     wiredSettings(result) {
         this.wiredSettingsResult = result;
@@ -110,6 +124,33 @@ export default class AdminSettings extends LightningElement {
     // Company Handlers
     handleSettingChange(event) {
         this.companySettings[event.target.name] = event.target.value;
+    }
+
+    handleCurrencyChange(event) {
+        this.companySettings.Default_Currency__c = event.target.value;
+    }
+
+    async handleCurrencyConversion() {
+        const cur = this.companySettings.Default_Currency__c;
+        if (!cur) return;
+        
+        const ok = await LightningConfirm.open({
+            message: `Are you sure you want to convert the entire CPQ organization to ${cur}? This mathematically updates ALL existing amounts based on live SFDC Exchange Rates.`,
+            theme: 'warning',
+            label: 'Confirm Global Conversion'
+        });
+        if (!ok) return;
+
+        this.isLoading = true;
+        try {
+            await triggerCurrencyConversion({ newIsoCode: cur });
+            this.showToast('Success', `Global currency conversion to ${cur} initiated. Background process started.`, 'success');
+            await refreshApex(this.wiredSettingsResult);
+        } catch (e) {
+            this.showToast('Error', e.body?.message || 'Error triggering conversion.', 'error');
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     async handleSaveCompanySettings() {

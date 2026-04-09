@@ -54,7 +54,7 @@ export default class CpqAddItemsWizard extends LightningElement {
     }
 
     formatPrice(price, unit) {
-        const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price || 0);
+        const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(price || 0);
         return `${formatted}/${unit || 'Unit'}`;
     }
 

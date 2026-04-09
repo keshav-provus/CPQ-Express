@@ -19,7 +19,7 @@ export default class CpqManagerKPIs extends LightningElement {
     formatCurrency(value) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: undefined,
             maximumFractionDigits: 0
         }).format(value);
     }

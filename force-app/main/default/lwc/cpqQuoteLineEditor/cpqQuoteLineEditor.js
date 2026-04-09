@@ -244,7 +244,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     formatCurrency(value) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD',
+            currency: undefined,
         }).format(value || 0);
     }
 

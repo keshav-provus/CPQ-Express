@@ -1,0 +1,116 @@
+<template>
+    <lightning-card title="Work Calendar & Hours" icon-name="custom:custom83">
+        
+        <div class="slds-p-around_medium">
+            <!-- Settings Configuration -->
+            <div class="slds-grid slds-gutters slds-m-bottom_large">
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-combobox
+                        name="workPolicy"
+                        label="Work Policy"
+                        value={workPolicy}
+                        placeholder="Select Work Policy"
+                        options={policyOptions}
+                        onchange={handlePolicyChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-2">
+                    <lightning-input
+                        type="number"
+                        label="Working Hours Per Day"
+                        value={workingHoursPerDay}
+                        onchange={handleHoursChange}>
+                    </lightning-input>
+                </div>
+            </div>
+
+            <!-- Auto-Calculated Metrics -->
+            <div class="slds-grid slds-gutters slds-m-bottom_large">
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="slds-box slds-box_x-small slds-text-align_center slds-theme_shade">
+                        <div class="slds-text-heading_small slds-text-color_weak">Hours / Day</div>
+                        <div class="slds-text-heading_large slds-text-color_success"><b>{workingHoursPerDay}</b></div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="slds-box slds-box_x-small slds-text-align_center slds-theme_shade">
+                        <div class="slds-text-heading_small slds-text-color_weak">Hours / Week</div>
+                        <div class="slds-text-heading_large slds-text-color_success"><b>{calculatedWeeklyHours}</b></div>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-3">
+                    <div class="slds-box slds-box_x-small slds-text-align_center slds-theme_shade">
+                        <div class="slds-text-heading_small slds-text-color_weak">Hours / Month</div>
+                        <div class="slds-text-heading_large slds-text-color_success"><b>{calculatedMonthlyHours}</b></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slds-m-bottom_large slds-text-align_right">
+                <lightning-button label="Save Policies" variant="brand" onclick={savePolicies} disabled={isLoading}></lightning-button>
+            </div>
+
+            <!-- Interactive Calendar -->
+            <div class="slds-m-top_large">
+                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_medium">
+                    <div class="slds-col">
+                        <h2 class="slds-text-heading_medium"><b>{currentMonthName} {currentYear}</b></h2>
+                        <p class="slds-text-body_small slds-text-color_weak">Click on a day to mark or unmark it as a holiday.</p>
+                    </div>
+                    <div class="slds-col slds-grow-none">
+                        <lightning-button-group>
+                            <lightning-button icon-name="utility:chevronleft" onclick={handlePrevMonth}></lightning-button>
+                            <lightning-button label="Today" onclick={handleToday}></lightning-button>
+                            <lightning-button icon-name="utility:chevronright" onclick={handleNextMonth}></lightning-button>
+                        </lightning-button-group>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="calendar-header">Sun</div>
+                    <div class="calendar-header">Mon</div>
+                    <div class="calendar-header">Tue</div>
+                    <div class="calendar-header">Wed</div>
+                    <div class="calendar-header">Thu</div>
+                    <div class="calendar-header">Fri</div>
+                    <div class="calendar-header">Sat</div>
+
+                    <template for:each={calendarDays} for:item="day">
+                        <div key={day.dateStr} class={day.classes} onclick={handleDayClick} data-date={day.dateStr}>
+                            <div class="date-number">{day.dayNum}</div>
+                            <template if:true={day.isHoliday}>
+                                <div class="holiday-title">{day.holidayTitle}</div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </lightning-card>
+
+    <!-- Holiday Modal -->
+    <template if:true={isModalOpen}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">{selectedDateStr}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-input label="Holiday Title" value={holidayTitleInput} onchange={handleHolidayTitleChange} required></lightning-input>
+                </div>
+                <footer class="slds-modal__footer">
+                    <template if:true={selectedDayIsHoliday}>
+                        <lightning-button label="Remove Holiday" variant="destructive" class="slds-float_left" onclick={handleRemoveHoliday}></lightning-button>
+                    </template>
+                    <lightning-button label="Cancel" variant="neutral" onclick={closeModal}></lightning-button>
+                    <lightning-button label="Save Holiday" variant="brand" onclick={handleSaveHoliday} class="slds-m-left_small"></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

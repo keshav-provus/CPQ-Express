@@ -1,0 +1,69 @@
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #e5e7eb;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.calendar-header {
+    background-color: #f9fafb;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 0;
+    color: #4b5563;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.calendar-cell {
+    background-color: white;
+    min-height: 80px;
+    padding: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-cell:hover {
+    background-color: #f3f4f6;
+}
+
+.calendar-cell.weekend {
+    background-color: #f9fafb;
+    color: #9ca3af;
+}
+
+.calendar-cell.other-month {
+    background-color: #f9fafb;
+    color: #d1d5db;
+}
+
+.calendar-cell.holiday {
+    background-color: #fee2e2;
+    border-left: 3px solid #ef4444;
+}
+
+.calendar-cell.holiday:hover {
+    background-color: #fcd3d3;
+}
+
+.date-number {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.holiday-title {
+    font-size: 0.75rem;
+    color: #b91c1c;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}

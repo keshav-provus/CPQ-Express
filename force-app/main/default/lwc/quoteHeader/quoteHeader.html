@@ -30,20 +30,20 @@
         <div class="metrics-ribbon slds-grid slds-wrap slds-grid_vertical-align-center slds-border_top slds-p-top_small slds-p-bottom_small slds-border_bottom">
             <div class="metric-item slds-m-right_large">
                 <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Total amount</span>
-                <span class="slds-text-heading_small slds-text-color_default metric-value bold-metric"><lightning-formatted-number value={totalAmount} format-style="currency" currency-code="USD"></lightning-formatted-number></span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value bold-metric"><lightning-formatted-number value={totalAmount} format-style="currency" ></lightning-formatted-number></span>
             </div>
             <div class="metric-item slds-m-right_large">
                 <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Subtotal</span>
-                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockSubtotal} format-style="currency" currency-code="USD"></lightning-formatted-number></span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockSubtotal} format-style="currency" ></lightning-formatted-number></span>
             </div>
             <div class="metric-item slds-m-right_large slds-grid slds-grid_vertical-align-center">
                 <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Margin</span>
-                <span class="slds-text-heading_small slds-text-color_default metric-value slds-m-right_xx-small"><lightning-formatted-number value={mockMarginValue} format-style="currency" currency-code="USD"></lightning-formatted-number> (<lightning-formatted-number value={marginPercent} format-style="percent"></lightning-formatted-number>)</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value slds-m-right_xx-small"><lightning-formatted-number value={mockMarginValue} format-style="currency" ></lightning-formatted-number> (<lightning-formatted-number value={marginPercent} format-style="percent"></lightning-formatted-number>)</span>
                 <lightning-icon icon-name="utility:info_alt" size="xx-small" class="slds-icon-text-light"></lightning-icon>
             </div>
             <div class="metric-item slds-m-right_large">
                 <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Discount</span>
-                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockDiscountValue} format-style="currency" currency-code="USD"></lightning-formatted-number> (<lightning-formatted-number value={mockDiscountPercent} format-style="percent"></lightning-formatted-number>)</span>
+                <span class="slds-text-heading_small slds-text-color_default metric-value"><lightning-formatted-number value={mockDiscountValue} format-style="currency" ></lightning-formatted-number> (<lightning-formatted-number value={mockDiscountPercent} format-style="percent"></lightning-formatted-number>)</span>
             </div>
             <div class="metric-item slds-m-right_large">
                 <span class="slds-text-title slds-text-color_weak slds-m-right_xx-small">Start date</span>
