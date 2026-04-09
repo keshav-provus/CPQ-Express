@@ -83,16 +83,9 @@ export default class CpqTemplateManager extends LightningElement {
     }
 
     generateHTMLContent() {
-        const logoDisplay = this.logoDataUrl ? 'block' : 'none';
-        const sigDisplay = this.signatureDataUrl ? 'block' : 'none';
-        
-        // Note: The Apex merge logic expects specific placeholders:
-        // [[Quote.Name]], [[Quote.Total_Amount__c]], [[Quote.Start_Date__c]], [[Quote.End_Date__c]],
-        // [[Account.Name]], [[Account.Address]], [[User.Name]], [[Today]],
-        // [[LINE_ITEMS_START]] ... [[LINE_ITEMS_END]]
-        //
-        // This generated HTML uses inline styles and tables, which works best for Visualforce renderAs="pdf"
-        
+        // Note: Images are stored as Static Resources and injected by Apex's mergeData().
+        // The [[Company.Logo]] and [[Company.Signature]] placeholders are replaced
+        // server-side with the static resource URL — no display toggling needed here.
         return `
             <html>
             <head>
@@ -148,7 +141,7 @@ export default class CpqTemplateManager extends LightningElement {
                 <table class="header-table">
                     <tr>
                         <td class="header-left">
-                            <img src="[[Company.Logo]]" class="company-logo" style="display:${logoDisplay}" />
+                            <img src="[[Company.Logo]]" class="company-logo" />
                             <div class="company-info">
                                 <strong>[[Company.Name]]</strong><br/>
                                 [[Company.Address]]<br/><br/>
@@ -224,7 +217,7 @@ export default class CpqTemplateManager extends LightningElement {
                             <div class="signature-box">
                                 <div class="sig-label">Authorized Signature</div>
                                 <div class="sig-img-container">
-                                    <img src="[[Company.Signature]]" class="sig-img" style="display:${sigDisplay}" />
+                                    <img src="[[Company.Signature]]" class="sig-img" />
                                 </div>
                                 <div class="sig-line"></div>
                                 <div class="sig-title">[[Signer.Title]]</div>
@@ -248,14 +241,24 @@ export default class CpqTemplateManager extends LightningElement {
                 return;
             }
 
+            // Only pass image data to Apex if the user uploaded a fresh image.
+            // If logoDataUrl is a static resource URL ('/resource/...'), we skip it
+            // so the existing static resource is not overwritten.
+            const logoData = (this.logoDataUrl && this.logoDataUrl.startsWith('data:')) ? this.logoDataUrl : null;
+            const signatureData = (this.signatureDataUrl && this.signatureDataUrl.startsWith('data:')) ? this.signatureDataUrl : null;
+
             // Save the new template with separate image components
             await saveTemplateData({
                 htmlContent: htmlContent,
-                logoData: this.logoDataUrl,
-                signatureData: this.signatureDataUrl
+                logoData: logoData,
+                signatureData: signatureData
             });
 
-            this.showToast('Success', 'Quote template saved explicitly as the Global Default!', 'success');
+            // Reset to static resource URL so next load shows the saved image
+            if (logoData)      this.logoDataUrl      = '/resource/HQ_CPQ_Logo?t=' + Date.now();
+            if (signatureData) this.signatureDataUrl = '/resource/HQ_CPQ_Signature?t=' + Date.now();
+
+            this.showToast('Success', 'Quote template saved as the Global Default!', 'success');
         } catch (error) {
             console.error('Error saving template:', error);
             this.showToast('Error', error.body?.message || 'Error saving template.', 'error');

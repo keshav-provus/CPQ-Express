@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RemoteSiteSetting xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Allows Apex to call the Salesforce Tooling API on the same org (for updating Static Resources)</description>
+    <disableProtocolSecurity>false</disableProtocolSecurity>
+    <isActive>true</isActive>
+    <url>https://page-customization-9790.scratch.my.salesforce.com</url>
+</RemoteSiteSetting>
