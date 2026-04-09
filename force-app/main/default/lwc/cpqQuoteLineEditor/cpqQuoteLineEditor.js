@@ -4,6 +4,7 @@ import deleteLineItem from '@salesforce/apex/QuoteLineItemController.deleteLineI
 import deletePhaseItems from '@salesforce/apex/QuoteLineItemController.deletePhaseItems';
 import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList';
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
+import getAllDiscountTiers from '@salesforce/apex/QuoteController.getAllDiscountTiers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
@@ -42,6 +43,26 @@ export default class CpqQuoteLineEditor extends LightningElement {
     @track editingPhaseName = null;
     @track editingPhaseValue = '';
     @track revealedDateFields = {};
+    
+    @track discountTiers = [];
+
+    get itemIds() {
+        if (!this.lineItems) return [];
+        let ids = [];
+        this.lineItems.forEach(i => {
+            if (i.Product__c) ids.push(i.Product__c);
+            if (i.Resource_Role__c) ids.push(i.Resource_Role__c);
+            if (i.Add_On__c) ids.push(i.Add_On__c);
+        });
+        return [...new Set(ids)];
+    }
+
+    @wire(getAllDiscountTiers, { itemIds: '$itemIds' })
+    wiredDiscountTiers({ data }) {
+        if (data) {
+            this.discountTiers = data;
+        }
+    }
 
     _snapshotJson = '';
     _dragItemId = null;
@@ -488,6 +509,8 @@ export default class CpqQuoteLineEditor extends LightningElement {
             Name: item.Name,
             Quantity__c: item.Quantity__c,
             Discount_Percent__c: item.Discount_Percent__c || 0,
+            Default_Discount__c: item.Default_Discount__c || 0,
+            formattedDefaultDiscount: (item.Default_Discount__c || 0) + '%',
             startDateFormatted: item.Start_Date__c
                 ? new Date(item.Start_Date__c).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
                 : '-',
@@ -699,6 +722,30 @@ export default class CpqQuoteLineEditor extends LightningElement {
 
         const updateObj = { Id: itemId };
         updateObj[field] = finalValue;
+
+        // Auto-calculate default discount on Quantity change
+        if (field === 'Quantity__c') {
+            let typeId = item.Product__c || item.Resource_Role__c || item.Add_On__c;
+            if (typeId && this.discountTiers.length > 0) {
+                let applicableTiers = this.discountTiers.filter(t => 
+                    (t.Product__c === typeId || t.Resource_Role__c === typeId || t.Add_On__c === typeId)
+                );
+                
+                let foundTier = applicableTiers.find(t => {
+                    let min = (t.Lower_Bound__c !== null && t.Lower_Bound__c !== undefined) ? t.Lower_Bound__c : 0;
+                    let max = (t.Upper_Bound__c !== null && t.Upper_Bound__c !== undefined) ? t.Upper_Bound__c : Infinity;
+                    return finalValue >= min && finalValue <= max;
+                });
+                
+                if (foundTier) {
+                    updateObj.Default_Discount__c = foundTier.Discount_Percent__c;
+                } else {
+                    updateObj.Default_Discount__c = 0;
+                }
+            } else {
+                updateObj.Default_Discount__c = 0;
+            }
+        }
 
         updateLineItem({ item: updateObj })
             .then(() => {

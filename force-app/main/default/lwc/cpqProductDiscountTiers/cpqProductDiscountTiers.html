@@ -12,7 +12,8 @@
                 <table class="w-full text-left border-separate border-spacing-y-1">
                     <thead>
                         <tr class="text-[10px] font-bold text-outline uppercase tracking-widest">
-                            <th class="px-6 py-4">Quantity Range</th>
+                            <th class="px-6 py-4">Lower Bound</th>
+                            <th class="px-6 py-4">Upper Bound</th>
                             <th class="px-6 py-4 text-right">Discount %</th>
                         </tr>
                     </thead>
@@ -20,14 +21,15 @@
                         <template if:true={hasTiers}>
                             <template for:each={tiers} for:item="tier">
                                 <tr key={tier.Id} class="bg-surface-container-lowest hover:bg-surface-container-high transition-colors">
-                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Quantity_Range__c}</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Lower_Bound__c}</td>
+                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Upper_Bound__c}</td>
                                     <td class="px-6 py-4 text-right font-bold text-indigo-600">{tier.Discount_Percent__c}%</td>
                                 </tr>
                             </template>
                         </template>
                         <template if:false={hasTiers}>
                             <tr class="bg-surface-container-lowest">
-                                <td colspan="2" class="px-6 py-4 text-center text-on-surface-variant">No discount tiers found.</td>
+                                <td colspan="3" class="px-6 py-4 text-center text-on-surface-variant">No discount tiers found.</td>
                             </tr>
                         </template>
                     </tbody>
@@ -36,7 +38,7 @@
         </div>
 
         <template if:true={isModalOpen}>
-            <c-cpq-product-discount-tier-modal record-id={recordId} onclose={handleCloseModal} onsuccess={handleSaveSuccess}></c-cpq-product-discount-tier-modal>
+            <c-cpq-product-discount-tier-modal record-id={recordId} object-api-name={objectApiName} onclose={handleCloseModal} onsuccess={handleSaveSuccess}></c-cpq-product-discount-tier-modal>
         </template>
     </div>
 </template>

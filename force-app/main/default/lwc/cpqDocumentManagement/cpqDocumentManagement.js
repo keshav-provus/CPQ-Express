@@ -2,33 +2,30 @@ import { LightningElement, api, wire, track } from 'lwc';
 import getQuoteVersions from '@salesforce/apex/QuoteController.getQuoteVersions';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { NavigationMixin } from 'lightning/navigation';
 
-export default class CpqDocumentManagement extends LightningElement {
+export default class CpqDocumentManagement extends NavigationMixin(LightningElement) {
     @api recordId;
     @api quoteName = '';
 
     @track versions = [];
-    @track selectedVersionId = null; // Don't auto-select
     @track wiredVersionsResult;
-    @track previewImageFailed = false;
 
     @wire(getQuoteVersions, { quoteId: '$recordId' })
     wiredVersions(result) {
         this.wiredVersionsResult = result;
         if (result.data) {
             this.versions = result.data.map(v => {
-                const isActive = v.Is_Active__c;
+                const isActive = v.IsActive;
                 return {
                     ...v,
                     statusLabel: isActive ? 'Active' : 'Archive',
-                    cardClass: this._buildCardClass(v.Id, isActive),
+                    cardClass: 'ver-card',
                     badgeClass: `ver-badge ${isActive ? 'ver-badge-active' : 'ver-badge-archive'}`,
                     timeAgo: this._formatTimeAgo(v.CreatedDate),
-                    initials: this._getInitials(v.CreatedBy?.Name)
+                    initials: this._getInitials(v.CreatedByName)
                 };
             });
-            // Do NOT auto-select — this prevents auto-download
-            this._updateCardSelection();
         }
     }
 
@@ -40,90 +37,31 @@ export default class CpqDocumentManagement extends LightningElement {
         return this.versions ? String(this.versions.length) : '0';
     }
 
-    get hasSelectedVersion() {
-        return !!this.selectedVersionId;
-    }
-
-    get selectedVersion() {
-        return this.versions.find(v => v.Id === this.selectedVersionId);
-    }
-
-    get selectedVersionLabel() {
-        const v = this.selectedVersion;
-        return v ? v.Version_Label__c : '';
-    }
-
-    get selectedVersionTitle() {
-        const v = this.selectedVersion;
-        return v ? v.Title__c : '';
-    }
-
-    /**
-     * Uses the rendition API which returns an IMAGE (not a PDF download).
-     * This is safe to put in an <img> tag — won't trigger file download.
-     */
-    get previewImageUrl() {
-        const v = this.selectedVersion;
-        if (v && v.ContentVersionId__c) {
-            return `/sfc/servlet.shepherd/version/renditionDownload?rendition=THUMB720BY480&versionId=${v.ContentVersionId__c}&operationContext=CHATTER`;
-        }
-        return '';
+    get versionCountLabel() {
+        return this.versions ? String(this.versions.length) : '0';
     }
 
     handleVersionSelect(event) {
         const newId = event.currentTarget.dataset.id;
-        if (newId !== this.selectedVersionId) {
-            this.selectedVersionId = newId;
-            this.previewImageFailed = false;
-            this._updateCardSelection();
-        }
-    }
-
-    handleImageError() {
-        // Rendition not ready yet (Salesforce generates them async)
-        this.previewImageFailed = true;
-    }
-
-    handleOpenPreview() {
-        const v = this.selectedVersion;
-        if (v && v.ContentVersionId__c) {
-            // Opens in a new browser tab — the browser's built-in PDF viewer will render it
-            window.open(`/sfc/servlet.shepherd/version/download/${v.ContentVersionId__c}`, '_blank');
-        }
-    }
-
-    handleDownloadPdf() {
-        const v = this.selectedVersion;
-        if (v && v.ContentVersionId__c) {
-            // Create a hidden link to force download
-            const link = document.createElement('a');
-            link.href = `/sfc/servlet.shepherd/version/download/${v.ContentVersionId__c}`;
-            link.download = `${v.Version_Label__c || 'Quote'}.pdf`;
-            link.target = '_blank';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        const v = this.versions.find(ver => ver.Id === newId);
+        
+        if (v && v.ContentDocumentId) {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__namedPage',
+                attributes: {
+                    pageName: 'filePreview'
+                },
+                state : {
+                    selectedRecordId: v.ContentDocumentId
+                }
+            });
         } else {
             this.dispatchEvent(new ShowToastEvent({
-                title: 'No Version Selected',
-                message: 'Please select a version to download.',
-                variant: 'warning'
+                title: 'No Document Found',
+                message: 'The file for this version is missing or unavailable.',
+                variant: 'error'
             }));
         }
-    }
-
-    _buildCardClass(versionId, isActive) {
-        let cls = 'ver-card';
-        if (isActive) cls += ' ver-card-active';
-        if (this.selectedVersionId === versionId) cls += ' ver-card-selected';
-        return cls;
-    }
-
-    _updateCardSelection() {
-        this.versions = this.versions.map(v => ({
-            ...v,
-            cardClass: this._buildCardClass(v.Id, v.Is_Active__c)
-        }));
     }
 
     _formatTimeAgo(dateStr) {

@@ -325,8 +325,8 @@ public with sharing class QuoteController {
      * @description Fetches version history for a quote.
      */
     @AuraEnabled(cacheable=true)
-    public static List<Quote_Version__c> getQuoteVersions(Id quoteId) {
-        return [
+    public static List<QuoteVersionWrapper> getQuoteVersions(Id quoteId) {
+        List<Quote_Version__c> versions = [
             SELECT Id, Name, Version_Label__c, Title__c, Description__c,
                    ContentVersionId__c, Is_Active__c, CreatedDate,
                    CreatedBy.Name, CreatedBy.SmallPhotoUrl
@@ -334,6 +334,51 @@ public with sharing class QuoteController {
             WHERE Quote__c = :quoteId
             ORDER BY CreatedDate DESC
         ];
+        
+        Set<Id> cvIds = new Set<Id>();
+        for (Quote_Version__c qv : versions) {
+            if (String.isNotBlank(qv.ContentVersionId__c)) {
+                cvIds.add((Id)qv.ContentVersionId__c);
+            }
+        }
+        
+        Map<Id, ContentVersion> cvMap = new Map<Id, ContentVersion>();
+        if (!cvIds.isEmpty()) {
+            cvMap = new Map<Id, ContentVersion>([SELECT Id, ContentDocumentId FROM ContentVersion WHERE Id IN :cvIds]);
+        }
+        
+        List<QuoteVersionWrapper> results = new List<QuoteVersionWrapper>();
+        for (Quote_Version__c qv : versions) {
+            QuoteVersionWrapper wrapper = new QuoteVersionWrapper();
+            wrapper.Id = qv.Id;
+            wrapper.Name = qv.Name;
+            wrapper.VersionLabel = qv.Version_Label__c;
+            wrapper.Title = qv.Title__c;
+            wrapper.Description = qv.Description__c;
+            wrapper.ContentVersionId = qv.ContentVersionId__c;
+            wrapper.IsActive = qv.Is_Active__c;
+            wrapper.CreatedDate = qv.CreatedDate;
+            wrapper.CreatedByName = qv.CreatedBy.Name;
+            
+            if (String.isNotBlank(qv.ContentVersionId__c) && cvMap.containsKey((Id)qv.ContentVersionId__c)) {
+                wrapper.ContentDocumentId = cvMap.get((Id)qv.ContentVersionId__c).ContentDocumentId;
+            }
+            results.add(wrapper);
+        }
+        return results;
+    }
+
+    public class QuoteVersionWrapper {
+        @AuraEnabled public String Id { get; set; }
+        @AuraEnabled public String Name { get; set; }
+        @AuraEnabled public String VersionLabel { get; set; }
+        @AuraEnabled public String Title { get; set; }
+        @AuraEnabled public String Description { get; set; }
+        @AuraEnabled public String ContentVersionId { get; set; }
+        @AuraEnabled public String ContentDocumentId { get; set; }
+        @AuraEnabled public Boolean IsActive { get; set; }
+        @AuraEnabled public Datetime CreatedDate { get; set; }
+        @AuraEnabled public String CreatedByName { get; set; }
     }
 
     /**
@@ -343,5 +388,21 @@ public with sharing class QuoteController {
     @AuraEnabled(cacheable=true)
     public static String getCurrentUserRole() {
         return [SELECT CPQ_Role__c FROM User WHERE Id = :UserInfo.getUserId()].CPQ_Role__c;
+    }
+
+    /**
+     * @description Fetches all discount tiers for a list of products, roles, or add-ons.
+     */
+    @AuraEnabled(cacheable=true)
+    public static List<Discount_Tier__c> getAllDiscountTiers(List<Id> itemIds) {
+        if(itemIds == null || itemIds.isEmpty()) return new List<Discount_Tier__c>();
+        return [
+            SELECT Id, Product__c, Resource_Role__c, Add_On__c, Lower_Bound__c, Upper_Bound__c, Discount_Percent__c
+            FROM Discount_Tier__c
+            WHERE Product__c IN :itemIds 
+               OR Resource_Role__c IN :itemIds 
+               OR Add_On__c IN :itemIds
+            ORDER BY Lower_Bound__c ASC
+        ];
     }
 }

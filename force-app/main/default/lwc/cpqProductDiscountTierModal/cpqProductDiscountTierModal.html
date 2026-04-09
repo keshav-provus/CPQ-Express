@@ -6,9 +6,15 @@
                 <button onclick={handleCancel} class="material-symbols-outlined text-outline hover:text-red-600 transition-colors">close</button>
             </div>
             <div class="p-8 space-y-6">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Quantity Range</label>
-                    <input type="text" data-field="Quantity_Range__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="e.g. 101 - 500 Units">
+                <div class="flex gap-4">
+                    <div class="space-y-1 flex-1">
+                        <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Lower Bound</label>
+                        <input type="number" data-field="Lower_Bound__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="e.g. 101">
+                    </div>
+                    <div class="space-y-1 flex-1">
+                        <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Upper Bound (Optional)</label>
+                        <input type="number" data-field="Upper_Bound__c" oninput={handleInputChange} class="w-full bg-surface-container-high border-none rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/40" placeholder="e.g. 500">
+                    </div>
                 </div>
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-outline uppercase tracking-widest">Discount %</label>

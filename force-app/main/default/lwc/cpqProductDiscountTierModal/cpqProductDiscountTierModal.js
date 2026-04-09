@@ -4,11 +4,16 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class CpqProductDiscountTierModal extends LightningElement {
     @api recordId;
+    @api objectApiName;
+    
     @track tier = {
         Name: '',
-        Quantity_Range__c: '',
+        Lower_Bound__c: null,
+        Upper_Bound__c: null,
         Discount_Percent__c: 0,
-        Product__c: ''
+        Product__c: null,
+        Resource_Role__c: null,
+        Add_On__c: null
     };
 
     handleInputChange(event) {
@@ -17,8 +22,17 @@ export default class CpqProductDiscountTierModal extends LightningElement {
     }
 
     handleSave() {
-        this.tier.Product__c = this.recordId;
-        this.tier.Name = this.tier.Quantity_Range__c;
+        if (this.objectApiName === 'Product__c' || !this.objectApiName) {
+            this.tier.Product__c = this.recordId;
+        } else if (this.objectApiName === 'Resource_Role__c') {
+            this.tier.Resource_Role__c = this.recordId;
+        } else if (this.objectApiName === 'Add_On__c') {
+            this.tier.Add_On__c = this.recordId;
+        }
+
+        let max = this.tier.Upper_Bound__c ? this.tier.Upper_Bound__c : '+';
+        this.tier.Name = `${this.tier.Lower_Bound__c || 0} - ${max}`;
+        
         createDiscountTier({ tier: this.tier })
             .then(() => {
                 this.dispatchEvent(new ShowToastEvent({

@@ -30,7 +30,8 @@
                         <th class="col-qty">Quantity</th>
                         <th class="col-money">Base Rate</th>
                         <th class="col-money">Unit Price</th>
-                        <th class="col-discount">Discount %</th>
+                        <th class="col-discount">Default Disc.</th>
+                        <th class="col-discount">Additional Disc. %</th>
                         <th class="col-total">Total Price</th>
                     </tr>
                 </thead>
@@ -139,6 +140,9 @@
                                     </template>
                                 </td>
                                 <td class="phase-cell">
+                                    <!-- Aggregated default discount not supported -->
+                                </td>
+                                <td class="phase-cell">
                                     <template if:true={row.isCollapsed}>
                                         <span class="phase-agg-value">{row.aggDiscount}</span>
                                     </template>
@@ -190,6 +194,9 @@
                                 </td>
                                 <td class="money">{row.formattedBaseRate}</td>
                                 <td class="money link-price">{row.formattedUnitPrice}</td>
+                                <td class="readonly-cell">
+                                    {row.formattedDefaultDiscount}
+                                </td>
                                 <td class="editable-cell">
                                     <input type="number" value={row.Discount_Percent__c} min="0" max="100"
                                            data-id={row.Id} data-field="Discount_Percent__c"
@@ -207,7 +214,7 @@
                         <td class="sticky-left-1 total-label-cell" colspan="1"></td>
                         <td class="sticky-left-2 total-label-cell" colspan="1"></td>
                         <td class="sticky-left-3 total-label-cell"><strong>Total</strong></td>
-                        <td colspan="6"></td>
+                        <td colspan="7"></td>
                         <td class="money total-price" style="font-weight:700;">{grandTotal}</td>
                     </tr>
                 </tbody>

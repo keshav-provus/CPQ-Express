@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Net_Total__c</fullName>
     <description>Total amount for this line item after discount.</description>
-    <formula>Quantity__c * Unit_Price__c * (1 - Discount_Percent__c)</formula>
+    <formula>Quantity__c * Unit_Price__c * (1 - (NULLVALUE(Default_Discount__c, 0) + NULLVALUE(Discount_Percent__c, 0)))</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
     <label>Net Total</label>
     <precision>18</precision>

@@ -10,6 +10,7 @@ public with sharing class QuoteLineItemService {
         public Id productId;
         public Integer quantity;
         public Decimal discountPercent;
+        public Decimal defaultDiscount;
         public String phase;
     }
 
@@ -20,6 +21,7 @@ public with sharing class QuoteLineItemService {
         public Id lineItemId;
         public Integer quantity;
         public Decimal discountPercent;
+        public Decimal defaultDiscount;
         public String phase;
     }
 
@@ -83,6 +85,9 @@ public with sharing class QuoteLineItemService {
             qli.Unit_Cost__c = product.Cost__c;
             qli.Quantity__c = qty;
             qli.Discount_Percent__c = discount;
+            if (opts != null && opts.defaultDiscount != null) {
+                qli.Default_Discount__c = opts.defaultDiscount;
+            }
             qli.Phase__c = (opts != null && String.isNotBlank(opts.phase)) ? opts.phase : 'Default';
             newQLIs.add(qli);
         }
@@ -115,6 +120,7 @@ public with sharing class QuoteLineItemService {
             Quote_Line_Item__c qli = new Quote_Line_Item__c(Id = up.lineItemId);
             if (up.quantity != null) qli.Quantity__c = up.quantity;
             if (up.discountPercent != null) qli.Discount_Percent__c = up.discountPercent;
+            if (up.defaultDiscount != null) qli.Default_Discount__c = up.defaultDiscount;
             if (String.isNotBlank(up.phase)) qli.Phase__c = up.phase;
             qlisToUpdate.add(qli);
         }

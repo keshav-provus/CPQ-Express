@@ -129,23 +129,7 @@
                   <div>
                     <div class="two-col">
                       <div style="display:flex;flex-direction:column;gap:12px;">
-                        <div class="card">
-                          <div class="card-title">Discount tiers</div>
-                          <table class="tiers-table">
-                            <thead><tr><th>Quantity range</th><th>Discount %</th></tr></thead>
-                            <tbody>
-                              <template for:each={discountTiers} for:item="tier">
-                                  <tr key={tier.Id}>
-                                      <td>{tier.Quantity_Range__c} units</td>
-                                      <td class="disc">{tier.Discount_Percent__c}%</td>
-                                  </tr>
-                              </template>
-                              <template if:false={discountTiers.length}>
-                                  <tr><td colspan="2">No discount tiers defined.</td></tr>
-                              </template>
-                            </tbody>
-                          </table>
-                        </div>
+                        <c-cpq-product-discount-tiers record-id={recordId} object-api-name="Product__c"></c-cpq-product-discount-tiers>
                         <div class="card">
                           <div class="card-title">Product add-ons</div>
                           <div class="addons-list">

@@ -12,7 +12,7 @@ public with sharing class QuoteLineItemDAO {
         return [
             SELECT Id, Name, Product__c, Product__r.Name, Product__r.Product_Code__c,
                    Product__r.Product_Type__c, Quantity__c, Unit_Price__c, 
-                   Discount_Percent__c, Net_Total__c, Unit_Cost__c, Margin_Percent__c,
+                   Discount_Percent__c, Default_Discount__c, Net_Total__c, Unit_Cost__c, Margin_Percent__c,
                    Phase__c
             FROM Quote_Line_Item__c
             WHERE Quote__c = :quoteId

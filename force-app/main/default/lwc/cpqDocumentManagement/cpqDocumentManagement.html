@@ -23,17 +23,17 @@
                                     <span class="ver-time">{v.timeAgo}</span>
                                 </div>
 
-                                <div class="ver-label">{v.Version_Label__c}</div>
-                                <div class="ver-title">{v.Title__c}</div>
+                                <div class="ver-label">{v.VersionLabel}</div>
+                                <div class="ver-title">{v.Title}</div>
 
-                                <template if:true={v.Description__c}>
-                                    <p class="ver-desc">{v.Description__c}</p>
+                                <template if:true={v.Description}>
+                                    <p class="ver-desc">{v.Description}</p>
                                 </template>
 
                                 <div class="ver-footer">
                                     <div class="ver-user">
                                         <div class="ver-avatar">{v.initials}</div>
-                                        <span class="ver-username">{v.CreatedBy.Name}</span>
+                                        <span class="ver-username">{v.CreatedByName}</span>
                                     </div>
                                     <span class="ver-filetype">PDF</span>
                                 </div>
@@ -50,52 +50,7 @@
                     </template>
                 </div>
             </div>
-
-            <!-- Right: Preview -->
-            <div class="preview-card">
-                <template if:true={hasSelectedVersion}>
-                    <div class="preview-content">
-                        <!-- Preview image -->
-                        <div class="preview-image-wrap">
-                            <img src={previewImageUrl}
-                                 alt="Document preview"
-                                 class="preview-image"
-                                 onerror={handleImageError}>
-                            <template if:true={previewImageFailed}>
-                                <div class="preview-fallback">
-                                    <div class="fallback-icon">📄</div>
-                                    <p>Preview not available yet</p>
-                                    <p class="fallback-sub">Salesforce is generating the preview. Try refreshing in a moment.</p>
-                                </div>
-                            </template>
-                        </div>
-
-                        <!-- Action bar at bottom -->
-                        <div class="preview-actions">
-                            <div class="preview-info">
-                                <span class="preview-ver-name">{selectedVersionLabel}</span>
-                                <span class="preview-ver-title">{selectedVersionTitle}</span>
-                            </div>
-                            <div class="preview-btns">
-                                <button class="btn" onclick={handleOpenPreview}>
-                                    Open in New Tab
-                                </button>
-                                <button class="btn btn-primary" onclick={handleDownloadPdf}>
-                                    ⬇ Download
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-
-                <template if:false={hasSelectedVersion}>
-                    <div class="preview-empty">
-                        <div class="empty-icon">📄</div>
-                        <p class="empty-title">Select a version to preview</p>
-                        <p class="empty-sub">Click on any version from the sidebar to view the document.</p>
-                    </div>
-                </template>
-            </div>
+            <!-- The custom right preview panel has been removed to use Salesforce's standard File Preview modal upon clicking a version -->
         </div>
     </div>
 </template>

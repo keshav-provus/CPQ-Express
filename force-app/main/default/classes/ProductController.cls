@@ -43,10 +43,10 @@ public with sharing class ProductController {
     @AuraEnabled(cacheable=true)
     public static List<Discount_Tier__c> getProductDiscountTiers(Id productId) {
         return [
-            SELECT Id, Name, Quantity_Range__c, Discount_Percent__c
+            SELECT Id, Name, Lower_Bound__c, Upper_Bound__c, Discount_Percent__c
             FROM Discount_Tier__c
             WHERE Product__c = :productId
-            ORDER BY CreatedDate ASC
+            ORDER BY Lower_Bound__c ASC
         ];
     }
 
@@ -155,6 +155,16 @@ public with sharing class ProductController {
         ];
     }
 
+    @AuraEnabled(cacheable=true)
+    public static List<Discount_Tier__c> getResourceRoleDiscountTiers(Id roleId) {
+        return [
+            SELECT Id, Name, Lower_Bound__c, Upper_Bound__c, Discount_Percent__c
+            FROM Discount_Tier__c
+            WHERE Resource_Role__c = :roleId
+            ORDER BY Lower_Bound__c ASC
+        ];
+    }
+
     // ─── Add-ons ───
 
     @AuraEnabled(cacheable=true)
@@ -183,6 +193,16 @@ public with sharing class ProductController {
             AND Start_Date__c != null
             AND End_Date__c != null
             ORDER BY Start_Date__c ASC
+        ];
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Discount_Tier__c> getAddOnDiscountTiers(Id addOnId) {
+        return [
+            SELECT Id, Name, Lower_Bound__c, Upper_Bound__c, Discount_Percent__c
+            FROM Discount_Tier__c
+            WHERE Add_On__c = :addOnId
+            ORDER BY Lower_Bound__c ASC
         ];
     }
 }

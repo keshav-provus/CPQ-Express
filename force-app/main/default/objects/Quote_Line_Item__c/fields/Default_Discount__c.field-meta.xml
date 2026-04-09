@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Discount_Percent__c</fullName>
+    <fullName>Default_Discount__c</fullName>
     <defaultValue>0</defaultValue>
-    <description>Discount percentage applied to the unit price.</description>
-    <label>Additional Discount %</label>
+    <description>Auto-calculated volume discount percentage.</description>
+    <label>Default Discount %</label>
     <precision>5</precision>
     <required>false</required>
     <scale>2</scale>

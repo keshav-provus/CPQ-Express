@@ -1,14 +1,19 @@
 import { LightningElement, api, wire, track } from 'lwc';
-import getProductDiscountTiers from '@salesforce/apex/ProductController.getProductDiscountTiers';
+import getAllDiscountTiers from '@salesforce/apex/QuoteController.getAllDiscountTiers';
 import { refreshApex } from '@salesforce/apex';
 
 export default class CpqProductDiscountTiers extends LightningElement {
     @api recordId;
+    @api objectApiName;
     @track isModalOpen = false;
 
     wiredTiersResult;
 
-    @wire(getProductDiscountTiers, { productId: '$recordId' })
+    get itemIds() {
+        return this.recordId ? [this.recordId] : [];
+    }
+
+    @wire(getAllDiscountTiers, { itemIds: '$itemIds' })
     wiredTiers(result) {
         this.wiredTiersResult = result;
     }
