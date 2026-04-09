@@ -1,0 +1,54 @@
+<template>
+    <div class="slds-card slds-p-around_medium margin-card">
+        <h2 class="slds-text-heading_medium slds-m-bottom_small title-header">
+            <lightning-icon icon-name="utility:slider" size="small" class="slds-m-right_x-small"></lightning-icon>
+            Auto-Approval Margin Configuration
+        </h2>
+        <div class="slds-m-bottom_medium">
+            <p class="slds-text-color_weak slds-text-body_small">
+                Set the minimum margin percentage required for quotes to be automatically approved.
+                Quotes with a margin below this threshold will require your manual approval.
+            </p>
+        </div>
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+        </template>
+        <template if:false={isLoading}>
+            <div class="slds-grid slds-grid_vertical-align-end slds-gutters slider-container">
+                <div class="slds-col slds-size_2-of-3">
+                    <lightning-slider
+                        label="Minimum Required Margin (%)"
+                        value={marginValue}
+                        onchange={handleMarginChange}
+                        min="0"
+                        max="100"
+                        step="1"
+                        class="custom-slider">
+                    </lightning-slider>
+                </div>
+                <div class="slds-col slds-size_1-of-3 slds-text-align_right">
+                    <button class="btn btn-save" onclick={handleSave} disabled={isSaving}>
+                        <template if:true={isSaving}>Saving...</template>
+                        <template if:false={isSaving}>Save Threshold</template>
+                    </button>
+                </div>
+            </div>
+
+            <div class="slds-m-top_large status-preview">
+                <div class="preview-box">
+                    <div class="preview-header">Preview</div>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_small border-right">
+                            <span class="preview-label">Margin &ge; {marginValue}%</span>
+                            <div class="preview-badge badge-approved">Auto-Approved</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-p-around_small">
+                            <span class="preview-label">Margin &lt; {marginValue}%</span>
+                            <div class="preview-badge badge-pending">Requires Approval</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>
