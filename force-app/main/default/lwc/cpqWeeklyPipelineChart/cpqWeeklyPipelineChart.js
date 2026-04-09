@@ -2,8 +2,16 @@ import { LightningElement, track, wire } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import getWeeklyPipeline from '@salesforce/apex/DashboardController.getWeeklyPipeline';
 import chartjs from '@salesforce/resourceUrl/chartjs';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqWeeklyPipelineChart extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @track
     chartData = [];
     chartLoaded = false;
@@ -81,7 +89,7 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
                                     label += ': ';
                                 }
                                 if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(context.parsed.y);
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(context.parsed.y);
                                 }
                                 return label;
                             }

@@ -1,8 +1,16 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import getProductAddOns from '@salesforce/apex/ProductController.getProductAddOns';
 import { refreshApex } from '@salesforce/apex';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqProductAddOns extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @track isModalOpen = false;
 
@@ -17,7 +25,7 @@ export default class CpqProductAddOns extends LightningElement {
         return (this.wiredAddOnsResult?.data || []).map(addon => ({
             ...addon,
             displayName: addon.Name__c || addon.Name,
-            formattedPrice: new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(addon.Price__c || 0)
+            formattedPrice: new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(addon.Price__c || 0)
         }));
     }
 

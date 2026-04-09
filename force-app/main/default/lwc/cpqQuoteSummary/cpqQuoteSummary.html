@@ -21,10 +21,10 @@
                         <span class="rev-label">👤 Labor Revenue</span>
                         <span class="rev-pct">↗ {laborPercentage}%</span>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={laborRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-amount"><lightning-formatted-number value={laborRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
                     <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={laborCost} format-style="currency"></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={laborMargin} format-style="currency"></lightning-formatted-number>
+                        Cost: <lightning-formatted-number value={laborCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={laborMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
                     </div>
                     <div class="rev-sub">{laborCount} Resource Roles</div>
                 </div>
@@ -33,10 +33,10 @@
                         <span class="rev-label">📦 Products Revenue</span>
                         <span class="rev-pct">↘ {productPercentage}%</span>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-amount"><lightning-formatted-number value={productRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
                     <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={productCost} format-style="currency"></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={productMargin} format-style="currency"></lightning-formatted-number>
+                        Cost: <lightning-formatted-number value={productCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={productMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
                     </div>
                     <div class="rev-sub">{productCount} Products</div>
                 </div>
@@ -45,10 +45,10 @@
                         <span class="rev-label">➕ Add-ons Revenue</span>
                         <span class="rev-pct">↘ {addonPercentage}%</span>
                     </div>
-                    <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency"></lightning-formatted-number></div>
+                    <div class="rev-amount"><lightning-formatted-number value={addonRevenue} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div>
                     <div class="rev-meta">
-                        Cost: <lightning-formatted-number value={addonCost} format-style="currency"></lightning-formatted-number> •
-                        Margin: <lightning-formatted-number value={addonMargin} format-style="currency"></lightning-formatted-number>
+                        Cost: <lightning-formatted-number value={addonCost} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> •
+                        Margin: <lightning-formatted-number value={addonMargin} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
                     </div>
                     <div class="rev-sub">{addonCount} Add-on Items</div>
                 </div>
@@ -121,10 +121,10 @@
                             <template for:each={phaseRows} for:item="row">
                                 <tr key={row.phase}>
                                     <td>{row.phase}</td>
-                                    <td class="link"><lightning-formatted-number value={row.labor} format-style="currency"></lightning-formatted-number></td>
-                                    <td class="link"><lightning-formatted-number value={row.products} format-style="currency"></lightning-formatted-number></td>
-                                    <td class="link"><lightning-formatted-number value={row.addons} format-style="currency"></lightning-formatted-number></td>
-                                    <td><lightning-formatted-number value={row.total} format-style="currency"></lightning-formatted-number></td>
+                                    <td class="link"><lightning-formatted-number value={row.labor} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
+                                    <td class="link"><lightning-formatted-number value={row.products} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
+                                    <td class="link"><lightning-formatted-number value={row.addons} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
+                                    <td><lightning-formatted-number value={row.total} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></td>
                                     <td>{row.items}</td>
                                 </tr>
                             </template>

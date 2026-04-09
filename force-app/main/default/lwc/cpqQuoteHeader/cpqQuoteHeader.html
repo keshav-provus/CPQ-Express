@@ -48,23 +48,23 @@
         <div class="highlight-bar">
             <div class="highlight-item">
                 <span class="label">Total amount</span>
-                <strong class="value"><lightning-formatted-number value={totalAmount} format-style="currency"></lightning-formatted-number></strong>
+                <strong class="value"><lightning-formatted-number value={totalAmount} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></strong>
             </div>
             <div class="highlight-item">
                 <span class="label">Subtotal</span>
-                <strong class="value"><lightning-formatted-number value={subtotal} format-style="currency"></lightning-formatted-number></strong>
+                <strong class="value"><lightning-formatted-number value={subtotal} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></strong>
             </div>
             <div class="highlight-item">
                 <span class="label">Margin</span>
                 <strong class="value">
-                    <lightning-formatted-number value={marginAmount} format-style="currency"></lightning-formatted-number>
+                    <lightning-formatted-number value={marginAmount} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
                     ({margin}%) ℹ
                 </strong>
             </div>
             <div class="highlight-item">
                 <span class="label">Discount</span>
                 <strong class="value">
-                    <lightning-formatted-number value={discountDisplayAmount} format-style="currency"></lightning-formatted-number>
+                    <lightning-formatted-number value={discountDisplayAmount} format-style="currency" currency-code={currencyCode}></lightning-formatted-number>
                     (-{discountPercent}%)
                 </strong>
             </div>

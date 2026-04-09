@@ -14,8 +14,8 @@
                     </div>
                   </div>
                   <div class="hl-fields">
-                    <div class="hl-field"><div class="lbl">Avg. sales price</div><div class="val"><lightning-formatted-number value={product.Price__c} format-style="currency"></lightning-formatted-number></div></div>
-                    <div class="hl-field"><div class="lbl">Cost</div><div class="val" style="color:#0F6E56;"><lightning-formatted-number value={product.Cost__c} format-style="currency"></lightning-formatted-number></div></div>
+                    <div class="hl-field"><div class="lbl">Avg. sales price</div><div class="val"><lightning-formatted-number value={product.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
+                    <div class="hl-field"><div class="lbl">Cost</div><div class="val" style="color:#0F6E56;"><lightning-formatted-number value={product.Cost__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
                     <div class="hl-field"><div class="lbl">Default discount</div><div class="val">{product.Default_Discount__c}%</div></div>
                     <div class="hl-field"><div class="lbl">Billing unit</div><div class="val">{product.Billing_Unit__c}</div></div>
                     <div class="hl-field"><div class="lbl">Product code</div><div class="val">{product.Product_Code__c}</div></div>
@@ -152,7 +152,7 @@
                             <template for:each={addOns} for:item="addon">
                                 <div key={addon.Id} class="addon-row">
                                     <span class="an">{addon.Name__c}</span>
-                                    <span class="ap"><lightning-formatted-number value={addon.Price__c} format-style="currency"></lightning-formatted-number> / {addon.Billing_Unit__c}</span>
+                                    <span class="ap"><lightning-formatted-number value={addon.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> / {addon.Billing_Unit__c}</span>
                                 </div>
                             </template>
                             <template if:false={addOns.length}>
@@ -167,7 +167,7 @@
                         <div class="price-bar-labels"><span>Apr</span><span>Aug</span><span>Dec</span><span>Mar</span></div>
                         <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;font-size:12px;">
                           <span style="color:var(--color-text-secondary);">Current MSRP</span>
-                          <span style="font-weight:500;"><lightning-formatted-number value={productPrice} format-style="currency"></lightning-formatted-number></span>
+                          <span style="font-weight:500;"><lightning-formatted-number value={productPrice} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></span>
                         </div>
                       </div>
                     </div>

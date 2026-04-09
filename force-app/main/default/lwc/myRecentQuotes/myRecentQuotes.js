@@ -1,7 +1,15 @@
 import { LightningElement, wire, track } from 'lwc';
 import getPendingActionItems from '@salesforce/apex/DashboardController.getPendingActionItems';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class MyRecentQuotes extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @track items = [];
     @track isLoading = true;
 
@@ -34,7 +42,7 @@ export default class MyRecentQuotes extends LightningElement {
         if (!value && value !== 0) return '$0.00';
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: undefined,
+            currency: this.currencyCode,
             minimumFractionDigits: 2
         }).format(value);
     }

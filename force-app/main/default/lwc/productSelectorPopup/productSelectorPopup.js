@@ -4,6 +4,7 @@ import { CloseActionScreenEvent } from 'lightning/actions';
 import { notifyRecordUpdateAvailable } from 'lightning/uiRecordApi';
 import getActiveProducts from '@salesforce/apex/ProductController.getActiveProducts';
 import addLineItemsFromProducts from '@salesforce/apex/QuoteController.addLineItemsFromProducts';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 const PRODUCT_COLUMNS = [
     {
@@ -34,7 +35,7 @@ const PRODUCT_COLUMNS = [
         label: 'Price',
         fieldName: 'Price__c',
         type: 'currency',
-        typeAttributes: { currencyCode: undefined },
+        typeAttributes: { currencyCode: this.currencyCode },
         sortable: true,
         cellAttributes: { class: 'slds-text-color_success' }
     },
@@ -42,7 +43,7 @@ const PRODUCT_COLUMNS = [
         label: 'Cost',
         fieldName: 'Cost__c',
         type: 'currency',
-        typeAttributes: { currencyCode: undefined },
+        typeAttributes: { currencyCode: this.currencyCode },
         sortable: true
     },
     {

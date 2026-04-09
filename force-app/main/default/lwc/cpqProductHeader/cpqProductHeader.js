@@ -1,8 +1,16 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire} from 'lwc';
 import updateProduct from '@salesforce/apex/ProductController.updateProduct';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqProductHeader extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api product;
 

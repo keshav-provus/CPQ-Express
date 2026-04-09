@@ -4,10 +4,18 @@ import QUOTE_NAME_FIELD from '@salesforce/schema/Quote__c.Name';
 import STATUS_FIELD from '@salesforce/schema/Quote__c.Status__c';
 import TOTAL_AMOUNT_FIELD from '@salesforce/schema/Quote__c.Total_Amount__c';
 import MARGIN_FIELD from '@salesforce/schema/Quote__c.Margin_Percent__c';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 const FIELDS = [QUOTE_NAME_FIELD, STATUS_FIELD, TOTAL_AMOUNT_FIELD, MARGIN_FIELD];
 
 export default class QuoteHeader extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
 
     @wire(getRecord, { recordId: '$recordId', fields: FIELDS })

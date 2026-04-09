@@ -2,8 +2,16 @@ import { LightningElement, wire, track } from 'lwc';
 import getQuotesNeedingApproval from '@salesforce/apex/DashboardController.getQuotesNeedingApproval';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqPendingQuotes extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @track quotes;
     wiredQuotesResult;
 
@@ -28,7 +36,7 @@ export default class CpqPendingQuotes extends LightningElement {
             AccountName: quote.Account__r ? quote.Account__r.Name : 'No Account',
             formattedAmount: new Intl.NumberFormat('en-US', {
                 style: 'currency',
-                currency: undefined,
+                currency: this.currencyCode,
                 maximumFractionDigits: 0
             }).format(quote.Total_Amount__c || 0),
             formattedDate: new Date(quote.CreatedDate).toLocaleDateString('en-GB', {

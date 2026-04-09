@@ -1,5 +1,6 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 // Bar colors by item type
 const TYPE_COLORS = {
@@ -12,6 +13,13 @@ const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'
 const MONTH_WIDTH = 120; // px per month
 
 export default class CpqQuoteTimeline extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api lineItems = [];
     @api quoteData;
@@ -266,7 +274,7 @@ export default class CpqQuoteTimeline extends LightningElement {
     }
 
     _formatCurrency(value) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(value || 0);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(value || 0);
     }
 
     // ─── Tooltip ───

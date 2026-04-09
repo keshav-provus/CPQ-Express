@@ -165,6 +165,15 @@ public with sharing class AdminSettingsController {
     // ─── Currency Settings & Batch Execution ───
 
     @AuraEnabled(cacheable=true)
+    public static String getDefaultCurrency() {
+        Company_Settings__c s = Company_Settings__c.getOrgDefaults();
+        if (s != null && s.Default_Currency__c != null) {
+            return s.Default_Currency__c;
+        }
+        return 'USD';
+    }
+
+    @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> getAvailableCurrencies() {
         List<Map<String, String>> currList = new List<Map<String, String>>();
         List<SObject> currencies = Database.query('SELECT IsoCode, ConversionRate FROM CurrencyType WHERE IsActive = true');

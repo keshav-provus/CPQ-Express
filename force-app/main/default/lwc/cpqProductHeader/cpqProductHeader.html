@@ -27,7 +27,7 @@
                     <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">+4.2%</span>
                 </div>
                 <p class="text-outline text-[10px] font-bold uppercase tracking-widest mb-1">Avg. Sales Price</p>
-                <p class="text-2xl font-black font-headline text-on-surface"><lightning-formatted-number value={avgSalesPrice} format-style="currency"></lightning-formatted-number></p>
+                <p class="text-2xl font-black font-headline text-on-surface"><lightning-formatted-number value={avgSalesPrice} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></p>
             </div>
             <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.06)] border border-transparent transition-all hover:translate-y-[-2px]">
                 <div class="flex justify-between items-start mb-4">

@@ -1,4 +1,4 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire} from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import submitForApproval from '@salesforce/apex/QuoteController.submitForApproval';
 import recallApproval from '@salesforce/apex/QuoteController.recallApproval';
@@ -7,9 +7,16 @@ import rejectQuote from '@salesforce/apex/QuoteController.rejectQuote';
 import generateQuotePdf from '@salesforce/apex/QuoteController.generateQuotePdf';
 import getTemplates from '@salesforce/apex/QuoteTemplateController.getTemplates';
 import getCurrentUserRole from '@salesforce/apex/QuoteController.getCurrentUserRole';
-import { wire } from 'lwc';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqQuoteHeader extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api quoteData;
     @api lineItems = [];

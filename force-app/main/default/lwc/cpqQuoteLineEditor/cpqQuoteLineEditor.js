@@ -5,6 +5,7 @@ import deletePhaseItems from '@salesforce/apex/QuoteLineItemController.deletePha
 import getPhaseList from '@salesforce/apex/QuoteLineItemController.getPhaseList';
 import savePhaseList from '@salesforce/apex/QuoteLineItemController.savePhaseList';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 // Pastel color palette for phases
 const PHASE_COLORS = [
@@ -19,6 +20,13 @@ const PHASE_COLORS = [
 ];
 
 export default class CpqQuoteLineEditor extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api lineItems = [];
     @api quoteData;
@@ -244,7 +252,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     formatCurrency(value) {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: undefined,
+            currency: this.currencyCode,
         }).format(value || 0);
     }
 

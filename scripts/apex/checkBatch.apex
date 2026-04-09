@@ -1,0 +1,1 @@
+for (AsyncApexJob j : [SELECT Id, Status, JobType, ApexClass.Name, NumberOfErrors, ExtendedStatus FROM AsyncApexJob WHERE ApexClass.Name = 'CurrencyConverterBatch' ORDER BY CreatedDate DESC LIMIT 10]) { System.debug(j.ApexClass.Name + ' | Status: ' + j.Status + ' | Errors: ' + j.NumberOfErrors + ' | Extended: ' + j.ExtendedStatus); }

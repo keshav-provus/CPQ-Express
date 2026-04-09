@@ -3,8 +3,16 @@ import getProductById from '@salesforce/apex/ProductController.getProductById';
 import getProductUsage from '@salesforce/apex/ProductController.getProductUsage';
 import getProductDiscountTiers from '@salesforce/apex/ProductController.getProductDiscountTiers';
 import getProductAddOns from '@salesforce/apex/ProductController.getProductAddOns';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqProductRecordPage extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     
     @track activeTab = 'timeline';
@@ -172,7 +180,7 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     get formattedKpiRevenue() {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined, minimumFractionDigits: 0 }).format(this.kpiRevenue);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, minimumFractionDigits: 0 }).format(this.kpiRevenue);
     }
     
     get productPrice() {

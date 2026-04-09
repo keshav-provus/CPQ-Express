@@ -2,8 +2,16 @@ import { LightningElement, api, wire, track } from 'lwc';
 import getLineItemSummary from '@salesforce/apex/QuoteLineItemController.getLineItemSummary';
 import getLineItemsByPhase from '@salesforce/apex/QuoteLineItemController.getLineItemsByPhase';
 import { refreshApex } from '@salesforce/apex';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqQuoteSummary extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api quoteData;
     @api lineItems = [];

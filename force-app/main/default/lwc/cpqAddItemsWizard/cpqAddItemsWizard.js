@@ -4,8 +4,16 @@ import getProducts from '@salesforce/apex/QuoteController.getProducts';
 import getAddOns from '@salesforce/apex/QuoteController.getAddOns';
 import addLineItems from '@salesforce/apex/QuoteLineItemController.addLineItems';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqAddItemsWizard extends LightningElement {
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
     @api recordId;
     @api targetPhase = 'Default';
 
@@ -54,7 +62,7 @@ export default class CpqAddItemsWizard extends LightningElement {
     }
 
     formatPrice(price, unit) {
-        const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: undefined }).format(price || 0);
+        const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(price || 0);
         return `${formatted}/${unit || 'Unit'}`;
     }
 
