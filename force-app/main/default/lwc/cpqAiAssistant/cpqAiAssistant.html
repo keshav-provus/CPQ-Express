@@ -19,11 +19,90 @@
         <div class="chat-body">
             <template for:each={messages} for:item="msg">
                 <div key={msg.id} class={msg.bubbleClass}>
+
+                    <!-- AI Avatar -->
                     <template if:true={msg.isAssistant}>
                         <div class="avatar ai-avatar">✦</div>
                     </template>
+
                     <div class="msg-content">
-                        <lightning-formatted-rich-text value={msg.text} class="msg-text"></lightning-formatted-rich-text>
+
+                        <!-- ── Text / Action Result Messages ── -->
+                        <template if:true={msg.isTextType}>
+                            <div class="msg-text">
+                                <lightning-formatted-rich-text value={msg.text}></lightning-formatted-rich-text>
+                            </div>
+                        </template>
+
+                        <!-- ── Summary Messages ── -->
+                        <template if:true={msg.isSummaryType}>
+                            <div class="msg-text">
+                                <lightning-formatted-rich-text value={msg.text}></lightning-formatted-rich-text>
+                            </div>
+                            <template if:true={msg.hasSummaryData}>
+                                <div class="summary-card">
+                                    <div class="summary-kpi-row">
+                                        <div class="summary-kpi">
+                                            <span class="kpi-label">Revenue</span>
+                                            <span class="kpi-value">${msg.data.totalAmount}</span>
+                                        </div>
+                                        <div class="summary-kpi">
+                                            <span class="kpi-label">Margin</span>
+                                            <span class="kpi-value">{msg.data.marginPercent}%</span>
+                                        </div>
+                                        <div class="summary-kpi">
+                                            <span class="kpi-label">Items</span>
+                                            <span class="kpi-value">{msg.data.lineItemCount}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+
+                        <!-- ── Insight Messages ── -->
+                        <template if:true={msg.isInsightType}>
+                            <div class="msg-text">
+                                <lightning-formatted-rich-text value={msg.text}></lightning-formatted-rich-text>
+                            </div>
+                            <template if:true={msg.hasInsightData}>
+                                <div class="insight-bar">
+                                    <span class="insight-label">Margin Health</span>
+                                    <div class="insight-meter">
+                                        <div class="insight-fill" style={msg.data.marginPercent}></div>
+                                    </div>
+                                    <span class="insight-value">{msg.data.approvalLikelihood}</span>
+                                </div>
+                            </template>
+                        </template>
+
+                        <!-- ── Disambiguation Messages ── -->
+                        <template if:true={msg.isDisambiguationType}>
+                            <div class="msg-text">
+                                <lightning-formatted-rich-text value={msg.text}></lightning-formatted-rich-text>
+                            </div>
+                            <template if:true={msg.hasOptions}>
+                                <div class="options-list">
+                                    <template for:each={msg.options} for:item="option">
+                                        <button key={option.id}
+                                                class="option-card"
+                                                data-id={option.id}
+                                                data-type={option.type}
+                                                data-name={option.name}
+                                                data-accountid={option.accountId}
+                                                onclick={handleOptionSelect}>
+                                            <span class="option-icon">{option.icon}</span>
+                                            <div class="option-info">
+                                                <span class="option-name">{option.name}</span>
+                                                <span class="option-detail">{option.detail} · {option.type}</span>
+                                            </div>
+                                            <span class="option-arrow">→</span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                        </template>
+
+                        <!-- Timestamp -->
                         <div class="msg-time">{msg.timestamp}</div>
                     </div>
                 </div>
@@ -61,7 +140,7 @@
             <div class="input-wrap">
                 <input type="text"
                        class="chat-input"
-                       placeholder="Ask me anything about your quote..."
+                       placeholder="Ask anything — try 'Add developer' or 'Analyze this quote'..."
                        value={inputValue}
                        onchange={handleInputChange}
                        onkeydown={handleKeyDown}>
@@ -70,7 +149,7 @@
                 </button>
             </div>
             <div class="input-hint">
-                <span class="shield-icon">🛡️</span> Secure • Respects your permissions
+                <span class="shield-icon">🛡️</span> Secure · Full catalog awareness · Respects permissions
             </div>
         </div>
     </div>

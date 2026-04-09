@@ -20,7 +20,7 @@
             <table class="li-table">
                 <thead>
                     <tr>
-                        <th class="col-check sticky-left-0"><input type="checkbox" onchange={toggleSelectAll}></th>
+                        <th class="col-check sticky-left-0"><input disabled={isReadOnly} type="checkbox" onchange={toggleSelectAll}></th>
                         <th class="col-drag sticky-left-1"></th>
                         <th class="col-icon sticky-left-2"></th>
                         <th class="col-name sticky-left-3">Name</th>
@@ -46,7 +46,7 @@
                                 ondragleave={handleDragLeave}
                                 ondrop={handlePhaseDrop}>
                                 <td class="sticky-left-0 phase-cell" style={row.phaseBgStyle}>
-                                    <input type="checkbox"
+                                    <input disabled={isReadOnly} type="checkbox"
                                            data-target-phase={row.name}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
@@ -66,7 +66,7 @@
                                             <strong class="phase-label" data-phase={row.name} ondblclick={handlePhaseNameDblClick}>{row.name}</strong>
                                         </template>
                                         <template if:true={row.isEditing}>
-                                            <input type="text" class="phase-name-input"
+                                            <input disabled={isReadOnly} type="text" class="phase-name-input"
                                                    value={row.editValue}
                                                    onchange={handlePhaseNameChange}
                                                    onblur={handlePhaseNameBlur}
@@ -85,7 +85,7 @@
                                     <template if:false={row.isCollapsed}>
                                         <div class="phase-date-wrap">
                                             <template if:true={row.hasStartDate}>
-                                                <input type="date" class="phase-date-input"
+                                                <input disabled={isReadOnly} type="date" class="phase-date-input"
                                                        data-phase={row.name}
                                                        data-field="startDate"
                                                        value={row.startDate}
@@ -108,7 +108,7 @@
                                     <template if:false={row.isCollapsed}>
                                         <div class="phase-date-wrap">
                                             <template if:true={row.hasEndDate}>
-                                                <input type="date" class="phase-date-input"
+                                                <input disabled={isReadOnly} type="date" class="phase-date-input"
                                                        data-phase={row.name}
                                                        data-field="endDate"
                                                        value={row.endDate}
@@ -167,7 +167,7 @@
                                 ondragleave={handleDragLeave}
                                 ondrop={handleDrop}>
                                 <td class="sticky-left-0" style={row.stickyBgStyle}>
-                                    <input type="checkbox"
+                                    <input disabled={isReadOnly} type="checkbox"
                                            data-id={row.Id}
                                            checked={row.isSelected}
                                            onchange={toggleSelect}>
@@ -186,21 +186,21 @@
                                 </td>
 
                                 <td class="date-cell">
-                                    <input type="date" class="date-input"
+                                    <input disabled={isReadOnly} type="date" class="date-input"
                                            value={row.Start_Date__c}
                                            data-id={row.Id}
                                            data-field="Start_Date__c"
                                            onchange={handleUpdateItem}>
                                 </td>
                                 <td class="date-cell">
-                                    <input type="date" class="date-input"
+                                    <input disabled={isReadOnly} type="date" class="date-input"
                                            value={row.End_Date__c}
                                            data-id={row.Id}
                                            data-field="End_Date__c"
                                            onchange={handleUpdateItem}>
                                 </td>
                                 <td class="editable-cell">
-                                    <input type="number" value={row.Quantity__c} min="0" step="0.5"
+                                    <input disabled={isReadOnly} type="number" value={row.Quantity__c} min="0" step="0.5"
                                            data-id={row.Id} data-field="Quantity__c"
                                            onchange={handleUpdateItem}>
                                 </td>
@@ -210,7 +210,7 @@
                                     {row.formattedDefaultDiscount}
                                 </td>
                                 <td class="editable-cell">
-                                    <input type="number" value={row.Discount_Percent__c} min="0" max="100"
+                                    <input disabled={isReadOnly} type="number" value={row.Discount_Percent__c} min="0" max="100"
                                            data-id={row.Id} data-field="Discount_Percent__c"
                                            onchange={handleUpdateItem}>
                                     <span class="pct-symbol">%</span>

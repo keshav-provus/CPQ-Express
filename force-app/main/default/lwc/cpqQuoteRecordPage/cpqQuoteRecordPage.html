@@ -67,14 +67,14 @@
 
         <!-- AI Assistant Panel -->
         <template if:true={isAiOpen}>
-            <div class="ai-overlay" onclick={handleAiClose}></div>
             <div class="ai-panel-container">
                 <c-cpq-ai-assistant
                     record-id={recordId}
                     quote-data={quoteData}
                     line-items={lineItems}
                     onclose={handleAiClose}
-                    onrefresh={handleRefresh}>
+                    onrefresh={handleRefresh}
+                    onnavigate={handleAiNavigate}>
                 </c-cpq-ai-assistant>
             </div>
         </template>

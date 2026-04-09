@@ -103,6 +103,10 @@ export default class CpqQuoteLineEditor extends LightningElement {
         return this.quoteData?.Status__c === 'Draft';
     }
 
+    get isReadOnly() {
+        return !this.isEditable;
+    }
+
     // ─── Snapshot for Undo ───
     _takeSnapshot() {
         this._snapshotJson = JSON.stringify({
@@ -687,6 +691,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
     }
 
     handleUpdateItem(event) {
+        if (!this.isEditable) return;
         const itemId = event.target.dataset.id;
         const field = event.target.dataset.field;
         let value = event.target.value;

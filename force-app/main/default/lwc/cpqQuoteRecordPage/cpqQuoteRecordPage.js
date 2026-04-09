@@ -1,10 +1,11 @@
 import { LightningElement, api, wire, track } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
+import { NavigationMixin } from 'lightning/navigation';
 import getQuoteById from '@salesforce/apex/QuoteController.getQuoteById';
 import getLineItems from '@salesforce/apex/QuoteLineItemController.getLineItems';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-export default class CpqQuoteRecordPage extends LightningElement {
+export default class CpqQuoteRecordPage extends NavigationMixin(LightningElement) {
     @api recordId;
 
     @track activeTab = 'summary';
@@ -88,5 +89,19 @@ export default class CpqQuoteRecordPage extends LightningElement {
 
     handleAiClose() {
         this.isAiOpen = false;
+    }
+
+    handleAiNavigate(event) {
+        const newRecordId = event.detail?.recordId;
+        if (newRecordId) {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: newRecordId,
+                    objectApiName: 'Quote__c',
+                    actionName: 'view'
+                }
+            });
+        }
     }
 }

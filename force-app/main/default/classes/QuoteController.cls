@@ -412,7 +412,17 @@ public with sharing class QuoteController {
      */
     @AuraEnabled(cacheable=true)
     public static String getCurrentUserRole() {
-        return [SELECT CPQ_Role__c FROM User WHERE Id = :UserInfo.getUserId()].CPQ_Role__c;
+        User u = [SELECT CPQ_Role__c, Profile.Name FROM User WHERE Id = :UserInfo.getUserId()];
+        if (String.isNotBlank(u.CPQ_Role__c)) {
+            return u.CPQ_Role__c;
+        }
+        if (u.Profile.Name == 'System Administrator' || u.Profile.Name == 'Admin') {
+            return 'Admin';
+        }
+        if (u.Profile.Name.contains('Manager')) {
+            return 'Manager';
+        }
+        return 'User';
     }
 
     /**
