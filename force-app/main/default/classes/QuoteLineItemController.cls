@@ -425,30 +425,46 @@ public with sharing class QuoteLineItemController {
      */
     @AuraEnabled(cacheable=true)
     public static Map<String, Object> getLineItemSummary(Id quoteId) {
-        AggregateResult[] results = [
-            SELECT Item_Type__c type,
-                   SUM(Net_Total__c) totalRevenue,
-                   SUM(Total_Line_Cost__c) totalCost,
-                   COUNT(Id) itemCount
+        List<Quote_Line_Item__c> qlis = [
+            SELECT Item_Type__c, Net_Total__c, Total_Line_Cost__c, Unit_Price__c, Quantity__c
             FROM Quote_Line_Item__c
             WHERE Quote__c = :quoteId
-            GROUP BY Item_Type__c
         ];
 
-        Map<String, Object> summary = new Map<String, Object>();
+        Map<String, Map<String, Object>> typeMap = new Map<String, Map<String, Object>>();
         Decimal grandTotal = 0;
+        Decimal subtotal = 0;
 
-        for (AggregateResult r : results) {
-            Decimal rev = (Decimal) r.get('totalRevenue');
-            if (rev != null) grandTotal += rev;
+        for (Quote_Line_Item__c qli : qlis) {
+            String type = qli.Item_Type__c;
+            if (type == null) type = 'Default';
+            if (!typeMap.containsKey(type)) {
+                typeMap.put(type, new Map<String, Object>{
+                    'revenue' => (Decimal)0.0, 'cost' => (Decimal)0.0, 'count' => (Integer)0
+                });
+            }
+            Map<String, Object> current = typeMap.get(type);
+
+            Decimal r = qli.Net_Total__c != null ? qli.Net_Total__c : 0;
+            Decimal c = qli.Total_Line_Cost__c != null ? qli.Total_Line_Cost__c : 0;
+
+            current.put('revenue', (Decimal)current.get('revenue') + r);
+            current.put('cost', (Decimal)current.get('cost') + c);
+            current.put('count', (Integer)current.get('count') + 1);
+
+            grandTotal += r;
+            if (qli.Unit_Price__c != null && qli.Quantity__c != null) {
+                subtotal += (qli.Unit_Price__c * qli.Quantity__c);
+            }
         }
 
-        for (AggregateResult r : results) {
-            String type = (String) r.get('type');
-            Decimal revenue = (Decimal) r.get('totalRevenue') != null ? (Decimal) r.get('totalRevenue') : 0;
-            Decimal cost = (Decimal) r.get('totalCost') != null ? (Decimal) r.get('totalCost') : 0;
+        Map<String, Object> summary = new Map<String, Object>();
+        for (String type : typeMap.keySet()) {
+            Map<String, Object> current = typeMap.get(type);
+            Decimal revenue = (Decimal)current.get('revenue');
+            Decimal cost = (Decimal)current.get('cost');
+            Integer count = (Integer)current.get('count');
             Decimal margin = revenue - cost;
-            Integer count = (Integer) r.get('itemCount');
             Decimal percentage = grandTotal > 0 ? (revenue / grandTotal * 100).setScale(1) : 0;
 
             summary.put(type, new Map<String, Object>{
@@ -458,12 +474,6 @@ public with sharing class QuoteLineItemController {
                 'count'      => count,
                 'percentage' => percentage
             });
-        }
-
-        List<Quote_Line_Item__c> items = [SELECT Unit_Price__c, Quantity__c FROM Quote_Line_Item__c WHERE Quote__c = :quoteId];
-        Decimal subtotal = 0;
-        for (Quote_Line_Item__c item : items) {
-            if (item.Unit_Price__c != null && item.Quantity__c != null) subtotal += (item.Unit_Price__c * item.Quantity__c);
         }
 
         summary.put('grandTotal', grandTotal);
@@ -476,51 +486,50 @@ public with sharing class QuoteLineItemController {
      */
     @AuraEnabled(cacheable=true)
     public static List<Map<String, Object>> getLineItemsByPhase(Id quoteId) {
-        AggregateResult[] results = [
-            SELECT Phase__c phase,
-                   Item_Type__c type,
-                   SUM(Net_Total__c) totalPrice,
-                   COUNT(Id) itemCount
+        List<Quote_Line_Item__c> qlis = [
+            SELECT Phase__c, Item_Type__c, Net_Total__c
             FROM Quote_Line_Item__c
             WHERE Quote__c = :quoteId
-            GROUP BY Phase__c, Item_Type__c
-            ORDER BY Phase__c
         ];
 
         Map<String, Map<String, Object>> phaseMap = new Map<String, Map<String, Object>>();
 
-        for (AggregateResult r : results) {
-            String  phase = (String)  r.get('phase');
-            String  type  = (String)  r.get('type');
-            Decimal price = (Decimal) r.get('totalPrice');
-            Integer count = (Integer) r.get('itemCount');
+        for (Quote_Line_Item__c qli : qlis) {
+            String phase = qli.Phase__c;
+            String type = qli.Item_Type__c;
+            Decimal price = qli.Net_Total__c != null ? qli.Net_Total__c : 0;
 
             if (phase == null) phase = 'Default';
-            if (price == null) price = 0;
 
             if (!phaseMap.containsKey(phase)) {
                 phaseMap.put(phase, new Map<String, Object>{
                     'phase'    => phase,
-                    'labor'    => 0,
-                    'products' => 0,
-                    'addons'   => 0,
-                    'total'    => 0,
-                    'items'    => 0
+                    'labor'    => (Decimal)0.0,
+                    'products' => (Decimal)0.0,
+                    'addons'   => (Decimal)0.0,
+                    'total'    => (Decimal)0.0,
+                    'items'    => (Integer)0
                 });
             }
 
             Map<String, Object> phaseData = phaseMap.get(phase);
-            Decimal currentTotal = (Decimal) phaseData.get('total');
-            Integer currentItems = (Integer) phaseData.get('items');
-
+            
             if (type == 'Resource Role') phaseData.put('labor', (Decimal)phaseData.get('labor') + price);
             else if (type == 'Product') phaseData.put('products', (Decimal)phaseData.get('products') + price);
             else if (type == 'Add-on') phaseData.put('addons', (Decimal)phaseData.get('addons') + price);
 
-            phaseData.put('total', currentTotal + price);
-            phaseData.put('items', currentItems + count);
+            phaseData.put('total', (Decimal)phaseData.get('total') + price);
+            phaseData.put('items', (Integer)phaseData.get('items') + 1);
         }
 
-        return phaseMap.values();
+        List<String> phaseNames = new List<String>(phaseMap.keySet());
+        phaseNames.sort();
+        
+        List<Map<String, Object>> sortedResults = new List<Map<String, Object>>();
+        for (String p : phaseNames) {
+            sortedResults.add(phaseMap.get(p));
+        }
+
+        return sortedResults;
     }
 }

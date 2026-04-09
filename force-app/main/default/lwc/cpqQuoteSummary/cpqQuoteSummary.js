@@ -8,7 +8,16 @@ export default class CpqQuoteSummary extends LightningElement {
     @api currencyCode = 'USD';
 
     @api recordId;
-    @api quoteData;
+    _quoteData;
+    @api 
+    get quoteData() { return this._quoteData; }
+    set quoteData(value) {
+        this._quoteData = value;
+        // Auto-refresh summary data when quote totals/headers update
+        if (this.wiredSummaryResult) {
+            this.refresh();
+        }
+    }
     @api lineItems = [];
 
     @track summaryData = {};

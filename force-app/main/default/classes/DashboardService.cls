@@ -217,17 +217,33 @@ public with sharing class DashboardService {
     public Map<String, Decimal> getManagerKPIs() {
         Map<String, Decimal> kpis = new Map<String, Decimal>();
 
-        // Total Pipeline & Pipeline Count
-        AggregateResult[] pipeline = [SELECT SUM(Total_Amount__c) totalAmount FROM Quote__c];
-        kpis.put('totalPipeline', !pipeline.isEmpty() && pipeline[0].get('totalAmount') != null ? (Decimal) pipeline[0].get('totalAmount') : 0);
+        // Total Revenue (from Approved quotes)
+        AggregateResult[] revenue = [SELECT SUM(Total_Amount__c) totalAmount FROM Quote__c WHERE Status__c = 'Approved'];
+        kpis.put('totalRevenue', !revenue.isEmpty() && revenue[0].get('totalAmount') != null ? (Decimal) revenue[0].get('totalAmount') : 0);
 
-        // Active Quotes (Draft or Submitted)
-        AggregateResult[] active = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c IN ('Draft', 'Submitted')];
+        // Total Pipeline & Pipeline Count
+        AggregateResult[] pipeline = [SELECT SUM(Total_Amount__c) totalAmount, AVG(Total_Amount__c) avgAmount, AVG(Margin_Percent__c) avgMargin FROM Quote__c];
+        kpis.put('totalPipeline', !pipeline.isEmpty() && pipeline[0].get('totalAmount') != null ? (Decimal) pipeline[0].get('totalAmount') : 0);
+        kpis.put('avgQuoteValue', !pipeline.isEmpty() && pipeline[0].get('avgAmount') != null ? ((Decimal) pipeline[0].get('avgAmount')).setScale(2) : 0);
+        kpis.put('avgMargin', !pipeline.isEmpty() && pipeline[0].get('avgMargin') != null ? ((Decimal) pipeline[0].get('avgMargin')).setScale(1) : 0);
+
+        // Active Quotes (Draft or Submitted or Pending Approval)
+        AggregateResult[] active = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c IN ('Draft', 'Submitted', 'Pending Approval')];
         kpis.put('activeQuotes', !active.isEmpty() && active[0].get('cnt') != null ? (Decimal) active[0].get('cnt') : 0);
 
-        // Approved Transactions
+        // Approved Count
         AggregateResult[] approved = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c = 'Approved'];
         kpis.put('approvedCount', !approved.isEmpty() && approved[0].get('cnt') != null ? (Decimal) approved[0].get('cnt') : 0);
+
+        // Rejected Count (for Win Rate calculation)
+        AggregateResult[] rejected = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c = 'Rejected'];
+        Decimal rejectedCount = !rejected.isEmpty() && rejected[0].get('cnt') != null ? (Decimal) rejected[0].get('cnt') : 0;
+        kpis.put('rejectedCount', rejectedCount);
+
+        // Win Rate: Approved / (Approved + Rejected)
+        Decimal approvedVal = kpis.get('approvedCount');
+        Decimal totalDecided = approvedVal + rejectedCount;
+        kpis.put('winRate', totalDecided > 0 ? (approvedVal / totalDecided * 100).setScale(1) : 0);
 
         // Catalog Size (Products)
         AggregateResult[] products = [SELECT COUNT(Id) cnt FROM Product__c WHERE Active__c = true];
@@ -433,7 +449,148 @@ public with sharing class DashboardService {
             'quotesByStatus' => getQuotesByStatus(),
             'weeklyPipeline' => getWeeklyPipeline(),
             'topReps' => getTopReps(),
-            'recentQuotes' => getTeamRecentQuotes()
+            'recentQuotes' => getTeamRecentQuotes(),
+            'quotesNeedingApproval' => getQuotesNeedingApproval(),
+            'topProducts' => getTopProducts(),
+            'topTransactions' => getTopTransactions()
+        };
+    }
+
+    // ─── SALES REP DASHBOARD METHODS ───
+
+    public Map<String, Decimal> getSalesRepKPIs() {
+        Id currentUserId = UserInfo.getUserId();
+        Map<String, Decimal> kpis = new Map<String, Decimal>();
+
+        // Total Revenue (from Approved quotes)
+        AggregateResult[] revenue = [SELECT SUM(Total_Amount__c) totalAmount FROM Quote__c WHERE Status__c = 'Approved' AND CreatedById = :currentUserId];
+        kpis.put('totalRevenue', !revenue.isEmpty() && revenue[0].get('totalAmount') != null ? (Decimal) revenue[0].get('totalAmount') : 0);
+
+        // Total Pipeline & Pipeline Count
+        AggregateResult[] pipeline = [SELECT SUM(Total_Amount__c) totalAmount, AVG(Total_Amount__c) avgAmount, AVG(Margin_Percent__c) avgMargin FROM Quote__c WHERE CreatedById = :currentUserId];
+        kpis.put('totalPipeline', !pipeline.isEmpty() && pipeline[0].get('totalAmount') != null ? (Decimal) pipeline[0].get('totalAmount') : 0);
+        kpis.put('avgQuoteValue', !pipeline.isEmpty() && pipeline[0].get('avgAmount') != null ? ((Decimal) pipeline[0].get('avgAmount')).setScale(2) : 0);
+        kpis.put('avgMargin', !pipeline.isEmpty() && pipeline[0].get('avgMargin') != null ? ((Decimal) pipeline[0].get('avgMargin')).setScale(1) : 0);
+
+        // Active Quotes (Draft or Submitted or Pending Approval)
+        AggregateResult[] active = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c IN ('Draft', 'Submitted', 'Pending Approval') AND CreatedById = :currentUserId];
+        kpis.put('activeQuotes', !active.isEmpty() && active[0].get('cnt') != null ? (Decimal) active[0].get('cnt') : 0);
+
+        // Approved Count
+        AggregateResult[] approved = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c = 'Approved' AND CreatedById = :currentUserId];
+        kpis.put('approvedCount', !approved.isEmpty() && approved[0].get('cnt') != null ? (Decimal) approved[0].get('cnt') : 0);
+
+        // Rejected Count (for Win Rate calculation)
+        AggregateResult[] rejected = [SELECT COUNT(Id) cnt FROM Quote__c WHERE Status__c = 'Rejected' AND CreatedById = :currentUserId];
+        Decimal rejectedCount = !rejected.isEmpty() && rejected[0].get('cnt') != null ? (Decimal) rejected[0].get('cnt') : 0;
+        kpis.put('rejectedCount', rejectedCount);
+
+        // Win Rate: Approved / (Approved + Rejected)
+        Decimal approvedVal = kpis.get('approvedCount');
+        Decimal totalDecided = approvedVal + rejectedCount;
+        kpis.put('winRate', totalDecided > 0 ? (approvedVal / totalDecided * 100).setScale(1) : 0);
+
+        return kpis;
+    }
+
+    public List<Map<String, Object>> getSalesRepWeeklyPipeline() {
+        Id currentUserId = UserInfo.getUserId();
+        List<Map<String, Object>> result = new List<Map<String, Object>>();
+        DateTime sevenDaysAgo = System.now().addDays(-7);
+        
+        List<AggregateResult> pipeline = [
+            SELECT DAY_ONLY(CreatedDate) dt, SUM(Total_Amount__c) val
+            FROM Quote__c
+            WHERE CreatedDate >= :sevenDaysAgo AND CreatedById = :currentUserId
+            GROUP BY DAY_ONLY(CreatedDate)
+            ORDER BY DAY_ONLY(CreatedDate) ASC
+        ];
+        
+        for (AggregateResult ar : pipeline) {
+            result.add(new Map<String, Object>{
+                'date' => String.valueOf((Date) ar.get('dt')),
+                'amount' => ar.get('val') != null ? (Decimal) ar.get('val') : 0
+            });
+        }
+        return result;
+    }
+
+    public List<Quote__c> getMyTopTransactions() {
+        Id currentUserId = UserInfo.getUserId();
+        return [
+            SELECT Id, Name, Account__r.Name, Total_Amount__c, CreatedDate
+            FROM Quote__c
+            WHERE Status__c = 'Approved' AND CreatedById = :currentUserId
+            ORDER BY Total_Amount__c DESC
+            LIMIT 4
+        ];
+    }
+
+    public List<Map<String, Object>> getMyTopProducts() {
+        Id currentUserId = UserInfo.getUserId();
+        List<Map<String, Object>> result = new List<Map<String, Object>>();
+        List<AggregateResult> topSelling = [
+            SELECT Product__c, Product__r.Name prodName, SUM(Quantity__c) qtySold
+            FROM Quote_Line_Item__c
+            WHERE Quote__r.CreatedById = :currentUserId
+            GROUP BY Product__c, Product__r.Name
+            ORDER BY SUM(Quantity__c) DESC NULLS LAST
+            LIMIT 3
+        ];
+        
+        for (AggregateResult ar : topSelling) {
+            result.add(new Map<String, Object>{
+                'productId' => (Id) ar.get('Product__c'),
+                'productName' => (String) ar.get('prodName'),
+                'quantitySold' => (Decimal) ar.get('qtySold')
+            });
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> getMyQuoteMapLocationsByCountry() {
+        Id currentUserId = UserInfo.getUserId();
+        List<Map<String, Object>> markers = new List<Map<String, Object>>();
+
+        List<AggregateResult> results = [
+            SELECT Account__r.BillingCountry country, COUNT(Id) quoteCount, SUM(Total_Amount__c) totalRevenue
+            FROM Quote__c
+            WHERE Status__c = 'Approved' AND Account__r.BillingCountry != null AND CreatedById = :currentUserId
+            GROUP BY Account__r.BillingCountry
+        ];
+
+        for (AggregateResult ar : results) {
+            String country = (String) ar.get('country');
+            Integer count = (Integer) ar.get('quoteCount');
+            Decimal totalRevenue = (Decimal) ar.get('totalRevenue');
+            if (totalRevenue != null) {
+                totalRevenue = totalRevenue.setScale(2);
+            } else {
+                totalRevenue = 0.00;
+            }
+
+            Map<String, Object> marker = new Map<String, Object>();
+            marker.put('value', country);
+            marker.put('title', country);
+            marker.put('description', 'Quotes: ' + count + ', Revenue: $' + totalRevenue);
+
+            Map<String, String> location = new Map<String, String>();
+            location.put('Country', country);
+            marker.put('location', location);
+
+            markers.add(marker);
+        }
+        return markers;
+    }
+
+    public Map<String, Object> getSalesRepDashboardPackage() {
+        return new Map<String, Object>{
+            'kpis' => getSalesRepKPIs(),
+            'weeklyPipeline' => getSalesRepWeeklyPipeline(),
+            'recentQuotes' => getMyRecentQuotes(),
+            'actionItems' => getPendingActionItems(),
+            'topProducts' => getMyTopProducts(),
+            'topTransactions' => getMyTopTransactions()
         };
     }
 }

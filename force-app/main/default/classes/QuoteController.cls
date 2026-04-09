@@ -29,7 +29,7 @@ public with sharing class QuoteController {
     public static Quote__c getQuoteById(Id recordId) {
         try {
             return [
-                SELECT Id, Name, Status__c, Opportunity__c, Opportunity__r.Name,
+                SELECT Id, Name, Status__c, Opportunity__c, Opportunity__r.Name, CurrencyIsoCode,
                        Account__c, Account__r.Name, CreatedById, CreatedBy.Name,
                        LastModifiedById, LastModifiedBy.Name, CreatedDate, LastModifiedDate,
                        Total_Amount__c, Total_Cost__c, Margin_Percent__c, Margin_Amount__c,

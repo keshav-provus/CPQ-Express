@@ -208,4 +208,42 @@ public with sharing class DashboardController {
             throw new AuraHandledException('Error fetching dashboard package: ' + e.getMessage());
         }
     }
+
+    // ─── SALES REP DASHBOARD ───
+
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Decimal> getSalesRepKPIs() {
+        try { return service.getSalesRepKPIs(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, Object>> getSalesRepWeeklyPipeline() {
+        try { return service.getSalesRepWeeklyPipeline(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Quote__c> getMyTopTransactions() {
+        try { return service.getMyTopTransactions(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, Object>> getMyTopProducts() {
+        try { return service.getMyTopProducts(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<Map<String, Object>> getMyQuoteMapLocationsByCountry() {
+        try { return service.getMyQuoteMapLocationsByCountry(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getSalesRepDashboardPackage() {
+        try { return service.getSalesRepDashboardPackage(); } 
+        catch (Exception e) { throw new AuraHandledException(e.getMessage()); }
+    }
 }

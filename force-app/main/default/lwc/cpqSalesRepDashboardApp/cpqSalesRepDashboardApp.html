@@ -1,0 +1,64 @@
+<template>
+    <div class="dashboard-shell">
+
+        <!-- ═══ Header ═══ -->
+        <header class="dash-header">
+            <div class="greeting">
+                <h1 class="greeting-text">Hello, {userName} <span class="wave">👋</span></h1>
+                <p class="greeting-sub">Here's a summary of your sales performance</p>
+            </div>
+            <button class="btn-start-quote" onclick={handleStartQuote}>
+                <lightning-icon icon-name="utility:add" size="xx-small" class="slds-current-color slds-m-right_x-small"></lightning-icon>
+                Start Quote
+            </button>
+        </header>
+
+        <!-- ═══ Main Content Grid: 2fr (left) + 1fr (right sidebar) ═══ -->
+        <div class="main-grid">
+
+            <!-- ── Left Column ── -->
+            <div class="left-col">
+
+                <!-- KPI Row -->
+                <div class="kpi-row">
+                    <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
+                </div>
+
+                <!-- Revenue Analytics Chart -->
+                <div class="chart-section">
+                    <c-cpq-my-weekly-pipeline-chart></c-cpq-my-weekly-pipeline-chart>
+                </div>
+
+                <!-- Map + Recent Activity Row -->
+                <div class="map-margin-row">
+                    <div class="map-col" style="flex: 1.5;">
+                        <c-cpq-my-quote-map></c-cpq-my-quote-map>
+                    </div>
+                    <div class="margin-col" style="flex: 1; min-height: 380px;">
+                        <c-cpq-my-recent-activity></c-cpq-my-recent-activity>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Top Quotes + Top Products -->
+                <div class="bottom-row">
+                    <c-cpq-my-top-transactions></c-cpq-my-top-transactions>
+                    <c-cpq-my-top-products></c-cpq-my-top-products>
+                </div>
+            </div>
+
+            <!-- ── Right Sidebar ── -->
+            <div class="right-sidebar">
+
+                <!-- Action Items -->
+                <div class="sidebar-card">
+                    <c-cpq-action-items></c-cpq-action-items>
+                </div>
+
+                <!-- AI Assistant Card -->
+                <div class="sidebar-card ai-card-wrapper">
+                    <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

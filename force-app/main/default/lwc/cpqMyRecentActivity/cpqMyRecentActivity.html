@@ -1,0 +1,36 @@
+<template>
+    <div class="activity-card">
+        <div class="card-header">
+            <h2 class="card-title">Recent Activity</h2>
+            <p class="card-subtitle">Your latest quote developments</p>
+        </div>
+
+        <div class="activity-list">
+            <template if:true={isLoading}>
+                <div class="slds-p-around_medium slds-text-align_center">
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </div>
+            </template>
+            <template if:true={hasActivity}>
+                <template for:each={activities} for:item="item">
+                    <div key={item.quoteId} class="activity-item" data-id={item.quoteId} onclick={handleViewQuote}>
+                        <div class={item.iconClass}>
+                            <lightning-icon icon-name={item.iconName} size="xx-small" class="slds-current-color"></lightning-icon>
+                        </div>
+                        <div class="activity-content">
+                            <h3 class="activity-title">{item.title}</h3>
+                            <p class="activity-meta">
+                                <span class="account-name">{item.accountName}</span> • {item.timeAgo}
+                            </p>
+                        </div>
+                    </div>
+                </template>
+            </template>
+            <template if:false={hasActivity}>
+                <template if:false={isLoading}>
+                    <div class="empty-state">No recent activity</div>
+                </template>
+            </template>
+        </div>
+    </div>
+</template>

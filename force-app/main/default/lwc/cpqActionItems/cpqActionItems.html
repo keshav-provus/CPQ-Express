@@ -1,0 +1,50 @@
+<template>
+    <div class="pending-card">
+        <div class="card-header">
+            <h2 class="card-title">My Action Items</h2>
+            <button class="btn-icon" onclick={handleRefresh} title="Refresh">
+                <lightning-icon icon-name="utility:refresh" size="x-small" class="slds-current-color"></lightning-icon>
+            </button>
+        </div>
+
+        <div class="quotes-list">
+            <template if:true={hasItems}>
+                <template for:each={formattedItems} for:item="item">
+                    <div key={item.Id} class="quote-item">
+                        <div class="quote-info">
+                            <div class="quote-primary">
+                                <span class="quote-name">{item.Name}</span>
+                                <span class={item.statusClass}>{item.Status__c}</span>
+                            </div>
+                            <div class="quote-secondary">
+                                <lightning-icon icon-name="standard:account" size="x-small" class="account-icon"></lightning-icon>
+                                <span class="account-name">{item.AccountName}</span>
+                                <span class="bullet">•</span>
+                                <span class="quote-amount">{item.formattedAmount}</span>
+                            </div>
+                            <div class="quote-meta">
+                                Created: {item.formattedDate}
+                                <template if:true={item.Valid_Until__c}>
+                                    <span class="bullet">•</span> Exp: {item.Valid_Until__c}
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <div class="quote-actions">
+                            <button class="action-btn view-btn" data-id={item.Id} onclick={handleViewQuote} title="Open Record">
+                                Open
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={hasItems}>
+                <div class="empty-state">
+                    <lightning-icon icon-name="utility:check" size="medium" class="empty-icon"></lightning-icon>
+                    <p>All caught up!</p>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

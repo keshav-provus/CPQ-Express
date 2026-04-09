@@ -11,6 +11,10 @@
         <tab>Admin_Settings</tab>
         <visibility>Hidden</visibility>
     </tabVisibilities>
+    <tabVisibilities>
+        <tab>Manager_Dashboard</tab>
+        <visibility>Hidden</visibility>
+    </tabVisibilities>
     <fieldPermissions>
         <editable>true</editable>
         <field>Add_On__c.Is_Active__c</field>

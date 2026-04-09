@@ -1,0 +1,34 @@
+<template>
+    <div class="products-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Top Product</h2>
+                <p class="card-subtitle">top products based on total sold</p>
+            </div>
+            <a class="view-detail">View more</a>
+        </div>
+        
+        <div class="products-grid">
+            <template if:true={products}>
+                <template for:each={formattedProducts} for:item="prod" for:index="index">
+                    <div key={prod.productId} class="product-item">
+                        <div class={prod.imageClass}>
+                            <lightning-icon icon-name="utility:package" size="large" variant="inverse" class="slds-current-color"></lightning-icon>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">{prod.productName}</h3>
+                            <div class="product-sold">
+                                {prod.quantitySold}+ <span class="product-sold-label">item sold out</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </template>
+            <template if:false={products}>
+                <div class="slds-text-align_center slds-p-around_medium slds-col_span-2">
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

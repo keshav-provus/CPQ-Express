@@ -12,8 +12,7 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
         if (data) this.currencyCode = data;
     }
 
-    @track
-    chartData = [];
+    @track chartData = [];
     chartLoaded = false;
     chartInstance;
 
@@ -49,22 +48,31 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
         
         const labels = this.chartData.map(item => {
             const date = new Date(item.date);
-            return date.toLocaleDateString('en-US', { weekday: 'short' });
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
         
         const data = this.chartData.map(item => item.amount);
 
-        // Make sure Chart is available natively from the static resource
+        // Purple gradient fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+        gradient.addColorStop(0, 'rgba(124, 92, 252, 0.25)');
+        gradient.addColorStop(1, 'rgba(124, 92, 252, 0.02)');
+
+        const currCode = this.currencyCode;
+
+        const currSymbol = new Intl.NumberFormat('en-US', { style: 'currency', currency: currCode, maximumFractionDigits: 0 }).format(0).replace(/[\d.,\s]/g, '');
+
         this.chartInstance = new window.Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Pipeline Value',
+                    label: 'Revenue',
                     data: data,
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4,
-                    barPercentage: 0.5,
+                    backgroundColor: 'rgba(124, 92, 252, 0.85)',
+                    hoverBackgroundColor: 'rgba(124, 92, 252, 1)',
+                    borderRadius: 6,
+                    barPercentage: 0.55,
                     categoryPercentage: 0.8
                 }]
             },
@@ -76,22 +84,18 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: '#111827',
-                        titleFont: { size: 13, family: 'Inter' },
-                        bodyFont: { size: 14, family: 'Inter', weight: 'bold' },
-                        padding: 12,
-                        cornerRadius: 8,
+                        backgroundColor: '#1a1a2e',
+                        titleFont: { size: 12, family: 'Inter, sans-serif', weight: '500' },
+                        bodyFont: { size: 14, family: 'Inter, sans-serif', weight: '700' },
+                        padding: { top: 10, right: 14, bottom: 10, left: 14 },
+                        cornerRadius: 10,
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
                                 if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(context.parsed.y);
+                                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currCode, maximumFractionDigits: 0 }).format(context.parsed.y);
                                 }
-                                return label;
+                                return '';
                             }
                         }
                     }
@@ -103,23 +107,22 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#6b7280',
-                            font: { family: 'Inter' }
+                            color: '#9ca3af',
+                            font: { family: 'Inter, sans-serif', size: 11 }
                         }
                     },
                     y: {
                         grid: {
                             color: '#f3f4f6',
-                            drawBorder: false,
+                            drawBorder: false
                         },
                         ticks: {
-                            color: '#6b7280',
-                            font: { family: 'Inter' },
+                            color: '#9ca3af',
+                            font: { family: 'Inter, sans-serif', size: 11 },
                             callback: function(value) {
-                                if (value >= 1000) {
-                                    return '$' + value / 1000 + 'k';
-                                }
-                                return '$' + value;
+                                if (value >= 1000000) return currSymbol + (value / 1000000).toFixed(1) + 'M';
+                                if (value >= 1000) return currSymbol + (value / 1000).toFixed(0) + 'k';
+                                return currSymbol + value;
                             }
                         }
                     }

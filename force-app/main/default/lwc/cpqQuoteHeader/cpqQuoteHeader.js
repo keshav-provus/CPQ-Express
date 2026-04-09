@@ -65,7 +65,8 @@ export default class CpqQuoteHeader extends LightningElement {
     }
 
     get marginAmount() {
-        return this.quoteData?.Margin_Amount__c || 0;
+        if (!this.quoteData) return 0;
+        return (this.quoteData.Total_Amount__c || 0) - (this.quoteData.Total_Cost__c || 0);
     }
 
     get status() {

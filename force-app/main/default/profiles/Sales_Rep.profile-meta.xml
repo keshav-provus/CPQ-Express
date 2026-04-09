@@ -124,6 +124,10 @@
         <visibility>Hidden</visibility>
     </tabVisibilities>
     <tabVisibilities>
+        <tab>Manager_Dashboard</tab>
+        <visibility>Hidden</visibility>
+    </tabVisibilities>
+    <tabVisibilities>
         <tab>Categories__c</tab>
         <visibility>Hidden</visibility>
     </tabVisibilities>

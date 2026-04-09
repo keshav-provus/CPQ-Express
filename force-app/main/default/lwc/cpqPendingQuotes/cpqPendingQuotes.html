@@ -2,36 +2,49 @@
     <div class="pending-card">
         <div class="card-header">
             <div>
-                <h2 class="card-title">Pending Approvals</h2>
-                <p class="card-subtitle">Quotes waiting for your review</p>
+                <h2 class="card-title">Quotes to Approve</h2>
+                <p class="card-subtitle">Pending your review</p>
             </div>
-            <lightning-button-icon icon-name="utility:refresh" variant="bare" onclick={handleRefresh}></lightning-button-icon>
+            <lightning-button-icon icon-name="utility:refresh" variant="bare" onclick={handleRefresh} alternative-text="Refresh"></lightning-button-icon>
         </div>
 
         <div class="list-container">
             <template if:true={quotes}>
-                <template for:each={formattedQuotes} for:item="quote">
-                    <div key={quote.Id} class="quote-item">
-                        <div class="quote-main">
-                            <div class="quote-info">
-                                <p class="quote-name">{quote.Name}</p>
-                                <p class="account-name">{quote.AccountName}</p>
+                <template if:true={hasQuotes}>
+                    <template for:each={formattedQuotes} for:item="quote">
+                        <div key={quote.Id} class="quote-item">
+                            <div class="quote-main">
+                                <div class="quote-info">
+                                    <p class="quote-name">{quote.Name}</p>
+                                    <p class="account-name">{quote.AccountName}</p>
+                                </div>
+                                <div class="quote-meta">
+                                    <p class="quote-amount">{quote.formattedAmount}</p>
+                                    <p class="quote-date">{quote.formattedDate}</p>
+                                </div>
                             </div>
-                            <div class="quote-meta">
-                                <p class="quote-amount">{quote.formattedAmount}</p>
-                                <p class="quote-date">{quote.formattedDate}</p>
+                            <div class="quote-actions">
+                                <button class="action-btn approve" data-id={quote.Id} onclick={handleApprove} title="Approve">
+                                    <lightning-icon icon-name="utility:check" size="xx-small" class="slds-current-color"></lightning-icon>
+                                    Approve
+                                </button>
+                                <button class="action-btn reject" data-id={quote.Id} onclick={handleReject} title="Reject">
+                                    <lightning-icon icon-name="utility:close" size="xx-small" class="slds-current-color"></lightning-icon>
+                                    Reject
+                                </button>
+                                <button class="action-btn recall" data-id={quote.Id} onclick={handleRecall} title="Recall">
+                                    <lightning-icon icon-name="utility:undo" size="xx-small" class="slds-current-color"></lightning-icon>
+                                    Recall
+                                </button>
                             </div>
                         </div>
-                        <div class="quote-actions">
-                            <button class="action-btn approve" data-id={quote.Id} onclick={handleApprove}>Approve</button>
-                            <button class="action-btn reject" data-id={quote.Id} onclick={handleReject}>Reject</button>
-                        </div>
-                    </div>
+                    </template>
                 </template>
                 <template if:false={hasQuotes}>
                     <div class="empty-state">
-                        <lightning-icon icon-name="utility:check" size="medium"></lightning-icon>
-                        <p>No quotes pending approval</p>
+                        <div class="empty-icon">✓</div>
+                        <p class="empty-text">All caught up!</p>
+                        <p class="empty-sub">No quotes pending approval</p>
                     </div>
                 </template>
             </template>

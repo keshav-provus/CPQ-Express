@@ -1,5 +1,11 @@
 <template>
-    <lightning-card title="Top Reps" icon-name="standard:reward">
+    <div class="leaderboard-card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Top Reps</h2>
+                <p class="card-subtitle">by total quote value</p>
+            </div>
+        </div>
         <template if:true={isLoading}>
             <div class="spinner-container">
                 <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
@@ -10,27 +16,23 @@
                 <ul class="leaderboard-list">
                     <template for:each={rankedReps} for:item="rep">
                         <li key={rep.ownerId} class="leaderboard-item">
-                            <div class="slds-grid slds-grid_vertical-align-center">
-                                <div class="slds-col slds-no-flex rank-badge-wrap">
-                                    <span class={rep.rankClass}>{rep.rank}</span>
-                                </div>
-                                <div class="slds-col slds-grow slds-p-left_small">
+                            <div class="rep-row">
+                                <span class={rep.rankClass}>{rep.rank}</span>
+                                <div class="rep-info">
                                     <p class="rep-name">{rep.ownerName}</p>
                                     <p class="rep-meta">{rep.quoteCount} quotes</p>
                                 </div>
-                                <div class="slds-col slds-no-flex">
-                                    <p class="rep-value">{rep.formattedValue}</p>
-                                </div>
+                                <p class="rep-value">{rep.formattedValue}</p>
                             </div>
                         </li>
                     </template>
                 </ul>
             </template>
             <template if:false={hasReps}>
-                <div class="slds-p-around_large slds-text-align_center">
-                    <p class="slds-text-color_weak">No rep data available.</p>
+                <div class="empty-state">
+                    <p>No rep data available.</p>
                 </div>
             </template>
         </template>
-    </lightning-card>
+    </div>
 </template>

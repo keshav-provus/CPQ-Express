@@ -281,7 +281,7 @@ export default class CpqProductRecordPage extends LightningElement {
                 const pct = ((q.revenue / totalRev) * 100).toFixed(1);
                 lgHtml += `<div class="legend-item">
                      <span class="legend-swatch" style="background:${q.color}"></span>
-                     <span><b style="color:var(--color-text-primary)">${q.id}</b> · ${q.accountName} · $${(q.revenue / 1000).toFixed(0)}k (${pct}%)</span>
+                     <span><b style="color:var(--color-text-primary)">${q.id}</b> · ${q.accountName} · ${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)} (${pct}%)</span>
                      </div>`;
             });
             lg.innerHTML = lgHtml;
@@ -305,7 +305,7 @@ export default class CpqProductRecordPage extends LightningElement {
         const dur = Math.round((q.end-q.start)/(86400000*30.4));
         
         tt.innerHTML = `<div class="tt-name">${q.id} · ${q.accountName}</div>
-          <div class="tt-row"><span>Revenue</span><span class="tt-val">$${q.revenue.toLocaleString()}</span></div>
+          <div class="tt-row"><span>Revenue</span><span class="tt-val">${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)}</span></div>
           <div class="tt-row"><span>% of total</span><span class="tt-val">${pct}%</span></div>
           <div class="tt-row"><span>Duration</span><span class="tt-val">~${dur} months</span></div>
           <div class="tt-row"><span>Start</span><span class="tt-val">${q.start.toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</span></div>

@@ -1,42 +1,65 @@
 <template>
-    <div class="dashboard-container">
-        
-        <!-- Header -->
-        <div class="header-section">
-            <h1 class="header-title">Manager Dashboard</h1>
-            <div class="header-controls">
-                <lightning-input type="search" variant="label-hidden" placeholder="Search..."></lightning-input>
-                <lightning-button-icon icon-name="utility:notification" variant="bare" class="slds-m-horizontal_small"></lightning-button-icon>
-                <div class="user-profile">
-                    <div class="user-avatar">
-                        <lightning-icon icon-name="standard:user" size="small"></lightning-icon>
+    <div class="dashboard-shell">
+
+        <!-- ═══ Header ═══ -->
+        <header class="dash-header">
+            <div class="greeting">
+                <h1 class="greeting-text">Hello, {userName} <span class="wave">👋</span></h1>
+                <p class="greeting-sub">Here's what's happening with your team today</p>
+            </div>
+            <button class="btn-start-quote" onclick={handleStartQuote}>
+                <lightning-icon icon-name="utility:add" size="xx-small" class="slds-current-color slds-m-right_x-small"></lightning-icon>
+                Start Quote
+            </button>
+        </header>
+
+        <!-- ═══ Main Content Grid: 2fr (left) + 1fr (right sidebar) ═══ -->
+        <div class="main-grid">
+
+            <!-- ── Left Column ── -->
+            <div class="left-col">
+
+                <!-- KPI Row -->
+                <div class="kpi-row">
+                    <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
+                </div>
+
+                <!-- Revenue Analytics Chart -->
+                <div class="chart-section">
+                    <c-cpq-weekly-pipeline-chart></c-cpq-weekly-pipeline-chart>
+                </div>
+
+                <!-- Map + Margin Config Row -->
+                <div class="map-margin-row">
+                    <div class="map-col">
+                        <c-cpq-quote-map></c-cpq-quote-map>
                     </div>
+                    <div class="margin-col">
+                        <c-cpq-manager-margin-config></c-cpq-manager-margin-config>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Top Quotes + Top Products + Leaderboard -->
+                <div class="bottom-row">
+                    <c-cpq-top-transactions></c-cpq-top-transactions>
+                    <c-cpq-top-products></c-cpq-top-products>
+                    <c-top-rep-leaderboard dashboard-data={topReps}></c-top-rep-leaderboard>
+                </div>
+            </div>
+
+            <!-- ── Right Sidebar ── -->
+            <div class="right-sidebar">
+
+                <!-- Quotes to Approve -->
+                <div class="sidebar-card">
+                    <c-cpq-pending-quotes></c-cpq-pending-quotes>
+                </div>
+
+                <!-- AI Assistant Card -->
+                <div class="sidebar-card ai-card-wrapper">
+                    <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
                 </div>
             </div>
         </div>
-
-        <!-- KPIs -->
-        <div class="kpis-section">
-            <c-cpq-manager-k-p-is></c-cpq-manager-k-p-is>
-        </div>
-
-        <!-- Middle Row: Charts & Maps -->
-        <div class="row-middle">
-            <c-cpq-weekly-pipeline-chart></c-cpq-weekly-pipeline-chart>
-            <c-cpq-quote-map></c-cpq-quote-map>
-        </div>
-
-        <!-- Lower Row: 3 Column List Components -->
-        <div class="row-lower">
-            <c-cpq-pending-quotes></c-cpq-pending-quotes>
-            <c-cpq-top-transactions></c-cpq-top-transactions>
-            <c-cpq-top-products></c-cpq-top-products>
-        </div>
-
-        <!-- Bottom Row (Optional/Promo) -->
-        <div class="row-bottom">
-            <c-cpq-promo-insight></c-cpq-promo-insight>
-        </div>
-
     </div>
 </template>

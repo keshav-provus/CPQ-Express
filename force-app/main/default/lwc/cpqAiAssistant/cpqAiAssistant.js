@@ -2,6 +2,7 @@ import { LightningElement, api, track, wire } from 'lwc';
 import processMessage from '@salesforce/apex/AgentforceController.processMessage';
 import executeAction from '@salesforce/apex/AgentforceController.executeAction';
 import getUserContext from '@salesforce/apex/AgentforceController.getUserContext';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 const MAX_HISTORY = 10;
 
@@ -9,11 +10,18 @@ export default class CpqAiAssistant extends LightningElement {
     @api recordId;
     @api quoteData;
     @api lineItems = [];
+    @api mode = 'panel'; // 'panel' (full sidebar) or 'card' (dashboard widget)
 
     @track messages = [];
     @track inputValue = '';
     @track isTyping = false;
     @track userContext = {};
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
 
     conversationHistory = [];
     messageIdCounter = 0;
@@ -24,10 +32,33 @@ export default class CpqAiAssistant extends LightningElement {
     }
 
     connectedCallback() {
-        this.addAssistantMessage({
-            responseType: 'text',
-            message: this.buildWelcomeMessage()
-        });
+        // Only add welcome message in panel mode
+        if (!this.isCardMode) {
+            this.addAssistantMessage({
+                responseType: 'text',
+                message: this.buildWelcomeMessage()
+            });
+        }
+    }
+
+    // ═══════════════════════════════════════════════
+    //  MODE DETECTION
+    // ═══════════════════════════════════════════════
+
+    get isCardMode() {
+        return this.mode === 'card';
+    }
+
+    get hasMessages() {
+        return this.messages && this.messages.length > 0;
+    }
+
+    get userGreetingName() {
+        const name = this.userContext?.userName;
+        if (name) {
+            return name.split(' ')[0]; // First name only
+        }
+        return 'there';
     }
 
     // ═══════════════════════════════════════════════
@@ -120,7 +151,7 @@ export default class CpqAiAssistant extends LightningElement {
         const prompt = event.currentTarget.dataset.prompt;
         if (prompt === 'Add ' || prompt === 'Search ') {
             this.inputValue = prompt;
-            const input = this.template.querySelector('.chat-input');
+            const input = this.template.querySelector('.chat-input') || this.template.querySelector('.card-input');
             if (input) input.focus();
         } else {
             this.inputValue = prompt;
@@ -250,6 +281,7 @@ export default class CpqAiAssistant extends LightningElement {
 
     addUserMessage(text) {
         this.messageIdCounter++;
+        const prefix = this.isCardMode ? 'card-' : '';
         this.messages = [...this.messages, {
             id: 'msg-' + this.messageIdCounter,
             rawText: text,
@@ -259,7 +291,9 @@ export default class CpqAiAssistant extends LightningElement {
             responseType: 'text',
             isTextType: true,
             timestamp: this.formatTime(new Date()),
-            bubbleClass: 'message user-message'
+            bubbleClass: this.isCardMode
+                ? 'card-message card-user-message'
+                : 'message user-message'
         }];
     }
 
@@ -268,9 +302,11 @@ export default class CpqAiAssistant extends LightningElement {
         const responseType = result.responseType || 'text';
         const success = result.success !== false;
 
-        let bubbleClass = 'message assistant-message';
-        if (!success) bubbleClass += ' msg-error';
-        if (responseType === 'action_result') bubbleClass += ' msg-success';
+        let bubbleClass = this.isCardMode
+            ? 'card-message card-assistant-message'
+            : 'message assistant-message';
+        if (!success && !this.isCardMode) bubbleClass += ' msg-error';
+        if (responseType === 'action_result' && !this.isCardMode) bubbleClass += ' msg-success';
 
         const msgObj = {
             id: 'msg-' + this.messageIdCounter,
@@ -332,14 +368,14 @@ export default class CpqAiAssistant extends LightningElement {
     }
 
     formatCurrency(val) {
-        if (val == null) return '$0.00';
-        return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (val == null) return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode }).format(0);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(val));
     }
 
     scrollToBottom() {
         // eslint-disable-next-line @lwc/lwc/no-async-operation
         setTimeout(() => {
-            const chatBody = this.template.querySelector('.chat-body');
+            const chatBody = this.template.querySelector('.chat-body') || this.template.querySelector('.card-chat-body');
             if (chatBody) {
                 chatBody.scrollTop = chatBody.scrollHeight;
             }

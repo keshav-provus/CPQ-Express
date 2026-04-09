@@ -28,8 +28,8 @@ public with sharing class CurrencyConverterBatch implements Database.Batchable<s
         } else if (objectName == 'Add_On__c') {
             query = 'SELECT Id, CurrencyIsoCode, Price__c, Cost__c FROM Add_On__c';
         } else if (objectName == 'Quote__c') {
-            // Only process Draft quotes — approved/submitted quotes keep their pricing locked.
-            query = 'SELECT Id, CurrencyIsoCode, Time_Period_Metric__c, Status__c FROM Quote__c WHERE Status__c = \'Draft\'';
+            // Process ALL quotes
+            query = 'SELECT Id, CurrencyIsoCode, Time_Period_Metric__c, Status__c FROM Quote__c';
         }
         return Database.getQueryLocator(query);
     }

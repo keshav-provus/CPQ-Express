@@ -544,3 +544,273 @@
 .shield-icon {
     font-size: 11px;
 }
+
+/* ══════════════════════════════════════════════════
+   CARD MODE — Dashboard Widget Styles (Light Theme)
+   ══════════════════════════════════════════════════ */
+
+.ai-card {
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.card-greeting {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.card-spark {
+    font-size: 24px;
+    color: #7c5cfc;
+    animation: sparkleFloat 2s ease-in-out infinite;
+}
+
+.card-greeting-text {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.card-wave {
+    display: inline-block;
+    animation: waveHand 2.5s ease-in-out infinite;
+    transform-origin: 70% 70%;
+}
+
+@keyframes waveHand {
+    0%, 100% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    30% { transform: rotate(14deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+    60% { transform: rotate(0deg); }
+}
+
+.card-greeting-sub {
+    font-size: 0.775rem;
+    color: #6b7280;
+    margin: 0.125rem 0 0 0;
+}
+
+/* ── Quick Action Tiles ── */
+.card-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.tile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    background: #fafafe;
+    border: 1px solid #f0f0f5;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    font-family: inherit;
+    color: #1a1a2e;
+}
+
+.tile:hover {
+    border-color: rgba(124, 92, 252, 0.3);
+    background: rgba(124, 92, 252, 0.04);
+    box-shadow: 0 2px 8px rgba(124, 92, 252, 0.08);
+    transform: translateY(-1px);
+}
+
+.tile-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.tile-icon-green  { background: #dcfce7; }
+.tile-icon-purple { background: #f0ecff; }
+.tile-icon-amber  { background: #fff7ed; }
+.tile-icon-blue   { background: #e0f2fe; }
+
+.tile-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* ── Card Chat Body ── */
+.card-chat-body {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid #f3f4f6;
+}
+
+.card-chat-body::-webkit-scrollbar { width: 3px; }
+.card-chat-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+
+.card-message {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 95%;
+    animation: cardMsgFadeIn 0.2s ease;
+}
+
+@keyframes cardMsgFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-user-message {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.card-assistant-message {
+    align-self: flex-start;
+}
+
+.card-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c5cfc, #a78bfa);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.card-msg-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.card-assistant-message .card-msg-content {
+    background: #fafafe;
+    border: 1px solid #f0f0f5;
+    border-radius: 10px 10px 10px 2px;
+    padding: 0.5rem 0.75rem;
+}
+
+.card-user-message .card-msg-content {
+    background: linear-gradient(135deg, #7c5cfc, #6846f0);
+    border-radius: 10px 10px 2px 10px;
+    padding: 0.5rem 0.75rem;
+    color: #fff;
+}
+
+.card-msg-text {
+    font-size: 0.775rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.card-user-message .card-msg-text {
+    --sds-c-text-color: #fff;
+}
+
+.card-msg-text lightning-formatted-rich-text {
+    --lwc-colorTextDefault: #374151;
+}
+
+.card-user-message .card-msg-text lightning-formatted-rich-text {
+    --lwc-colorTextDefault: #ffffff;
+}
+
+/* ── Card Typing Indicator ── */
+.card-typing {
+    display: flex;
+    gap: 3px;
+    padding: 2px 0;
+}
+
+.card-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #9ca3af;
+    animation: typingBounce 1.2s infinite;
+}
+
+.card-dot:nth-child(2) { animation-delay: 0.15s; }
+.card-dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* ── Card Input ── */
+.card-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fafafe;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+    transition: border-color 0.2s;
+}
+
+.card-input-wrap:focus-within {
+    border-color: #7c5cfc;
+    box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.08);
+}
+
+.card-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #1a1a2e;
+    font-size: 0.8rem;
+    font-family: inherit;
+    padding: 0.375rem 0;
+}
+
+.card-input::placeholder {
+    color: #9ca3af;
+}
+
+.card-send-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: linear-gradient(135deg, #7c5cfc, #a78bfa);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.card-send-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
+}
+
+.card-send-icon {
+    font-size: 14px;
+    font-weight: 700;
+}
