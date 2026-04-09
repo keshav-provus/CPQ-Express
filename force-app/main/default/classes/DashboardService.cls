@@ -304,7 +304,7 @@ public with sharing class DashboardService {
         List<Map<String, Object>> markers = new List<Map<String, Object>>();
 
         List<AggregateResult> results = [
-            SELECT Account__r.BillingCountry country, COUNT(Id) quoteCount, AVG(Total_Amount__c) avgAmount
+            SELECT Account__r.BillingCountry country, COUNT(Id) quoteCount, SUM(Total_Amount__c) totalRevenue
             FROM Quote__c
             WHERE Status__c = 'Approved' AND Account__r.BillingCountry != null
             GROUP BY Account__r.BillingCountry
@@ -313,17 +313,17 @@ public with sharing class DashboardService {
         for (AggregateResult ar : results) {
             String country = (String) ar.get('country');
             Integer count = (Integer) ar.get('quoteCount');
-            Decimal avgAmount = (Decimal) ar.get('avgAmount');
-            if (avgAmount != null) {
-                avgAmount = avgAmount.setScale(2);
+            Decimal totalRevenue = (Decimal) ar.get('totalRevenue');
+            if (totalRevenue != null) {
+                totalRevenue = totalRevenue.setScale(2);
             } else {
-                avgAmount = 0.00;
+                totalRevenue = 0.00;
             }
 
             Map<String, Object> marker = new Map<String, Object>();
             marker.put('value', country);
             marker.put('title', country);
-            marker.put('description', 'Quotes: ' + count + ', Avg Amount: $' + avgAmount);
+            marker.put('description', 'Quotes: ' + count + ', Revenue: $' + totalRevenue);
 
             Map<String, String> location = new Map<String, String>();
             location.put('Country', country);
