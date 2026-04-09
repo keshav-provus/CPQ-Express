@@ -9,6 +9,7 @@ export default class CpqDocumentManagement extends NavigationMixin(LightningElem
     @api quoteName = '';
 
     @track versions = [];
+    @track selectedVersionId = null;
     @track wiredVersionsResult;
 
     @wire(getQuoteVersions, { quoteId: '$recordId' })
@@ -20,12 +21,17 @@ export default class CpqDocumentManagement extends NavigationMixin(LightningElem
                 return {
                     ...v,
                     statusLabel: isActive ? 'Active' : 'Archive',
-                    cardClass: 'ver-card',
+                    cardClass: this._buildCardClass(v.Id, isActive),
                     badgeClass: `ver-badge ${isActive ? 'ver-badge-active' : 'ver-badge-archive'}`,
                     timeAgo: this._formatTimeAgo(v.CreatedDate),
                     initials: this._getInitials(v.CreatedByName)
                 };
             });
+            // Auto-select the first version if none selected
+            if (!this.selectedVersionId && this.versions.length > 0) {
+                this.selectedVersionId = this.versions[0].Id;
+            }
+            this._updateCardSelection();
         }
     }
 
@@ -37,14 +43,44 @@ export default class CpqDocumentManagement extends NavigationMixin(LightningElem
         return this.versions ? String(this.versions.length) : '0';
     }
 
-    get versionCountLabel() {
-        return this.versions ? String(this.versions.length) : '0';
+    get hasSelectedVersion() {
+        return !!this.selectedVersionId;
+    }
+
+    get selectedVersion() {
+        return this.versions.find(v => v.Id === this.selectedVersionId);
+    }
+
+    get selectedVersionLabel() {
+        const v = this.selectedVersion;
+        return v ? v.VersionLabel : '';
+    }
+
+    get selectedVersionTitle() {
+        const v = this.selectedVersion;
+        return v ? v.Title : '';
+    }
+
+    get previewIframeUrl() {
+        const v = this.selectedVersion;
+        // Use the actual file download endpoint which invokes the browser's native PDF Viewer.
+        // Append #view=FitH to automatically zoom to fit the width of the pane.
+        if (v && v.ContentVersionId) {
+            return `/sfc/servlet.shepherd/version/download/${v.ContentVersionId}#view=FitH`;
+        }
+        return '';
     }
 
     handleVersionSelect(event) {
         const newId = event.currentTarget.dataset.id;
-        const v = this.versions.find(ver => ver.Id === newId);
-        
+        if (newId !== this.selectedVersionId) {
+            this.selectedVersionId = newId;
+            this._updateCardSelection();
+        }
+    }
+
+    handleOpenPreview() {
+        const v = this.selectedVersion;
         if (v && v.ContentDocumentId) {
             this[NavigationMixin.Navigate]({
                 type: 'standard__namedPage',
@@ -55,13 +91,40 @@ export default class CpqDocumentManagement extends NavigationMixin(LightningElem
                     selectedRecordId: v.ContentDocumentId
                 }
             });
+        }
+    }
+
+    handleDownloadPdf() {
+        const v = this.selectedVersion;
+        if (v && v.ContentVersionId) {
+            const link = document.createElement('a');
+            link.href = `/sfc/servlet.shepherd/version/download/${v.ContentVersionId}`;
+            link.download = `${v.VersionLabel || 'Quote'}.pdf`;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } else {
             this.dispatchEvent(new ShowToastEvent({
-                title: 'No Document Found',
-                message: 'The file for this version is missing or unavailable.',
-                variant: 'error'
+                title: 'No Version Selected',
+                message: 'Please select a version to download.',
+                variant: 'warning'
             }));
         }
+    }
+
+    _buildCardClass(versionId, isActive) {
+        let cls = 'ver-card';
+        if (isActive) cls += ' ver-card-active';
+        if (this.selectedVersionId === versionId) cls += ' ver-card-selected';
+        return cls;
+    }
+
+    _updateCardSelection() {
+        this.versions = this.versions.map(v => ({
+            ...v,
+            cardClass: this._buildCardClass(v.Id, v.IsActive)
+        }));
     }
 
     _formatTimeAgo(dateStr) {

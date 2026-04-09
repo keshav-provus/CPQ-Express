@@ -50,7 +50,44 @@
                     </template>
                 </div>
             </div>
-            <!-- The custom right preview panel has been removed to use Salesforce's standard File Preview modal upon clicking a version -->
+            <!-- Right: Preview -->
+            <div class="preview-card">
+                <template if:true={hasSelectedVersion}>
+                    <div class="preview-content">
+                        <!-- Preview image iframe -->
+                        <div class="preview-image-wrap">
+                            <iframe src={previewIframeUrl}
+                                    style="width: 100%; height: 100%; border: none; min-height: 480px;"
+                                    title="Document Preview">
+                            </iframe>
+                        </div>
+
+                        <!-- Action bar at bottom -->
+                        <div class="preview-actions">
+                            <div class="preview-info">
+                                <span class="preview-ver-name">{selectedVersionLabel}</span>
+                                <span class="preview-ver-title">{selectedVersionTitle}</span>
+                            </div>
+                            <div class="preview-btns">
+                                <button class="btn" onclick={handleOpenPreview}>
+                                    Open Fullscreen
+                                </button>
+                                <button class="btn btn-primary" onclick={handleDownloadPdf}>
+                                    ⬇ Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <template if:false={hasSelectedVersion}>
+                    <div class="preview-empty">
+                        <div class="empty-icon">📄</div>
+                        <p class="empty-title">Select a version to preview</p>
+                        <p class="empty-sub">Click on any version from the sidebar to view the document.</p>
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </template>
