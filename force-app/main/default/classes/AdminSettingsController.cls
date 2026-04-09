@@ -42,6 +42,9 @@ public with sharing class AdminSettingsController {
         if (settings.containsKey('Signer_Title__c')) {
             orgDefaults.Signer_Title__c = (String) settings.get('Signer_Title__c');
         }
+        if (settings.containsKey('Minimum_Margin__c')) {
+            orgDefaults.Minimum_Margin__c = (Decimal) settings.get('Minimum_Margin__c');
+        }
 
         upsert orgDefaults;
     }

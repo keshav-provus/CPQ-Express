@@ -134,7 +134,17 @@ public with sharing class QuoteController {
     @AuraEnabled
     public static void submitForApproval(Id quoteId) {
         try {
-            Quote__c q = new Quote__c(Id = quoteId, Status__c = 'Pending Approval');
+            Quote__c currentQuote = [SELECT Margin_Percent__c FROM Quote__c WHERE Id = :quoteId LIMIT 1];
+            Company_Settings__c settings = Company_Settings__c.getOrgDefaults();
+
+            Quote__c q = new Quote__c(Id = quoteId);
+
+            if (settings != null && settings.Minimum_Margin__c != null && currentQuote.Margin_Percent__c >= settings.Minimum_Margin__c) {
+                q.Status__c = 'Approved';
+            } else {
+                q.Status__c = 'Pending Approval';
+            }
+
             update q;
         } catch (Exception e) {
             throw new AuraHandledException('Error submitting for approval: ' + e.getMessage());
