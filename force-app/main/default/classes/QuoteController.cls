@@ -33,7 +33,7 @@ public with sharing class QuoteController {
                        Account__c, Account__r.Name, CreatedById, CreatedBy.Name,
                        LastModifiedById, LastModifiedBy.Name, CreatedDate, LastModifiedDate,
                        Total_Amount__c, Total_Cost__c, Margin_Percent__c, Margin_Amount__c,
-                       Start_Date__c, End_Date__c, Valid_Until__c, Phase_List__c,
+                       Start_Date__c, End_Date__c, Calculated_End_Date__c, Valid_Until__c, Phase_List__c,
                        Time_Period_Metric__c, Time_Period_Count__c
                 FROM Quote__c
                 WHERE Id = :recordId
@@ -192,28 +192,35 @@ public with sharing class QuoteController {
     }
 
     /**
-     * @description Recalculates quote totals (Margin Amount, Margin Percent, End Date).
+     * @description Recalculates quote totals (Margin Amount, End Date auto-set to latest line item).
      * @param quoteId Quote ID.
      */
     @AuraEnabled
     public static void recalculateQuoteTotals(Id quoteId) {
         try {
             List<Quote_Line_Item__c> qlis = [
-                SELECT Net_Total__c, Total_Line_Cost__c
+                SELECT Net_Total__c, Total_Line_Cost__c, End_Date__c
                 FROM Quote_Line_Item__c
                 WHERE Quote__c = :quoteId
             ];
 
             Decimal revenue = 0;
             Decimal totalCost = 0;
+            Date latestEndDate = null;
 
             for(Quote_Line_Item__c item : qlis) {
                 if(item.Net_Total__c != null) revenue += item.Net_Total__c;
                 if(item.Total_Line_Cost__c != null) totalCost += item.Total_Line_Cost__c;
+                if(item.End_Date__c != null && (latestEndDate == null || item.End_Date__c > latestEndDate)) {
+                    latestEndDate = item.End_Date__c;
+                }
             }
 
             Quote__c q = new Quote__c(Id = quoteId);
             q.Margin_Amount__c = revenue - totalCost;
+            if (latestEndDate != null) {
+                q.Calculated_End_Date__c = latestEndDate;
+            }
 
             update q;
         } catch (Exception e) {
@@ -227,7 +234,7 @@ public with sharing class QuoteController {
      */
     @AuraEnabled(cacheable=true)
     public static List<Resource_Role__c> getResourceRoles() {
-        return [SELECT Id, Name, Name__c, Cost__c, Price__c, Billing_Unit__c FROM Resource_Role__c WHERE Is_Active__c = true];
+        return [SELECT Id, Name, Name__c, Cost__c, Price__c, Billing_Unit__c FROM Resource_Role__c];
     }
 
     /**
@@ -236,7 +243,7 @@ public with sharing class QuoteController {
      */
     @AuraEnabled(cacheable=true)
     public static List<Add_On__c> getAddOns() {
-        return [SELECT Id, Name, Name__c, Cost__c, Price__c, Billing_Unit__c FROM Add_On__c WHERE Is_Active__c = true];
+        return [SELECT Id, Name, Name__c, Cost__c, Price__c, Billing_Unit__c FROM Add_On__c];
     }
 
     /**
@@ -245,7 +252,7 @@ public with sharing class QuoteController {
      */
     @AuraEnabled(cacheable=true)
     public static List<Product__c> getProducts() {
-        return [SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c FROM Product__c];
+        return [SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c, Billing_Unit__c FROM Product__c];
     }
 
     /**

@@ -90,8 +90,9 @@ export default class CpqQuoteHeader extends LightningElement {
     }
 
     get endDate() {
-        if (!this.quoteData?.End_Date__c) return '-';
-        return new Date(this.quoteData.End_Date__c).toLocaleDateString('en-US', {
+        const d = this.quoteData?.Calculated_End_Date__c || this.quoteData?.End_Date__c;
+        if (!d) return '-';
+        return new Date(d).toLocaleDateString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric'
         });
     }
