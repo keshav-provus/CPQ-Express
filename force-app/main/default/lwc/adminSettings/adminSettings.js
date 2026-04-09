@@ -54,10 +54,12 @@ export default class AdminSettings extends LightningElement {
     get isCompanyInfo() { return this.currentTab === 'company'; }
     get isPDF() { return this.currentTab === 'pdf'; }
     get isTeam() { return this.currentTab === 'team'; }
+    get isOperations() { return this.currentTab === 'operations'; }
 
     get companyNavClass() { return `slds-nav-vertical__item ${this.isCompanyInfo ? 'slds-is-active' : ''}`; }
     get pdfNavClass() { return `slds-nav-vertical__item ${this.isPDF ? 'slds-is-active' : ''}`; }
     get teamNavClass() { return `slds-nav-vertical__item ${this.isTeam ? 'slds-is-active' : ''}`; }
+    get operationsNavClass() { return `slds-nav-vertical__item ${this.isOperations ? 'slds-is-active' : ''}`; }
 
     get hasTeamMembers() { return this.teamMembers && this.teamMembers.length > 0; }
 
@@ -120,6 +122,7 @@ export default class AdminSettings extends LightningElement {
     handleNavCompany() { this.currentTab = 'company'; }
     handleNavPDF() { this.currentTab = 'pdf'; }
     handleNavTeam() { this.currentTab = 'team'; }
+    handleNavOperations() { this.currentTab = 'operations'; }
 
     // Company Handlers
     handleSettingChange(event) {

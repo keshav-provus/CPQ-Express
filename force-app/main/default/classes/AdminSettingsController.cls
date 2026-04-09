@@ -33,6 +33,15 @@ public with sharing class AdminSettingsController {
         if (settings.containsKey('Country__c')) {
             orgDefaults.Country__c = (String) settings.get('Country__c');
         }
+        if (settings.containsKey('Company_Phone__c')) {
+            orgDefaults.Company_Phone__c = (String) settings.get('Company_Phone__c');
+        }
+        if (settings.containsKey('Company_Email__c')) {
+            orgDefaults.Company_Email__c = (String) settings.get('Company_Email__c');
+        }
+        if (settings.containsKey('Signer_Title__c')) {
+            orgDefaults.Signer_Title__c = (String) settings.get('Signer_Title__c');
+        }
 
         upsert orgDefaults;
     }

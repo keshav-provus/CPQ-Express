@@ -14,6 +14,9 @@
                 <li class={teamNavClass} onclick={handleNavTeam}>
                     <a href="javascript:void(0);" class="slds-nav-vertical__action">Team Configuration</a>
                 </li>
+                <li class={operationsNavClass} onclick={handleNavOperations}>
+                    <a href="javascript:void(0);" class="slds-nav-vertical__action">Work Calendar</a>
+                </li>
             </ul>
         </div>
 
@@ -51,6 +54,19 @@
                             </div>
                         </div>
 
+                        <h3 class="slds-section__title slds-m-top_medium slds-m-bottom_small">Communication & Signatures</h3>
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="Company Phone" name="Company_Phone__c" value={companySettings.Company_Phone__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input label="Company Email" name="Company_Email__c" value={companySettings.Company_Email__c} onchange={handleSettingChange}></lightning-input>
+                            </div>
+                        </div>
+                        <div class="slds-m-bottom_small">
+                            <lightning-input label="Default Signer Title / Name" name="Signer_Title__c" value={companySettings.Signer_Title__c} onchange={handleSettingChange} placeholder="e.g. John Doe / CEO"></lightning-input>
+                        </div>
+
                         <div class="slds-m-top_large">
                             <lightning-button variant="brand" label="Save Changes" onclick={handleSaveCompanySettings} disabled={isLoading}></lightning-button>
                         </div>
@@ -81,10 +97,13 @@
                     </div>
                 </lightning-card>
 
-                <!-- Work Calendar Panel -->
-                <div class="slds-m-top_large">
-                    <c-cpq-work-calendar></c-cpq-work-calendar>
-                </div>
+                    </div>
+                </lightning-card>
+            </template>
+
+            <!-- Work Calendar / Operations Panel -->
+            <template if:true={isOperations}>
+                <c-cpq-work-calendar></c-cpq-work-calendar>
             </template>
 
             <!-- PDF Template Manager Panel -->

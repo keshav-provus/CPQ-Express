@@ -1,25 +1,30 @@
 import { LightningElement, track } from 'lwc';
-import saveTemplate from '@salesforce/apex/QuoteTemplateController.saveTemplate';
-import setDefaultTemplate from '@salesforce/apex/QuoteTemplateController.setDefaultTemplate';
+import saveTemplateData from '@salesforce/apex/QuoteTemplateController.saveTemplateData';
+import getTemplateData from '@salesforce/apex/QuoteTemplateController.getTemplateData';
+
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 export default class CpqTemplateManager extends LightningElement {
     @track isSaving = false;
 
-    // Editable fields
-    @track companyName = 'LATTICE METRIC';
-    @track companyAddress = '101 Innovation Way, Suite 400\nSan Francisco, CA 94105\nUnited States';
-    @track companyPhone = '+1 (555) 892-0192';
-    @track companyEmail = 'billing@latticemetric.io';
-    @track signerTitle = 'John Doe / CEO';
-
     @track logoDataUrl = '';
     @track signatureDataUrl = '';
 
-    handleFieldChange(event) {
-        const field = event.target.dataset.field;
-        if (field) {
-            this[field] = event.target.value;
+    connectedCallback() {
+        this.loadExistingTemplate();
+    }
+
+    async loadExistingTemplate() {
+        try {
+            const data = await getTemplateData();
+            if (data) {
+                // Note: We don't restore the full HTML to the 'canvas' because the builder 
+                // generates it fresh based on Logo and Signature.
+                if (data.logo) this.logoDataUrl = data.logo;
+                if (data.signature) this.signatureDataUrl = data.signature;
+            }
+        } catch (error) {
+            console.error('Error loading template:', error);
         }
     }
 
@@ -36,7 +41,7 @@ export default class CpqTemplateManager extends LightningElement {
     handleLogoUpload(event) {
         const file = event.target.files[0];
         if (file) {
-            this.readFileAsDataURL(file, (dataUrl) => {
+            this.readFileAsResizedDataURL(file, 400, (dataUrl) => {
                 this.logoDataUrl = dataUrl;
             });
         }
@@ -45,24 +50,42 @@ export default class CpqTemplateManager extends LightningElement {
     handleSignatureUpload(event) {
         const file = event.target.files[0];
         if (file) {
-            this.readFileAsDataURL(file, (dataUrl) => {
+            this.readFileAsResizedDataURL(file, 400, (dataUrl) => {
                 this.signatureDataUrl = dataUrl;
             });
         }
     }
 
-    readFileAsDataURL(file, callback) {
+    readFileAsResizedDataURL(file, maxWidth, callback) {
         const reader = new FileReader();
-        reader.onload = () => {
-            callback(reader.result);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Compress as JPEG - reduced to 0.6 quality for better PDF compatibility
+                callback(canvas.toDataURL('image/jpeg', 0.6));
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
 
     generateHTMLContent() {
-        // Convert multiline address to HTML line breaks
-        const formattedAddress = (this.companyAddress || '').replace(/\n/g, '<br/>');
-
+        const logoDisplay = this.logoDataUrl ? 'block' : 'none';
+        const sigDisplay = this.signatureDataUrl ? 'block' : 'none';
+        
         // Note: The Apex merge logic expects specific placeholders:
         // [[Quote.Name]], [[Quote.Total_Amount__c]], [[Quote.Start_Date__c]], [[Quote.End_Date__c]],
         // [[Account.Name]], [[Account.Address]], [[User.Name]], [[Today]],
@@ -125,12 +148,12 @@ export default class CpqTemplateManager extends LightningElement {
                 <table class="header-table">
                     <tr>
                         <td class="header-left">
-                            ${this.logoDataUrl ? `<img src="${this.logoDataUrl}" class="company-logo" />` : ''}
+                            <img src="[[Company.Logo]]" class="company-logo" style="display:${logoDisplay}" />
                             <div class="company-info">
-                                <strong>${this.companyName || ''}</strong><br/>
-                                ${formattedAddress}<br/><br/>
-                                ${this.companyPhone || ''}<br/>
-                                ${this.companyEmail || ''}
+                                <strong>[[Company.Name]]</strong><br/>
+                                [[Company.Address]]<br/><br/>
+                                [[Company.Phone]]<br/>
+                                [[Company.Email]]
                             </div>
                         </td>
                         <td class="header-right">
@@ -201,10 +224,10 @@ export default class CpqTemplateManager extends LightningElement {
                             <div class="signature-box">
                                 <div class="sig-label">Authorized Signature</div>
                                 <div class="sig-img-container">
-                                    ${this.signatureDataUrl ? `<img src="${this.signatureDataUrl}" class="sig-img" />` : '<div style="height:60px;"></div>'}
+                                    <img src="[[Company.Signature]]" class="sig-img" style="display:${sigDisplay}" />
                                 </div>
                                 <div class="sig-line"></div>
-                                <div class="sig-title">${this.signerTitle || ''}</div>
+                                <div class="sig-title">[[Signer.Title]]</div>
                             </div>
                         </td>
                     </tr>
@@ -219,21 +242,20 @@ export default class CpqTemplateManager extends LightningElement {
         try {
             const htmlContent = this.generateHTMLContent();
 
-            // Name the template based on timestamp to keep it unique
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const templateName = `Custom Template ${timestamp}`;
+            if (htmlContent.length > 130000) {
+                this.showToast('Error', 'Template size exceeds the maximum limit. Please provide smaller texts or images.', 'error');
+                this.isSaving = false;
+                return;
+            }
 
-            // Save the new template
-            const templateId = await saveTemplate({
-                name: templateName,
-                description: 'Generated from Interactive Builder',
-                htmlContent: htmlContent
+            // Save the new template with separate image components
+            await saveTemplateData({
+                htmlContent: htmlContent,
+                logoData: this.logoDataUrl,
+                signatureData: this.signatureDataUrl
             });
 
-            // Set it as default so it's automatically used
-            await setDefaultTemplate({ templateId: templateId });
-
-            this.showToast('Success', 'Quote template saved and set as default!', 'success');
+            this.showToast('Success', 'Quote template saved explicitly as the Global Default!', 'success');
         } catch (error) {
             console.error('Error saving template:', error);
             this.showToast('Error', error.body?.message || 'Error saving template.', 'error');

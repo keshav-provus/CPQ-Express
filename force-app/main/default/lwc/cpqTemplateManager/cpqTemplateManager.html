@@ -34,11 +34,8 @@
                         </div>
 
                         <!-- Editable Company Info -->
-                        <div class="company-info-edit">
-                            <input type="text" class="inline-input company-name-input" value={companyName} onchange={handleFieldChange} data-field="companyName" placeholder="Company Name"/>
-                            <textarea class="inline-input company-address-input" onchange={handleFieldChange} data-field="companyAddress" placeholder="101 Innovation Way, Suite 400&#10;San Francisco, CA 94105&#10;United States">{companyAddress}</textarea>
-                            <input type="text" class="inline-input company-phone-input" value={companyPhone} onchange={handleFieldChange} data-field="companyPhone" placeholder="+1 (555) 892-0192"/>
-                            <input type="text" class="inline-input company-email-input" value={companyEmail} onchange={handleFieldChange} data-field="companyEmail" placeholder="billing@company.com"/>
+                        <div class="company-info-edit" style="color:#666;">
+                            [Company details managed in Admin Settings]
                         </div>
                     </div>
 
@@ -149,7 +146,7 @@
                             <input type="file" class="hidden-file-input" accept="image/png, image/jpeg" onchange={handleSignatureUpload} data-id="signatureInput"/>
                         </div>
                         <div class="signature-line"></div>
-                        <input type="text" class="inline-input signer-title-input" value={signerTitle} onchange={handleFieldChange} data-field="signerTitle" placeholder="Signer Name / Title"/>
+                        <div style="color:#666; font-size:11px;">[Signer Info managed in Admin Settings]</div>
                     </div>
                 </div>
 
