@@ -285,16 +285,16 @@ public with sharing class AgentforceController {
         prompt += '  "message": "Your response (use **bold** for emphasis, \\n for newlines)",\n';
         prompt += '  "needsDisambiguation": false,\n';
         prompt += '  "options": [{"id":"recordId", "name":"Item Name", "price":100, "type":"Resource Role|Product|Add-on"}],\n';
-        prompt += '  "intent": "add_item|remove_item|create_quote|summarize|search|recommend|submit|analyze|help|general",\n';
-        prompt += '  "actionData": {"itemId":"...", "itemType":"...", "quantity":1},\n';
+        prompt += '  "intent": "add_item|remove_item|create_quote|summarize|search|recommend|submit|analyze|help|update_quantity|apply_discount|general",\n';
+        prompt += '  "actionData": {"itemId":"...", "itemType":"...", "quantity":1, "startDate":"yyyy-mm-dd", "endDate":"yyyy-mm-dd"},\n';
         prompt += '  "action": "REFRESH|null"\n';
         prompt += '}\n\n';
 
         prompt += '=== RULES ===\n';
-        prompt += '1. When adding an item with multiple matches (e.g. "add developer" matches Salesforce Developer, Sr. Developer, Jr. Developer), set needsDisambiguation=true and list ALL matches in options.\n';
-        prompt += '2. Only Draft quotes can be modified. Refuse modifications on non-Draft quotes.\n';
-        prompt += '3. Format currency with $ and commas. Be concise and professional.\n';
-        prompt += '4. If the user asks about the quote, provide accurate details from the context above.\n';
+        prompt += '1. When adding an item with multiple matches, set needsDisambiguation=true and list ALL matches in options from the catalog.\n';
+        prompt += '2. When updating quantity or applying a discount, ONLY match against items listed in CURRENT QUOTE -> Current Line Items! Use their exact recordIds if possible. If you cannot find it in the quote, say so and do NOT return disambiguation from the catalog.\n';
+        prompt += '3. Only Draft quotes can be modified. Refuse modifications on non-Draft quotes.\n';
+        prompt += '4. If adding an item, you may extract "startDate" and "endDate" if specified by the user. If they do not specify a start date, default to today\'s date. "endDate" can be inferred from phrasing like "two months from now". Use format "YYYY-MM-DD".\n';
         prompt += '5. Always provide structured, clean responses with clear sections.\n';
         prompt += '6. When the user wants to create a new quote, ALWAYS set intent to "create_quote". You CAN create quotes — the system has a built-in multi-step flow for this.\n';
 
@@ -333,13 +333,23 @@ public with sharing class AgentforceController {
                 return null; // Let Apex engine handle with handleCreateQuote()
             }
 
-            // If LLM says add_item with a single clear match, execute it
-            if (intent == 'add_item' && !needsDisambiguation && parsed.get('actionData') != null) {
+            // If LLM provides a clear match, execute directly based on intent
+            if (!needsDisambiguation && parsed.get('actionData') != null) {
                 Map<String, Object> actionData = (Map<String, Object>) parsed.get('actionData');
                 if (actionData.containsKey('itemId') && String.isNotBlank((String) actionData.get('itemId'))) {
-                    Map<String, Object> result = executeAddItem(actionData, ctx);
-                    result.put('action', 'REFRESH');
-                    return result;
+                    if (intent == 'add_item') {
+                        Map<String, Object> result = executeAddItem(actionData, ctx);
+                        result.put('action', 'REFRESH');
+                        return result;
+                    } else if (intent == 'update_quantity') {
+                        Map<String, Object> result = executeUpdateQuantity(actionData, ctx);
+                        result.put('action', 'REFRESH');
+                        return result;
+                    } else if (intent == 'apply_discount') {
+                        Map<String, Object> result = executeApplyDiscount(actionData, ctx);
+                        result.put('action', 'REFRESH');
+                        return result;
+                    }
                 }
             }
 
@@ -352,13 +362,26 @@ public with sharing class AgentforceController {
 
             if (needsDisambiguation && parsed.get('options') != null) {
                 response.put('responseType', 'disambiguation');
-                // Resolve LLM-generated option IDs against the actual catalog
                 List<Object> rawOptions = (List<Object>) parsed.get('options');
-                List<Map<String, Object>> resolvedOptions = resolveOptionIds(rawOptions, ctx);
-                response.put('options', resolvedOptions);
-                response.put('pendingAction', 'ADD_ITEM');
-                Object qtyObj = parsed.get('actionData') != null ? ((Map<String, Object>) parsed.get('actionData')).get('quantity') : 1;
-                response.put('pendingQuantity', qtyObj != null ? qtyObj : 1);
+                // Only resolve against catalog for add_item. For update/discount, options should refer to existing Line Items!
+                if (intent == 'add_item') {
+                    response.put('pendingAction', 'ADD_ITEM');
+                    response.put('options', resolveOptionIds(rawOptions, ctx));
+                } else {
+                    if (intent == 'update_quantity') response.put('pendingAction', 'UPDATE_QUANTITY');
+                    else if (intent == 'apply_discount') response.put('pendingAction', 'APPLY_DISCOUNT');
+                    else response.put('pendingAction', 'ADD_ITEM');
+                    response.put('options', rawOptions);
+                }
+                
+                if (parsed.get('actionData') != null) {
+                    Map<String, Object> ad = (Map<String, Object>) parsed.get('actionData');
+                    response.put('pendingQuantity', ad.get('quantity') != null ? ad.get('quantity') : 1);
+                    if (ad.containsKey('startDate')) response.put('pendingStartDate', ad.get('startDate'));
+                    if (ad.containsKey('endDate')) response.put('pendingEndDate', ad.get('endDate'));
+                } else {
+                    response.put('pendingQuantity', 1);
+                }
             }
 
             return response;
@@ -1387,6 +1410,18 @@ public with sharing class AgentforceController {
             Quantity__c = quantity
         );
 
+        String startDateStr = (String) actionData.get('startDate');
+        if (String.isNotBlank(startDateStr)) {
+            try { qli.Start_Date__c = Date.valueOf(startDateStr); } catch (Exception e) { qli.Start_Date__c = Date.today(); }
+        } else {
+            qli.Start_Date__c = Date.today();
+        }
+
+        String endDateStr = (String) actionData.get('endDate');
+        if (String.isNotBlank(endDateStr)) {
+            try { qli.End_Date__c = Date.valueOf(endDateStr); } catch (Exception e) {}
+        }
+
         String itemName = '';
         Decimal unitPrice = 0;
         Decimal unitCost = 0;
@@ -1586,7 +1621,8 @@ public with sharing class AgentforceController {
             return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** — quantities cannot be changed.', false, null, null, null);
         }
 
-        Id lineItemId = (Id) actionData.get('lineItemId');
+        // Fix: Use itemId which is standard across LLM actionData
+        Id lineItemId = actionData.containsKey('itemId') ? (Id) actionData.get('itemId') : (Id) actionData.get('lineItemId');
         Object qtyObj = actionData.get('quantity');
         Decimal newQuantity = qtyObj != null ? Decimal.valueOf(String.valueOf(qtyObj)) : 1;
 
@@ -1603,17 +1639,31 @@ public with sharing class AgentforceController {
         }
 
         Decimal oldQuantity = target.Quantity__c;
+        Boolean datesUpdated = false;
+
+        String startDateStr = (String) actionData.get('startDate');
+        if (String.isNotBlank(startDateStr)) {
+            try { target.Start_Date__c = Date.valueOf(startDateStr); datesUpdated = true; } catch (Exception e) {}
+        }
+        String endDateStr = (String) actionData.get('endDate');
+        if (String.isNotBlank(endDateStr)) {
+            try { target.End_Date__c = Date.valueOf(endDateStr); datesUpdated = true; } catch (Exception e) {}
+        }
+
         try {
             target.Quantity__c = newQuantity;
             update target;
             QuoteController.recalculateQuoteTotals(ctx.quote.Id);
         } catch (Exception e) {
-            return buildRecoveryResponse(e, 'updating quantity for ' + nn(target.Name__c));
+            return buildRecoveryResponse(e, 'updating item ' + nn(target.Name__c));
         }
 
-        String msg = '✅ **Quantity Updated**\\n\\n';
+        String msg = '✅ **Item Updated**\\n\\n';
         msg += '• **Item:** ' + nn(target.Name__c) + '\\n';
         msg += '• **Old Qty:** ' + oldQuantity?.intValue() + ' → **New Qty:** ' + newQuantity.intValue() + '\\n';
+        if (datesUpdated) {
+            msg += '• **Dates Updated**\\n';
+        }
         msg += '• **New Line Total:** $' + fmtDec(target.Unit_Price__c * newQuantity) + '\\n';
         msg += buildStateNarrative(ctx.quote.Id, ctx.marginThreshold);
 

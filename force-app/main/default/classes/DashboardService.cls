@@ -656,13 +656,20 @@ public with sharing class DashboardService {
         List<Map<String, Object>> discounts = new List<Map<String, Object>>();
         try {
             for (Discount_Tier__c dt : [
-                SELECT Id, Discount_Percent__c, Lower_Bound__c, Upper_Bound__c, Product__r.Name 
+                SELECT Id, Discount_Percent__c, Lower_Bound__c, Upper_Bound__c, Product__r.Name, Resource_Role__r.Name, Resource_Role__r.Name__c, Add_On__r.Name 
                 FROM Discount_Tier__c 
                 ORDER BY CreatedDate DESC 
                 LIMIT 3
             ]) {
-                String title = dt.Product__r != null ? dt.Product__r.Name : 'Volume Discount';
-                String text = 'Discount ' + dt.Discount_Percent__c + '% on ' + dt.Lower_Bound__c + '-' + dt.Upper_Bound__c + ' items of ' + title;
+                String title = 'Volume Discount';
+                if (dt.Product__r != null) {
+                    title = dt.Product__r.Name;
+                } else if (dt.Resource_Role__r != null) {
+                    title = dt.Resource_Role__r.Name__c != null ? dt.Resource_Role__r.Name__c : dt.Resource_Role__r.Name;
+                } else if (dt.Add_On__r != null) {
+                    title = dt.Add_On__r.Name;
+                }
+                String text = 'Quantity - ' + dt.Lower_Bound__c + '-' + dt.Upper_Bound__c;
                 discounts.add(new Map<String, Object>{
                     'id' => dt.Id,
                     'title' => title,
@@ -689,14 +696,14 @@ public with sharing class DashboardService {
                     'icon' => 'utility:favorite'
                 });
             }
-            List<Resource_Role__c> roles = [SELECT Id, Name FROM Resource_Role__c ORDER BY CreatedDate DESC LIMIT 1];
+            List<Resource_Role__c> roles = [SELECT Id, Name, Name__c FROM Resource_Role__c ORDER BY CreatedDate DESC LIMIT 1];
             if (roles.isEmpty() == false) {
                 feeds.add(new Map<String, Object>{
                     'id' => roles[0].Id,
                     'tag' => 'Resource',
                     'tagClass' => 'feed-tag green',
-                    'title' => roles[0].Name,
-                    'desc' => 'New Resource Role ' + roles[0].Name + ' added',
+                    'title' => roles[0].Name__c != null ? roles[0].Name__c : roles[0].Name,
+                    'desc' => 'New Resource Role ' + (roles[0].Name__c != null ? roles[0].Name__c : roles[0].Name) + ' added',
                     'icon' => 'utility:user'
                 });
             }
