@@ -221,23 +221,25 @@
                 <div class="flex-spacer"></div>
 
                 <!-- Suggested Actions -->
-                <div class="suggested-section">
-                    <h4 class="suggested-title">SUGGESTED</h4>
-                    <div class="suggested-list">
-                        <button class="suggested-item" data-prompt="Update Quote Items" onclick={handleQuickAction}>
-                            <span class="sug-icon">✏️</span> Update Quote Items
-                        </button>
-                        <button class="suggested-item" data-prompt="Manage Discounts" onclick={handleQuickAction}>
-                            <span class="sug-icon">%</span> Manage Discounts
-                        </button>
-                        <button class="suggested-item" data-prompt="Clone Quote" onclick={handleQuickAction}>
-                            <span class="sug-icon">📋</span> Clone Quote
-                        </button>
-                        <button class="suggested-item" data-prompt="More options" onclick={handleQuickAction}>
-                            <span class="sug-icon">⋯</span> More options
-                        </button>
+                <template if:false={hasMessages}>
+                    <div class="suggested-section">
+                        <h4 class="suggested-title">SUGGESTED</h4>
+                        <div class="suggested-list">
+                            <button class="suggested-item" data-prompt="Update Quote Items" onclick={handleQuickAction}>
+                                <span class="sug-icon">✏️</span> Update Quote Items
+                            </button>
+                            <button class="suggested-item" data-prompt="Manage Discounts" onclick={handleQuickAction}>
+                                <span class="sug-icon">%</span> Manage Discounts
+                            </button>
+                            <button class="suggested-item" data-prompt="Clone Quote" onclick={handleQuickAction}>
+                                <span class="sug-icon">📋</span> Clone Quote
+                            </button>
+                            <button class="suggested-item" data-prompt="More options" onclick={handleQuickAction}>
+                                <span class="sug-icon">⋯</span> More options
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
 
             <!-- Footer -->
