@@ -1,1 +1,0 @@
-insert new CurrencyType(IsoCode='EUR', ConversionRate=0.92, IsActive=true, DecimalPlaces=2); insert new CurrencyType(IsoCode='GBP', ConversionRate=0.79, IsActive=true, DecimalPlaces=2); insert new CurrencyType(IsoCode='JPY', ConversionRate=150.0, IsActive=true, DecimalPlaces=0);
