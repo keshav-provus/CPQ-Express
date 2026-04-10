@@ -298,7 +298,6 @@ export default class CpqAiAssistant extends LightningElement {
 
     addUserMessage(text) {
         this.messageIdCounter++;
-        const prefix = this.isCardMode ? 'card-' : '';
         this.messages = [...this.messages, {
             id: 'msg-' + this.messageIdCounter,
             rawText: text,
