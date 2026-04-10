@@ -316,6 +316,13 @@ public with sharing class AgentforceController {
             cleaned = cleaned.replaceAll('^```[a-z]*\\n?', '').replaceAll('\\n?```$', '');
         }
 
+        // Handle cases where the LLM appends trailing text after the JSON block
+        Integer firstBrace = cleaned.indexOf('{');
+        Integer lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+
         try {
             Map<String, Object> parsed = (Map<String, Object>) JSON.deserializeUntyped(cleaned);
             String intent = (String) parsed.get('intent');

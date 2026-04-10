@@ -194,6 +194,30 @@
    DISAMBIGUATION / OPTIONS LIST
    ══════════════════════════════════════════════════ */
 
+.disambiguation-search {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+.dis-search-icon {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-right: 8px;
+}
+.dis-search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 13px;
+    background: transparent;
+    color: #1f2937;
+}
+
 .options-list {
     display: flex;
     flex-direction: column;

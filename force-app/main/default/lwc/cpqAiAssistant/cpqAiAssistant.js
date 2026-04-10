@@ -337,6 +337,7 @@ export default class CpqAiAssistant extends LightningElement {
             // Disambiguation data
             hasOptions: responseType === 'disambiguation' && result.options?.length > 0,
             options: result.options || [],
+            displayedOptions: result.options || [],
             pendingAction: result.pendingAction || '',
             pendingQuantity: result.pendingQuantity || 1,
             pendingAccountId: result.pendingAccountId || '',

@@ -161,6 +161,41 @@
                                 </template>
                             </template>
 
+                            <!-- ── Disambiguation Messages ── -->
+                            <template if:true={msg.isDisambiguationType}>
+                                <div class="msg-text">
+                                    <lightning-formatted-rich-text value={msg.text}></lightning-formatted-rich-text>
+                                </div>
+                                <template if:true={msg.hasOptions}>
+                                    <div class="disambiguation-search">
+                                        <span class="dis-search-icon">🔍</span>
+                                        <input type="text"
+                                               class="dis-search-input"
+                                               placeholder="Search options..."
+                                               data-msgid={msg.id}
+                                               oninput={handleDisambiguationSearch} />
+                                    </div>
+                                    <div class="options-list">
+                                        <template for:each={msg.displayedOptions} for:item="option">
+                                            <button key={option.id}
+                                                    class="option-card"
+                                                    data-id={option.id}
+                                                    data-type={option.type}
+                                                    data-name={option.name}
+                                                    data-accountid={option.accountId}
+                                                    onclick={handleOptionSelect}>
+                                                <span class="option-icon">{option.icon}</span>
+                                                <div class="option-info">
+                                                    <span class="option-name">{option.name}</span>
+                                                    <span class="option-detail">{option.detail}</span>
+                                                </div>
+                                                <span class="option-arrow">→</span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </template>
+                            </template>
+
                             <!-- Timestamp -->
                             <div class="msg-time">{msg.timestamp}</div>
                         </div>
