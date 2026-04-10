@@ -1,5 +1,6 @@
 <template>
     <div class="dashboard-shell">
+        <div class="left-col">
         <!-- ═══ Title Row ═══ -->
         <header class="title-row">
             <div>
@@ -36,23 +37,9 @@
             </div>
         </div>
 
-        <!-- ═══ Full Width AI Intelligence (Bottom) ═══ -->
-        <div class="col-ai-full">
-            <div class="ai-panel">
-                <div class="ai-glow"></div>
-                <div class="ai-header">
-                    <div class="ai-header-left">
-                        <div class="ai-icon-wrap">
-                            <span class="ai-icon">✦</span>
-                        </div>
-                        <h3 class="ai-title">CPQ AI Intelligence</h3>
-                    </div>
-                    <span class="ai-badge">Active</span>
-                </div>
-                <div class="ai-body">
-                    <c-cpq-ai-assistant mode="card" onnavigate={handleNavigate}></c-cpq-ai-assistant>
-                </div>
-            </div>
         </div>
+
+        <!-- ═══ AI Assistant (Right Column) ═══ -->
+        <c-cpq-ai-assistant></c-cpq-ai-assistant>
     </div>
 </template>

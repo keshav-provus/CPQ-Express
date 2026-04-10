@@ -35,12 +35,23 @@
 
 /* ─── Dashboard Shell ─── */
 .dashboard-shell {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 2rem 3rem;
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    gap: 1rem;
+    height: calc(100vh - 100px);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.left-col {
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+    gap: 1rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
 }
 
 /* ─── Title Row ─── */
@@ -131,94 +142,6 @@
     height: 100%;
 }
 
-/* ─── AI Panel (dark full width) ─── */
-.col-ai-full {
-    display: block;
-    width: 100%;
-}
-
-.ai-panel {
-    background: var(--gray-900);
-    color: #fff;
-    padding: 2rem;
-    border-radius: 2rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 600px;
-}
-
-.ai-glow {
-    position: absolute;
-    top: -2.5rem;
-    right: -2.5rem;
-    width: 16rem;
-    height: 16rem;
-    background: rgba(37, 99, 235, 0.1);
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-}
-
-.ai-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 1;
-}
-
-.ai-header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.ai-icon-wrap {
-    width: 2.5rem;
-    height: 2.5rem;
-    background: rgba(37, 99, 235, 0.2);
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ai-icon {
-    color: var(--blue-400);
-    font-size: 1.25rem;
-}
-
-.ai-title {
-    font-weight: 700;
-    font-size: 1.25rem;
-    margin: 0;
-    color: #fff;
-}
-
-.ai-badge {
-    padding: 0.25rem 0.75rem;
-    background: rgba(59, 130, 246, 0.2);
-    color: var(--blue-400);
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 9999px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.ai-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
-    min-height: 0;
-}
-
 /* ─── Right Column ─── */
 .col-right {
     display: flex;
@@ -253,4 +176,13 @@
         display: flex;
     }
 
+}
+
+
+c-cpq-ai-assistant {
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
