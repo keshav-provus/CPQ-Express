@@ -139,7 +139,7 @@ export default class CpqApprovalHistory extends LightningElement {
 
     get isEmpty() {
         return !this.quote ||
-               this.quote.Status__c === 'Draft';
+               (this.quote.Status__c === 'Draft' && !this.quote.Submitted_By__c && !this.quote.Recalled_By__c);
     }
 
     get statusLabel() {

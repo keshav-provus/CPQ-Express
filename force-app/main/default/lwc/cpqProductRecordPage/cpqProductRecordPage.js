@@ -73,6 +73,7 @@ export default class CpqProductRecordPage extends LightningElement {
             this.uniqueAccounts = [...new Set(this.allQuotes.map(q => q.accountName))].sort();
             this.filteredAccountOptions = [...this.uniqueAccounts];
             this.calculateKPIs();
+            setTimeout(() => this.drawGantt(), 50);
         }
     }
 
@@ -185,8 +186,10 @@ export default class CpqProductRecordPage extends LightningElement {
         const chartH = quotes.length * (ROW_HEIGHT + ROW_GAP) + PAD_TOP + PAD_BOTTOM;
 
         // ── Time range ──
-        let minDate = new Date(Math.min(...quotes.map(q => q.start)));
-        let maxDate = new Date(Math.max(...quotes.map(q => q.end)));
+        const validStarts = quotes.map(q => q.start).filter(d => !isNaN(d));
+        let minDate = validStarts.length ? new Date(Math.min(...validStarts)) : new Date();
+        const validEnds = quotes.map(q => q.end).filter(d => !isNaN(d));
+        let maxDate = validEnds.length ? new Date(Math.max(...validEnds)) : new Date(minDate.getFullYear(), minDate.getMonth() + 1, 1);
         // Add padding
         minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
         maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
