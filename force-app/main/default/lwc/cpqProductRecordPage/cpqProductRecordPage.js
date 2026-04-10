@@ -15,7 +15,6 @@ export default class CpqProductRecordPage extends LightningElement {
 
     @api recordId;
     
-    @track activeTab = 'timeline';
     @track searchTerm = '';
     
     @track product;
@@ -55,7 +54,7 @@ export default class CpqProductRecordPage extends LightningElement {
     @wire(getProductUsage, { productId: '$recordId' })
     wiredUsage({ data }) {
         if (data) {
-            const colors = ['#AFA9EC', '#5DCAA5', '#F09975', '#FAC775', '#ED93B1'];
+            const colors = ['#004880', '#1B6D24', '#2E4A57', '#0060A8', '#88D982'];
             this.allQuotes = data.map((item, i) => ({
                 id: item.Quote__r ? item.Quote__r.Name : `Q-${i}`,
                 accountName: (item.Quote__r && item.Quote__r.Account__r) ? item.Quote__r.Account__r.Name : 'Unknown',
@@ -72,9 +71,7 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     renderedCallback() {
-        if (this.isTimeline) this.drawGantt();
-        if (this.isRelated) this.drawPriceBars();
-        
+        this.drawGantt();
         window.addEventListener('resize', this.handleResize.bind(this));
     }
     
@@ -83,19 +80,7 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     handleResize() {
-        if (this.isTimeline) this.drawGantt();
-    }
-
-    get isTimeline() { return this.activeTab === 'timeline'; }
-    get isRelated() { return this.activeTab === 'related'; }
-    get isConfig() { return this.activeTab === 'config'; }
-
-    get timelineTabClass() { return `tab ${this.isTimeline ? 'active' : ''}`; }
-    get relatedTabClass() { return `tab ${this.isRelated ? 'active' : ''}`; }
-    get configTabClass() { return `tab ${this.isConfig ? 'active' : ''}`; }
-
-    handleTabClick(event) {
-        this.activeTab = event.currentTarget.dataset.tab;
+        this.drawGantt();
     }
 
     handleSearchChange(event) {
@@ -264,8 +249,7 @@ export default class CpqProductRecordPage extends LightningElement {
             if (bW > 80) {
                 const labelX = x1 + bW / 2;
                 const labelY = y + barH / 2 + 4;
-                const textColor = q.color.replace('#','').length === 6 ? '#222' : '#333';
-                html += `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="${textColor}" font-size="10" font-weight="500" pointer-events="none">${q.id}</text>`;
+                html += `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="#fff" font-size="10" font-weight="500" pointer-events="none">${q.id}</text>`;
             }
         });
 
@@ -281,7 +265,7 @@ export default class CpqProductRecordPage extends LightningElement {
                 const pct = ((q.revenue / totalRev) * 100).toFixed(1);
                 lgHtml += `<div class="legend-item">
                      <span class="legend-swatch" style="background:${q.color}"></span>
-                     <span><b style="color:var(--color-text-primary)">${q.id}</b> · ${q.accountName} · ${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)} (${pct}%)</span>
+                     <span><b style="color:var(--color-on-surface)">${q.id}</b> · ${q.accountName} · ${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)} (${pct}%)</span>
                      </div>`;
             });
             lg.innerHTML = lgHtml;
@@ -326,19 +310,5 @@ export default class CpqProductRecordPage extends LightningElement {
     handleHideTT() {
         const tt = this.template.querySelector('.tooltip-box');
         if (tt) tt.style.display = 'none';
-    }
-
-    drawPriceBars() {
-        const wrap = this.template.querySelector('.price-bars');
-        if (!wrap) return;
-        const heights = [42,48,44,55,60,58,62,68,65,70,80,95];
-        const max = Math.max(...heights);
-        const colors = ['#B5D4F4','#B5D4F4','#85B7EB','#85B7EB','#378ADD','#378ADD','#185FA5','#185FA5','#378ADD','#378ADD','#185FA5','#3525cd'];
-        let html = '';
-        heights.forEach((h, i) => {
-            const pct = Math.round(h / max * 100);
-            html += `<div class="pb" style="height:${pct}%;background:${colors[i]}" title="Month ${i + 1}"></div>`;
-        });
-        wrap.innerHTML = html;
     }
 }

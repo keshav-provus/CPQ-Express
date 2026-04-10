@@ -1,27 +1,21 @@
 <template>
     <div class="map-card">
-        <!-- Glass overlay header -->
-        <div class="map-header-overlay">
+        <div class="map-header">
             <div>
-                <h3 class="map-title">Regional Quote Distribution</h3>
-                <p class="map-subtitle">Real-time Global Engagement</p>
-            </div>
-            <div class="region-badges">
-                <template for:each={regionBadges} for:item="badge">
-                    <span key={badge.key} class="region-badge">{badge.label}</span>
-                </template>
+                <h3 class="map-title">Regional Distribution</h3>
+                <p class="map-subtitle">Live market presence</p>
             </div>
         </div>
 
-        <!-- Loading State (shown above map container) -->
+        <!-- Loading State -->
         <template if:true={isLoading}>
             <div class="loading-state">
                 <lightning-spinner alternative-text="Loading Map" size="small"></lightning-spinner>
             </div>
         </template>
 
-        <!-- D3 Map Container (must be empty for lwc:dom="manual") -->
-        <div class="tooltip" lwc:ref="tooltip"></div>
+        <!-- D3 Map Container -->
         <div class="map-container" lwc:dom="manual" lwc:ref="mapContainer"></div>
+        <div class="tooltip" lwc:ref="tooltip"></div>
     </div>
 </template>

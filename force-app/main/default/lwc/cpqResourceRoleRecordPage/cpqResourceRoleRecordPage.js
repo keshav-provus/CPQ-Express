@@ -13,7 +13,6 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
 
     @api recordId;
     
-    @track activeTab = 'timeline';
     @track searchTerm = '';
     
     @track item;
@@ -41,7 +40,7 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
     @wire(getResourceRoleUsage, { roleId: '$recordId' })
     wiredUsage({ data }) {
         if (data) {
-            const colors = ['#AFA9EC', '#5DCAA5', '#F09975', '#FAC775', '#ED93B1'];
+            const colors = ['#004880', '#1B6D24', '#2E4A57', '#0060A8', '#88D982'];
             this.allQuotes = data.map((qItem, i) => ({
                 id: qItem.Quote__r ? qItem.Quote__r.Name : `Q-${i}`,
                 accountName: (qItem.Quote__r && qItem.Quote__r.Account__r) ? qItem.Quote__r.Account__r.Name : 'Unknown',
@@ -58,7 +57,7 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
     }
 
     renderedCallback() {
-        if (this.isTimeline) this.drawGantt();
+        this.drawGantt();
         window.addEventListener('resize', this.handleResize.bind(this));
     }
     
@@ -67,17 +66,7 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
     }
 
     handleResize() {
-        if (this.isTimeline) this.drawGantt();
-    }
-
-    get isTimeline() { return this.activeTab === 'timeline'; }
-    get isConfig() { return this.activeTab === 'config'; }
-
-    get timelineTabClass() { return `tab ${this.isTimeline ? 'active' : ''}`; }
-    get configTabClass() { return `tab ${this.isConfig ? 'active' : ''}`; }
-
-    handleTabClick(event) {
-        this.activeTab = event.currentTarget.dataset.tab;
+        this.drawGantt();
     }
 
     handleSearchChange(event) {
@@ -92,7 +81,6 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
     }
 
     handleSearchBlur() {
-        // Delay to allow handleAccountSelect to fire
         setTimeout(() => {
             this.isDropdownOpen = false;
         }, 200);
@@ -239,8 +227,7 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
             if (bW > 80) {
                 const labelX = x1 + bW / 2;
                 const labelY = y + barH / 2 + 4;
-                const textColor = q.color.replace('#','').length === 6 ? '#222' : '#333';
-                html += `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="${textColor}" font-size="10" font-weight="500" pointer-events="none">${q.id}</text>`;
+                html += `<text x="${labelX}" y="${labelY}" text-anchor="middle" fill="#fff" font-size="10" font-weight="500" pointer-events="none">${q.id}</text>`;
             }
         });
 
@@ -256,7 +243,7 @@ export default class CpqResourceRoleRecordPage extends LightningElement {
                 const pct = ((q.revenue / totalRev) * 100).toFixed(1);
                 lgHtml += `<div class="legend-item">
                      <span class="legend-swatch" style="background:${q.color}"></span>
-                     <span><b style="color:var(--color-text-primary)">${q.id}</b> · ${q.accountName} · ${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)} (${pct}%)</span>
+                     <span><b style="color:var(--color-on-surface)">${q.id}</b> · ${q.accountName} · ${new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(q.revenue)} (${pct}%)</span>
                      </div>`;
             });
             lg.innerHTML = lgHtml;

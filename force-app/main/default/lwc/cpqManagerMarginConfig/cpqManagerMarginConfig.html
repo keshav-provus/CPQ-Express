@@ -1,12 +1,6 @@
 <template>
     <div class="margin-card">
-        <div class="margin-header">
-            <div>
-                <p class="margin-label">Global Margin Threshold</p>
-                <p class="margin-subtitle">Automatic approval for quotes above this margin baseline.</p>
-            </div>
-            <span class="margin-value">{marginDisplay}</span>
-        </div>
+        <h3 class="margin-title">Margin Threshold</h3>
 
         <template if:true={isLoading}>
             <div class="loading-state">
@@ -14,19 +8,27 @@
             </div>
         </template>
         <template if:false={isLoading}>
-            <input
-                type="range"
-                class="margin-slider"
-                min="0"
-                max="50"
-                value={marginValue}
-                oninput={handleMarginInput}
-                onchange={handleMarginChange}
-            />
+            <div class="slider-wrap">
+                <input
+                    type="range"
+                    class="margin-slider"
+                    min="0"
+                    max="50"
+                    value={marginValue}
+                    oninput={handleMarginInput}
+                    onchange={handleMarginChange}
+                />
+                <div class="slider-labels">
+                    <span class="slider-min">0%</span>
+                    <span class="slider-target">Target: {marginDisplay}</span>
+                    <span class="slider-max">50%</span>
+                </div>
+            </div>
 
-            <div class="slider-labels">
-                <span>0% Floor (Full Review)</span>
-                <span>50% Ceiling (Auto-Approve Peak)</span>
+            <div class="tier-badges">
+                <span class="tier-badge tier-1">Tier 1</span>
+                <span class="tier-badge tier-2">Tier 2</span>
+                <span class="tier-badge tier-3">Tier 3</span>
             </div>
         </template>
     </div>

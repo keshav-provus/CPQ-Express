@@ -1,70 +1,59 @@
 <template>
     <div class="dashboard-shell">
-
-        <!-- ═══ Main Content ═══ -->
-        <main class="main-content">
-
-            <!-- Title Row -->
-            <div class="title-row">
-                <div>
-                    <h1 class="dash-title">Precision Dashboard</h1>
-                    <p class="dash-subtitle">Strategic Analyst View • Pipeline up <span class="highlight-green">14.2%</span> this week.</p>
-                </div>
+        <!-- ═══ Title Row ═══ -->
+        <header class="title-row">
+            <div>
+                <h1 class="dash-title">Welcome back, {userName}</h1>
+                <p class="dash-subtitle">Here's what's happening with your quotes and pipeline today.</p>
+            </div>
+            <div class="title-actions">
                 <button class="btn-new-quote" onclick={handleStartQuote}>
-                    <span class="material-symbols-outlined btn-icon">add_circle</span>
+                    <span class="material-symbols-outlined btn-icon">add</span>
                     New Quote
                 </button>
             </div>
+        </header>
 
-            <!-- 12-Column Grid -->
-            <div class="grid-12">
-
-                <!-- KPI Row (full 12 cols) -->
-                <div class="col-span-12">
-                    <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
-                </div>
-
-                <!-- Middle Row: Quotes to Approve (4) + Map (8) -->
-                <div class="col-span-4 panel-height">
-                    <c-cpq-pending-quotes></c-cpq-pending-quotes>
-                </div>
-                <div class="col-span-8 panel-height">
-                    <c-cpq-quote-map></c-cpq-quote-map>
-                </div>
-
-                <!-- Bottom Row: Quote Velocity (4) + Margin Threshold (8) -->
-                <div class="col-span-4 card-height">
-                    <c-cpq-quote-velocity></c-cpq-quote-velocity>
-                </div>
-                <div class="col-span-8 card-height">
-                    <c-cpq-manager-margin-config></c-cpq-manager-margin-config>
-                </div>
-
+        <!-- ═══ KPI Section ═══ -->
+        <section class="kpi-section">
+            <div class="section-header">
+                <h2 class="section-title">Sales &amp; CPQ Summary</h2>
             </div>
-        </main>
+            <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
+        </section>
 
-        <!-- ═══ Right Sidebar: Architect AI ═══ -->
-        <aside class="ai-sidebar">
-            <div class="ai-glow"></div>
-            <div class="ai-sidebar-inner">
+        <!-- ═══ 3-Column Grid ═══ -->
+        <div class="grid-3col">
+            <!-- Col 1: Quotes to Approve -->
+            <div class="col-quotes">
+                <c-cpq-pending-quotes></c-cpq-pending-quotes>
+            </div>
 
-                <!-- AI Header -->
-                <div class="ai-header">
-                    <div class="ai-header-icon">
-                        <span class="material-symbols-outlined ai-icon">auto_awesome</span>
+            <!-- Col 2: CPQ AI Intelligence -->
+            <div class="col-ai">
+                <div class="ai-panel">
+                    <div class="ai-glow"></div>
+                    <div class="ai-header">
+                        <div class="ai-header-left">
+                            <div class="ai-icon-wrap">
+                                <span class="material-symbols-outlined ai-icon">auto_awesome</span>
+                            </div>
+                            <h3 class="ai-title">CPQ AI Intelligence</h3>
+                        </div>
+                        <span class="ai-badge">Active</span>
                     </div>
-                    <div>
-                        <h3 class="ai-title">Architect AI</h3>
-                        <p class="ai-status">Intelligence Active</p>
+                    <div class="ai-body">
+                        <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
                     </div>
                 </div>
+            </div>
 
-                <!-- Chat + Insights Area -->
-                <div class="ai-body">
-                    <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
-                </div>
+            <!-- Col 3: Map + Margin + Quick Links -->
+            <div class="col-right">
+                <c-cpq-quote-map></c-cpq-quote-map>
+                <c-cpq-manager-margin-config></c-cpq-manager-margin-config>
 
             </div>
-        </aside>
+        </div>
     </div>
 </template>

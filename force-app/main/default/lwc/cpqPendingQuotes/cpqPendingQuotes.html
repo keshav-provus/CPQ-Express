@@ -1,51 +1,46 @@
 <template>
-    <div class="pending-panel">
-        <!-- Sticky Header -->
+    <div class="quotes-panel">
         <div class="panel-header">
-            <h3 class="panel-title">Quotes to Approve</h3>
-            <span class="total-badge">{totalLabel}</span>
+            <div>
+                <h3 class="panel-title">Quotes to Approve</h3>
+                <p class="panel-subtitle">Pending review and signatures</p>
+            </div>
+            <div class="panel-icon-wrap">
+                <span class="material-symbols-outlined panel-icon">pending_actions</span>
+            </div>
         </div>
 
-        <!-- Scrollable Quote List -->
-        <div class="quote-list">
-            <template if:true={quotes}>
-                <template if:true={hasQuotes}>
-                    <template for:each={formattedQuotes} for:item="quote">
-                        <div key={quote.Id} class="quote-card" onclick={handleNavigateToQuote} data-id={quote.Id}>
-                            <div class="quote-card-top">
-                                <span class="quote-number">{quote.Name}</span>
-                                <span class={quote.urgencyClass}>{quote.urgencyLabel}</span>
-                            </div>
-                            <div class="quote-account">{quote.AccountName}</div>
-                            <div class="quote-card-bottom">
-                                <span class="quote-amount">{quote.formattedAmount}</span>
-                                <span class="material-symbols-outlined chevron-icon">chevron_right</span>
-                            </div>
+        <div class="quotes-list">
+            <template for:each={displayQuotes} for:item="quote">
+                <div key={quote.Id} class="quote-card" onclick={handleQuoteClick} data-id={quote.Id}>
+                    <div class="quote-top">
+                        <div>
+                            <h4 class="quote-name">{quote.displayName}</h4>
+                            <p class="quote-meta">{quote.ownerName} • {quote.timeAgo}</p>
                         </div>
-                    </template>
-                </template>
-                <template if:false={hasQuotes}>
-                    <div class="empty-state">
-                        <div class="empty-icon">✓</div>
-                        <p class="empty-text">All caught up!</p>
-                        <p class="empty-sub">No quotes pending approval</p>
+                        <span class="quote-amount">{quote.formattedAmount}</span>
                     </div>
-                </template>
+                    <div class="quote-progress">
+                        <div class="avatar-stack">
+                            <div class="avatar">{quote.initials}</div>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style={quote.progressStyle}></div>
+                        </div>
+                        <span class="progress-label">{quote.statusLabel}</span>
+                    </div>
+                </div>
             </template>
-            <template if:false={quotes}>
-                <div class="loading-state">
-                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            <template if:false={hasQuotes}>
+                <div class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">check_circle</span>
+                    <p class="empty-text">All quotes are approved</p>
                 </div>
             </template>
         </div>
 
-        <!-- Bulk Approve Footer -->
-        <template if:true={hasQuotes}>
-            <div class="panel-footer">
-                <button class="bulk-approve-btn" onclick={handleBulkApprove}>
-                    Bulk Approve
-                </button>
-            </div>
-        </template>
+        <button class="view-all-btn" onclick={handleBulkApprove}>
+            View All Pending Approvals
+        </button>
     </div>
 </template>

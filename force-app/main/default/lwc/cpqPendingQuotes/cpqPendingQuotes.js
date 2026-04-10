@@ -1,73 +1,53 @@
 import { LightningElement, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
-import getQuotesNeedingApproval from '@salesforce/apex/DashboardController.getQuotesNeedingApproval';
-import approveQuote from '@salesforce/apex/QuoteController.approveQuote';
-import { refreshApex } from '@salesforce/apex';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
+import getPendingActionItems from '@salesforce/apex/DashboardController.getPendingActionItems';
+import submitForApproval from '@salesforce/apex/QuoteController.submitForApproval';
 
 export default class CpqPendingQuotes extends NavigationMixin(LightningElement) {
-    @track currencyCode = 'USD';
+    @track quotes = [];
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
+    @wire(getPendingActionItems)
+    wiredQuotes({ data, error }) {
+        if (data) {
+            const colors = ['bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-orange-100'];
+            this.quotes = data.map((q, i) => {
+                const amount = q.Total_Amount__c || 0;
+                const name = q.Name || '';
+                const acctName = q.Account__r ? q.Account__r.Name : '';
+                const ownerName = q.Owner ? q.Owner.Name : 'Unknown';
+                const created = q.CreatedDate ? new Date(q.CreatedDate) : new Date();
+                const hoursAgo = Math.round((Date.now() - created) / 3600000);
 
-    @track quotes;
-    wiredQuotesResult;
-
-    @wire(getQuotesNeedingApproval)
-    wiredQuotes(result) {
-        this.wiredQuotesResult = result;
-        if (result.data) {
-            this.quotes = result.data;
-        } else if (result.error) {
-            console.error('Error fetching pending quotes:', result.error);
+                return {
+                    ...q,
+                    displayName: acctName ? `${acctName} - ${name}` : name,
+                    ownerName,
+                    timeAgo: hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.round(hoursAgo / 24)}d ago`,
+                    formattedAmount: amount >= 1000000
+                        ? '$' + (amount / 1000000).toFixed(2) + 'M'
+                        : amount >= 1000
+                            ? '$' + (amount / 1000).toFixed(0) + 'k'
+                            : '$' + amount.toFixed(0),
+                    initials: ownerName.split(' ').map(n => n[0]).join('').substring(0, 2),
+                    avatarColor: colors[i % colors.length],
+                    progressStyle: `width: ${Math.min(25 + (i * 20), 75)}%`,
+                    statusLabel: `Step ${Math.min(i + 1, 3)}/${Math.max(3, i + 2)}`
+                };
+            });
+        } else if (error) {
+            console.error('Error loading pending quotes:', error);
         }
     }
 
+    get displayQuotes() {
+        return this.quotes.slice(0, 4);
+    }
+
     get hasQuotes() {
-        return this.quotes && this.quotes.length > 0;
+        return this.quotes.length > 0;
     }
 
-    get totalLabel() {
-        const count = this.quotes ? this.quotes.length : 0;
-        return count + ' Total';
-    }
-
-    get formattedQuotes() {
-        if (!this.quotes) return [];
-        return this.quotes.map((quote, index) => {
-            const isUrgent = (quote.Total_Amount__c || 0) > 100000;
-            const isReview = quote.Status__c === 'Submitted' && !isUrgent;
-            let urgencyLabel = 'Standard';
-            let urgencyClass = 'urgency-badge standard';
-
-            if (isUrgent) {
-                urgencyLabel = 'Urgent';
-                urgencyClass = 'urgency-badge urgent';
-            } else if (isReview && index % 3 === 0) {
-                urgencyLabel = 'Review';
-                urgencyClass = 'urgency-badge review';
-            }
-
-            return {
-                ...quote,
-                AccountName: quote.Account__r ? quote.Account__r.Name : 'No Account',
-                formattedAmount: new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: this.currencyCode,
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }).format(quote.Total_Amount__c || 0),
-                urgencyLabel,
-                urgencyClass
-            };
-        });
-    }
-
-    handleNavigateToQuote(event) {
+    handleQuoteClick(event) {
         const quoteId = event.currentTarget.dataset.id;
         this[NavigationMixin.Navigate]({
             type: 'standard__recordPage',
@@ -80,38 +60,12 @@ export default class CpqPendingQuotes extends NavigationMixin(LightningElement) 
     }
 
     async handleBulkApprove() {
-        if (!this.quotes || this.quotes.length === 0) return;
-
-        let successCount = 0;
-        let failCount = 0;
-
-        for (const quote of this.quotes) {
+        for (const q of this.quotes) {
             try {
-                await approveQuote({ quoteId: quote.Id });
-                successCount++;
-            } catch (error) {
-                failCount++;
-                console.error('Failed to approve quote ' + quote.Name, error);
+                await submitForApproval({ quoteId: q.Id });
+            } catch (e) {
+                console.error('Error approving quote:', e);
             }
         }
-
-        if (successCount > 0) {
-            this.showToast('Success', successCount + ' quote(s) approved successfully', 'success');
-        }
-        if (failCount > 0) {
-            this.showToast('Warning', failCount + ' quote(s) failed to approve', 'warning');
-        }
-
-        refreshApex(this.wiredQuotesResult);
-    }
-
-    showToast(title, message, variant) {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title: title,
-                message: message,
-                variant: variant
-            })
-        );
     }
 }

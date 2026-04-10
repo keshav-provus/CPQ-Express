@@ -1,65 +1,103 @@
 <template>
     <div class="kpi-grid">
-        <!-- Total Revenue — col-span-2 -->
-        <div class="kpi-card kpi-col-2">
-            <span class="kpi-label">Total Revenue</span>
-            <div class="kpi-body">
-                <div class="kpi-value">{formattedRevenue}</div>
-                <div class="kpi-trend trend-up">
-                    <span class="material-symbols-outlined trend-icon">trending_up</span>+8.2%
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Margin — col-span-3 with sparkline -->
-        <div class="kpi-card kpi-col-3">
-            <span class="kpi-label">Total Margin</span>
-            <div class="kpi-body kpi-body-row">
+        <!-- Total Revenue -->
+        <article class="kpi-card">
+            <div class="kpi-top">
                 <div>
-                    <div class="kpi-value">{formattedMargin}</div>
-                    <div class="kpi-trend trend-up">
-                        <span class="material-symbols-outlined trend-icon">trending_up</span>+12.4%
+                    <p class="kpi-label">Total Revenue</p>
+                    <div class="kpi-value-row">
+                        <p class="kpi-value">{formattedRevenue}</p>
+                        <span class="kpi-trend trend-up">
+                            +{revenueTrend}% <span class="material-symbols-outlined trend-arrow">north</span>
+                        </span>
                     </div>
                 </div>
-                <div class="sparkline-wrap">
-                    <svg class="sparkline-svg" viewBox="0 0 100 40">
-                        <path d="M0,35 L10,32 L20,36 L30,25 L40,28 L50,15 L60,20 L70,10 L80,18 L90,5 L100,12" fill="none" stroke="#2563eb" stroke-linecap="round" stroke-width="2"></path>
-                    </svg>
-                </div>
             </div>
-        </div>
+            <div class="sparkline-area">
+                <svg class="sparkline-svg" preserveAspectRatio="none" viewBox="0 0 100 40">
+                    <defs>
+                        <linearGradient id="grad-blue" x1="0%" x2="0%" y1="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2563eb"></stop>
+                            <stop offset="100%" style="stop-color:#2563eb;stop-opacity:0"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path d="M0 40 Q 25 35, 50 30 T 100 10" fill="none" stroke="#2563eb" stroke-linecap="round" stroke-width="2.5"></path>
+                    <path d="M0 40 Q 25 35, 50 30 T 100 10 V 40 H 0 Z" fill="url(#grad-blue)" fill-opacity="0.1"></path>
+                </svg>
+            </div>
+            <div class="kpi-footer">
+                <p class="kpi-footer-title">Revenue Pattern</p>
+                <p class="kpi-footer-sub">Current period trend</p>
+            </div>
+        </article>
 
-        <!-- Active Quotes — col-span-2 -->
-        <div class="kpi-card kpi-col-2">
-            <span class="kpi-label">Active Quotes</span>
-            <div class="kpi-body">
-                <div class="kpi-value">{activeQuotes}</div>
-                <div class="kpi-trend trend-up">
-                    <span class="material-symbols-outlined trend-icon">check_circle</span>12 New
+        <!-- Active Quotes -->
+        <article class="kpi-card">
+            <div class="kpi-top">
+                <p class="kpi-label">Active Quotes</p>
+                <div class="kpi-value-row">
+                    <p class="kpi-value">{activeQuotes}</p>
+                    <span class="kpi-sub-text">Draft &amp; Pending</span>
                 </div>
             </div>
-        </div>
+            <div class="progress-area">
+                <div class="progress-row">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style={approvalProgressStyle}></div>
+                    </div>
+                    <span class="progress-pct">{approvalRate}%</span>
+                </div>
+            </div>
+            <div class="kpi-footer">
+                <p class="kpi-footer-title">Quote Velocity</p>
+                <p class="kpi-footer-sub">Average {velocityDays} days to approval</p>
+            </div>
+        </article>
 
-        <!-- Avg Quote Value — col-span-3 -->
-        <div class="kpi-card kpi-col-3">
-            <span class="kpi-label">Avg Quote Value</span>
-            <div class="kpi-body">
-                <div class="kpi-value">{formattedAvgQuote}</div>
-                <div class="kpi-trend trend-down">
-                    <span class="material-symbols-outlined trend-icon">trending_down</span>-2.1%
+        <!-- Avg Quote Value -->
+        <article class="kpi-card">
+            <div class="kpi-top">
+                <p class="kpi-label">Avg Quote Value</p>
+                <div class="kpi-value-row">
+                    <p class="kpi-value">{formattedAvgValue}</p>
+                    <span class="kpi-trend trend-up">
+                        +{avgTrend}% <span class="material-symbols-outlined trend-arrow">north</span>
+                    </span>
                 </div>
             </div>
-        </div>
+            <div class="bar-chart-area">
+                <div class="mini-bar bar-1"></div>
+                <div class="mini-bar bar-2"></div>
+                <div class="mini-bar bar-3"></div>
+                <div class="mini-bar bar-4"></div>
+                <div class="mini-bar bar-5"></div>
+            </div>
+            <div class="kpi-footer">
+                <p class="kpi-footer-title">Deal Size Tiering</p>
+                <p class="kpi-footer-sub">Enterprise accounts lead</p>
+            </div>
+        </article>
 
-        <!-- Win Rate — col-span-2 -->
-        <div class="kpi-card kpi-col-2">
-            <span class="kpi-label">Win Rate</span>
-            <div class="kpi-body">
-                <div class="kpi-value">{winRate}<span class="kpi-unit">%</span></div>
-                <div class="kpi-trend trend-up">
-                    <span class="material-symbols-outlined trend-icon">moving</span>+4.5%
+        <!-- Win Rate -->
+        <article class="kpi-card">
+            <div class="kpi-top">
+                <p class="kpi-label">Win Rate</p>
+                <div class="kpi-value-row">
+                    <p class="kpi-value">{formattedWinRate}%</p>
+                    <span class="kpi-trend-target">Target: {targetWinRate}%</span>
                 </div>
             </div>
-        </div>
+            <div class="waffle-area">
+                <div class="waffle-grid">
+                    <template for:each={waffleBlocks} for:item="block">
+                        <div key={block.key} class={block.className}></div>
+                    </template>
+                </div>
+            </div>
+            <div class="kpi-footer">
+                <p class="kpi-footer-title">Closing Performance</p>
+                <p class="kpi-footer-sub">{winRateDelta}% increase over last month</p>
+            </div>
+        </article>
     </div>
 </template>
