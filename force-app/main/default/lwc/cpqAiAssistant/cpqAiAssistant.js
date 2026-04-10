@@ -32,13 +32,11 @@ export default class CpqAiAssistant extends LightningElement {
     }
 
     connectedCallback() {
-        // Only add welcome message in panel mode
-        if (!this.isCardMode) {
-            this.addAssistantMessage({
-                responseType: 'text',
-                message: this.buildWelcomeMessage()
-            });
-        }
+        // Light theme panel relies on the greeting row instead of an initial message block
+    }
+
+    get showGreeting() {
+        return !this.isCardMode && this.messages.length === 0;
     }
 
     // ═══════════════════════════════════════════════
@@ -166,6 +164,8 @@ export default class CpqAiAssistant extends LightningElement {
     handleKeyDown(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
+            // Read value directly from the input since onchange may not have fired yet
+            this.inputValue = event.target.value;
             this.handleSend();
         }
     }
@@ -175,6 +175,11 @@ export default class CpqAiAssistant extends LightningElement {
     // ═══════════════════════════════════════════════
 
     async handleSend() {
+        // Also try reading from DOM in case inputValue is stale
+        if (!this.inputValue) {
+            const input = this.template.querySelector('.chat-input') || this.template.querySelector('.card-input');
+            if (input) this.inputValue = input.value;
+        }
         const msg = this.inputValue.trim();
         if (!msg) return;
 
