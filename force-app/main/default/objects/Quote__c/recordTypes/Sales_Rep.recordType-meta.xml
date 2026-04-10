@@ -3,46 +3,4 @@
     <fullName>Sales_Rep</fullName>
     <active>true</active>
     <label>Sales Rep</label>
-    <picklistValues>
-        <picklist>Status__c</picklist>
-        <values>
-            <fullName>Approved</fullName>
-            <default>false</default>
-        </values>
-        <values>
-            <fullName>Draft</fullName>
-            <default>true</default>
-        </values>
-        <values>
-            <fullName>Pending Approval</fullName>
-            <default>false</default>
-        </values>
-        <values>
-            <fullName>Rejected</fullName>
-            <default>false</default>
-        </values>
-        <values>
-            <fullName>Submitted</fullName>
-            <default>false</default>
-        </values>
-    </picklistValues>
-    <picklistValues>
-        <picklist>Time_Period_Metric__c</picklist>
-        <values>
-            <fullName>Days</fullName>
-            <default>false</default>
-        </values>
-        <values>
-            <fullName>Months</fullName>
-            <default>true</default>
-        </values>
-        <values>
-            <fullName>Quarters</fullName>
-            <default>false</default>
-        </values>
-        <values>
-            <fullName>Weeks</fullName>
-            <default>false</default>
-        </values>
-    </picklistValues>
 </RecordType>
