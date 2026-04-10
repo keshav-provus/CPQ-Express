@@ -1,40 +1,38 @@
 <template>
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h3 class="font-headline font-bold text-lg text-on-surface">Discount Tiers</h3>
-            <button onclick={handleAddTier} class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-primary-container transition-all shadow-md shadow-indigo-100">
-                <span class="material-symbols-outlined text-sm">add</span>
+    <div class="tiers-container">
+        <div class="tiers-header">
+            <h3 class="tiers-title">Discount Tiers</h3>
+            <button onclick={handleAddTier} class="add-tier-btn">
+                <lightning-icon icon-name="utility:add" size="xx-small" variant="inverse" class="add-icon"></lightning-icon>
                 Add Discount Tier
             </button>
         </div>
-        <div class="bg-surface-container-low p-1 rounded-xl">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-separate border-spacing-y-1">
-                    <thead>
-                        <tr class="text-[10px] font-bold text-outline uppercase tracking-widest">
-                            <th class="px-6 py-4">Lower Bound</th>
-                            <th class="px-6 py-4">Upper Bound</th>
-                            <th class="px-6 py-4 text-right">Discount %</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-xs">
-                        <template if:true={hasTiers}>
-                            <template for:each={tiers} for:item="tier">
-                                <tr key={tier.Id} class="bg-surface-container-lowest hover:bg-surface-container-high transition-colors">
-                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Lower_Bound__c}</td>
-                                    <td class="px-6 py-4 font-medium text-on-surface">{tier.Upper_Bound__c}</td>
-                                    <td class="px-6 py-4 text-right font-bold text-indigo-600">{tier.Discount_Percent__c}%</td>
-                                </tr>
-                            </template>
-                        </template>
-                        <template if:false={hasTiers}>
-                            <tr class="bg-surface-container-lowest">
-                                <td colspan="3" class="px-6 py-4 text-center text-on-surface-variant">No discount tiers found.</td>
+        <div class="tiers-table-wrap">
+            <table class="tiers-table">
+                <thead>
+                    <tr>
+                        <th>Lower Bound</th>
+                        <th>Upper Bound</th>
+                        <th class="text-right">Discount %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template if:true={hasTiers}>
+                        <template for:each={tiers} for:item="tier">
+                            <tr key={tier.Id} class="tier-row">
+                                <td class="tier-cell">{tier.Lower_Bound__c}</td>
+                                <td class="tier-cell">{tier.Upper_Bound__c}</td>
+                                <td class="tier-cell text-right tier-discount">{tier.Discount_Percent__c}%</td>
                             </tr>
                         </template>
-                    </tbody>
-                </table>
-            </div>
+                    </template>
+                    <template if:false={hasTiers}>
+                        <tr>
+                            <td colspan="3" class="tier-cell empty-state">No discount tiers found.</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
         </div>
 
         <template if:true={isModalOpen}>

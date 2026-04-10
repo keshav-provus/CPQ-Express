@@ -1,11 +1,27 @@
-import { LightningElement, track, wire } from 'lwc';
+import {  LightningElement, track, wire  } from 'lwc';
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CURRENCY_CHANGE_CHANNEL from '@salesforce/messageChannel/CurrencyChange__c';
+
 import { loadScript } from 'lightning/platformResourceLoader';
 import getWeeklyPipeline from '@salesforce/apex/DashboardController.getWeeklyPipeline';
 import chartjs from '@salesforce/resourceUrl/chartjs';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqWeeklyPipelineChart extends LightningElement {
+    @wire(MessageContext)
+    messageContext;
+
     connectedCallback() {
+        if (!this.subscription) {
+            this.subscription = subscribe(
+                this.messageContext,
+                CURRENCY_CHANGE_CHANNEL,
+                (message) => {
+                    this.handleCurrencyChange(message);
+                }
+            );
+        }
+
         this.fetchCurrency();
     }
 
@@ -133,4 +149,19 @@ export default class CpqWeeklyPipelineChart extends LightningElement {
             }
         });
     }
+
+    disconnectedCallback() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    handleCurrencyChange(message) {
+        if(message && message.currencyCode) {
+            this.currencyCode = message.currencyCode;
+            if(this.refreshData) {
+                this.refreshData();
+            }
+        }
+    }
+
 }

@@ -1,8 +1,24 @@
-import { LightningElement, api, track, wire } from 'lwc';
+import {  LightningElement, api, track, wire  } from 'lwc';
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CURRENCY_CHANGE_CHANNEL from '@salesforce/messageChannel/CurrencyChange__c';
+
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqQuotePricingAnalytics extends LightningElement {
+    @wire(MessageContext)
+    messageContext;
+
     connectedCallback() {
+        if (!this.subscription) {
+            this.subscription = subscribe(
+                this.messageContext,
+                CURRENCY_CHANGE_CHANNEL,
+                (message) => {
+                    this.handleCurrencyChange(message);
+                }
+            );
+        }
+
         this.fetchCurrency();
     }
 

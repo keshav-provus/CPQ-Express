@@ -1,4 +1,6 @@
-import { LightningElement, track, wire } from 'lwc';
+import {  LightningElement, track, wire  } from 'lwc';
+import { publish, MessageContext } from 'lightning/messageService';
+import CURRENCY_CHANGE_CHANNEL from '@salesforce/messageChannel/CurrencyChange__c';
 import getCompanySettings from '@salesforce/apex/AdminSettingsController.getCompanySettings';
 import saveCompanySettings from '@salesforce/apex/AdminSettingsController.saveCompanySettings';
 import getLicenseInfo from '@salesforce/apex/AdminSettingsController.getLicenseInfo';
@@ -18,6 +20,8 @@ const actions = [
 ];
 
 export default class AdminSettings extends LightningElement {
+    @wire(MessageContext)
+    messageContext;
     @track currentTab = 'company';
     @track isLoading = false;
 
@@ -148,6 +152,7 @@ export default class AdminSettings extends LightningElement {
         try {
             await triggerCurrencyConversion({ newIsoCode: cur });
             this.showToast('Success', `Global currency conversion to ${cur} initiated. Background process started.`, 'success');
+            publish(this.messageContext, CURRENCY_CHANGE_CHANNEL, { currencyCode: cur });
             await refreshApex(this.wiredSettingsResult);
         } catch (e) {
             this.showToast('Error', e.body?.message || 'Error triggering conversion.', 'error');

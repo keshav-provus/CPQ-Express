@@ -1,11 +1,27 @@
-import { LightningElement, wire, track } from 'lwc';
+import {  LightningElement, wire, track  } from 'lwc';
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CURRENCY_CHANGE_CHANNEL from '@salesforce/messageChannel/CurrencyChange__c';
+
 import { NavigationMixin } from 'lightning/navigation';
 import getPendingActionItems from '@salesforce/apex/DashboardController.getPendingActionItems';
 import submitForApproval from '@salesforce/apex/QuoteController.submitForApproval';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqPendingQuotes extends NavigationMixin(LightningElement) {
+    @wire(MessageContext)
+    messageContext;
+
     connectedCallback() {
+        if (!this.subscription) {
+            this.subscription = subscribe(
+                this.messageContext,
+                CURRENCY_CHANGE_CHANNEL,
+                (message) => {
+                    this.handleCurrencyChange(message);
+                }
+            );
+        }
+
         this.fetchCurrency();
     }
 
@@ -79,4 +95,19 @@ export default class CpqPendingQuotes extends NavigationMixin(LightningElement) 
             }
         }
     }
+
+    disconnectedCallback() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    handleCurrencyChange(message) {
+        if(message && message.currencyCode) {
+            this.currencyCode = message.currencyCode;
+            if(this.refreshData) {
+                this.refreshData();
+            }
+        }
+    }
+
 }

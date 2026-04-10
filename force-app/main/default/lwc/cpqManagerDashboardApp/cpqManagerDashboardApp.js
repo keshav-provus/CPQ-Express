@@ -36,16 +36,6 @@ export default class CpqManagerDashboardApp extends NavigationMixin(LightningEle
         return this.dashboardData?.topReps || [];
     }
 
-    handleStartQuote() {
-        this[NavigationMixin.Navigate]({
-            type: 'standard__objectPage',
-            attributes: {
-                objectApiName: 'Opportunity',
-                actionName: 'list'
-            }
-        });
-    }
-
     handleNavigate(event) {
         if (event.detail && event.detail.recordId) {
             this[NavigationMixin.Navigate]({

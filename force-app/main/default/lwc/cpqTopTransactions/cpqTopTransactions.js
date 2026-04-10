@@ -1,9 +1,25 @@
-import { LightningElement, wire, track } from 'lwc';
+import {  LightningElement, wire, track  } from 'lwc';
+import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
+import CURRENCY_CHANGE_CHANNEL from '@salesforce/messageChannel/CurrencyChange__c';
+
 import getTopTransactions from '@salesforce/apex/DashboardController.getTopTransactions';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqTopTransactions extends LightningElement {
+    @wire(MessageContext)
+    messageContext;
+
     connectedCallback() {
+        if (!this.subscription) {
+            this.subscription = subscribe(
+                this.messageContext,
+                CURRENCY_CHANGE_CHANNEL,
+                (message) => {
+                    this.handleCurrencyChange(message);
+                }
+            );
+        }
+
         this.fetchCurrency();
     }
 
@@ -33,4 +49,19 @@ export default class CpqTopTransactions extends LightningElement {
             formattedAmount: new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(tx.Total_Amount__c || 0)
         }));
     }
+
+    disconnectedCallback() {
+        unsubscribe(this.subscription);
+        this.subscription = null;
+    }
+
+    handleCurrencyChange(message) {
+        if(message && message.currencyCode) {
+            this.currencyCode = message.currencyCode;
+            if(this.refreshData) {
+                this.refreshData();
+            }
+        }
+    }
+
 }
