@@ -9,7 +9,8 @@
   NOT(ISCHANGED(Margin_Amount__c)),
   NOT(ISCHANGED(Total_Amount__c)),
   NOT(ISCHANGED(Total_Cost__c)),
-  NOT(ISCHANGED(Phase_List__c))
+  NOT(ISCHANGED(Phase_List__c)),
+  NOT(ISCHANGED(CurrencyIsoCode))
 )</errorConditionFormula>
     <errorMessage>Quotes can only be edited when they are in Draft status.</errorMessage>
 </ValidationRule>
