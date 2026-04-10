@@ -4,57 +4,91 @@
 }
 
 .map-card {
-    background: #ffffff;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 1.125rem 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    position: relative;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #eceef0;
+    border: 1px solid rgba(195, 198, 215, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-.card-header {
+.map-header-overlay {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 0.75rem;
+    border-radius: 0.75rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    z-index: 5;
 }
 
-.card-title {
-    font-size: 0.9rem;
+.map-title {
+    font-family: 'Manrope', sans-serif;
     font-weight: 700;
-    color: #1a1a2e;
+    font-size: 0.875rem;
+    color: #191c1e;
     margin: 0;
+    line-height: 1.2;
 }
 
-.card-subtitle {
-    font-size: 0.7rem;
-    color: #9ca3af;
+.map-subtitle {
+    font-size: 0.5625rem;
+    color: #434655;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
     margin: 0.125rem 0 0 0;
 }
 
-.filter-dropdown {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: #fafafe;
-    color: #374151;
-    font-weight: 500;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.15s;
+.region-badges {
+    display: flex;
+    gap: 0.375rem;
 }
 
-.filter-dropdown:focus {
-    border-color: #7c5cfc;
-    box-shadow: 0 0 0 2px rgba(124, 92, 252, 0.08);
+.region-badge {
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 9999px;
+    font-size: 0.5rem;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    color: #191c1e;
 }
 
 .map-container {
-    flex-grow: 1;
-    border-radius: 10px;
-    overflow: hidden;
-    min-height: 200px;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.tooltip {
+    position: absolute;
+    opacity: 0;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    font-size: 12px;
+    transition: opacity 0.2s;
+    z-index: 10;
+    max-width: 200px;
 }

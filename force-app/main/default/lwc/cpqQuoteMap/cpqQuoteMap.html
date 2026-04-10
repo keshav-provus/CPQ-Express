@@ -1,34 +1,27 @@
 <template>
     <div class="map-card">
-        <div class="card-header">
+        <!-- Glass overlay header -->
+        <div class="map-header-overlay">
             <div>
-                <h2 class="card-title">Customer Growth</h2>
-                <p class="card-subtitle">of the week based on {filterBy}</p>
+                <h3 class="map-title">Regional Quote Distribution</h3>
+                <p class="map-subtitle">Real-time Global Engagement</p>
             </div>
-            <select class="filter-dropdown" onchange={handleFilterChange}>
-                <option value="country">country</option>
-                <option value="city">city</option>
-            </select>
+            <div class="region-badges">
+                <template for:each={regionBadges} for:item="badge">
+                    <span key={badge.key} class="region-badge">{badge.label}</span>
+                </template>
+            </div>
         </div>
-        
-        <div class="map-container">
-            <template if:true={hasMarkers}>
-                <lightning-map 
-                    map-markers={mapMarkers} 
-                    zoom-level="1"
-                    list-view="hidden">
-                </lightning-map>
-            </template>
-            <template if:false={hasMarkers}>
-                 <div class="slds-p-around_medium slds-text-align_center slds-text-color_weak">
-                     <template if:true={isLoading}>
-                         <lightning-spinner alternative-text="Loading Map" size="small"></lightning-spinner>
-                     </template>
-                     <template if:false={isLoading}>
-                         No regional data available yet.
-                     </template>
-                 </div>
-            </template>
-        </div>
+
+        <!-- Loading State (shown above map container) -->
+        <template if:true={isLoading}>
+            <div class="loading-state">
+                <lightning-spinner alternative-text="Loading Map" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- D3 Map Container (must be empty for lwc:dom="manual") -->
+        <div class="tooltip" lwc:ref="tooltip"></div>
+        <div class="map-container" lwc:dom="manual" lwc:ref="mapContainer"></div>
     </div>
 </template>

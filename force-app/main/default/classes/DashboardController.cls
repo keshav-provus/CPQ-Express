@@ -209,6 +209,30 @@ public with sharing class DashboardController {
         }
     }
 
+    /**
+     * @description Premium Dashboard: Returns approved quote revenue by country for D3 map.
+     */
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Decimal> getApprovedQuotesByCountry() {
+        try {
+            return service.getApprovedQuotesByCountry();
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching country revenue: ' + e.getMessage());
+        }
+    }
+
+    /**
+     * @description Premium Dashboard: Returns quote velocity metrics.
+     */
+    @AuraEnabled(cacheable=true)
+    public static Map<String, Object> getQuoteVelocity() {
+        try {
+            return service.getQuoteVelocity();
+        } catch (Exception e) {
+            throw new AuraHandledException('Error fetching quote velocity: ' + e.getMessage());
+        }
+    }
+
     // ─── SALES REP DASHBOARD ───
 
     @AuraEnabled(cacheable=true)

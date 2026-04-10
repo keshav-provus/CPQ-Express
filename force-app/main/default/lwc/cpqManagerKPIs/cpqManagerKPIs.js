@@ -24,6 +24,13 @@ export default class CpqManagerKPIs extends LightningElement {
         return this.formatCurrency(this._kpiData.totalRevenue || 0);
     }
 
+    get formattedMargin() {
+        const revenue = this._kpiData.totalRevenue || 0;
+        const marginPct = this._kpiData.avgMargin || 0;
+        const margin = revenue * (marginPct / 100);
+        return this.formatCurrency(margin);
+    }
+
     get activeQuotes() {
         return this._kpiData.activeQuotes || 0;
     }

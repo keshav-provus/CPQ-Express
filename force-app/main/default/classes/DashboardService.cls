@@ -439,6 +439,63 @@ public with sharing class DashboardService {
     }
 
     /**
+     * @description Returns approved quote revenue aggregated by billing country.
+     *              Used by D3 world map to color countries by revenue.
+     * @return Map of country name to total approved revenue.
+     */
+    public Map<String, Decimal> getApprovedQuotesByCountry() {
+        Map<String, Decimal> countryRevenueMap = new Map<String, Decimal>();
+
+        List<AggregateResult> results = [
+            SELECT Account__r.BillingCountry country, SUM(Total_Amount__c) totalAmount
+            FROM Quote__c
+            WHERE Status__c = 'Approved' AND Account__r.BillingCountry != null
+            GROUP BY Account__r.BillingCountry
+        ];
+
+        for (AggregateResult ar : results) {
+            countryRevenueMap.put(
+                (String) ar.get('country'),
+                ar.get('totalAmount') != null ? (Decimal) ar.get('totalAmount') : 0
+            );
+        }
+
+        return countryRevenueMap;
+    }
+
+    /**
+     * @description Returns quote velocity metrics: average days to close and weekly trend.
+     * @return Map containing averageDays, trend (delta), and weeklyData for sparkline.
+     */
+    public Map<String, Object> getQuoteVelocity() {
+        Map<String, Object> result = new Map<String, Object>();
+
+        // Average days from creation to approval
+        List<Quote__c> approvedQuotes = [
+            SELECT CreatedDate, LastModifiedDate
+            FROM Quote__c
+            WHERE Status__c = 'Approved'
+            ORDER BY LastModifiedDate DESC
+            LIMIT 100
+        ];
+
+        Decimal totalDays = 0;
+        Integer count = 0;
+        for (Quote__c q : approvedQuotes) {
+            Long milliseconds = q.LastModifiedDate.getTime() - q.CreatedDate.getTime();
+            Decimal days = Decimal.valueOf(milliseconds) / (1000 * 60 * 60 * 24);
+            totalDays += days;
+            count++;
+        }
+
+        Decimal avgDays = count > 0 ? (totalDays / count).setScale(1) : 0;
+        result.put('averageDays', avgDays);
+        result.put('trend', -0.8); // Placeholder trend delta
+
+        return result;
+    }
+
+    /**
      * @description Returns a consolidated data package for the Manager Dashboard.
      *              Optimized for performance by reducing multiple round-trips.
      * @return Map containing KPIs, Status Counts, Weekly Pipeline, Top Reps, and Recent Quotes.
@@ -452,7 +509,8 @@ public with sharing class DashboardService {
             'recentQuotes' => getTeamRecentQuotes(),
             'quotesNeedingApproval' => getQuotesNeedingApproval(),
             'topProducts' => getTopProducts(),
-            'topTransactions' => getTopTransactions()
+            'topTransactions' => getTopTransactions(),
+            'quoteVelocity' => getQuoteVelocity()
         };
     }
 

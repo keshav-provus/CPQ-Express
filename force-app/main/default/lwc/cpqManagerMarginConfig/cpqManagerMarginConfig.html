@@ -1,57 +1,32 @@
 <template>
-    <div class="slds-card slds-p-around_medium margin-card">
-        <div class="config-header">
-            <div class="config-icon-wrap">
-                <lightning-icon icon-name="utility:slider" size="xx-small" variant="inverse" class="slds-current-color"></lightning-icon>
-            </div>
+    <div class="margin-card">
+        <div class="margin-header">
             <div>
-                <h2 class="config-title">Margin Threshold</h2>
-                <p class="config-subtitle">Auto-approval configuration</p>
+                <p class="margin-label">Global Margin Threshold</p>
+                <p class="margin-subtitle">Automatic approval for quotes above this margin baseline.</p>
             </div>
+            <span class="margin-value">{marginDisplay}</span>
         </div>
-        <div class="slds-m-bottom_small">
-            <p class="slds-text-color_weak slds-text-body_small config-desc">
-                Quotes with margin ≥ this threshold auto-approve. Below it requires manual approval.
-            </p>
-        </div>
+
         <template if:true={isLoading}>
-            <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            <div class="loading-state">
+                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+            </div>
         </template>
         <template if:false={isLoading}>
-            <div class="slds-grid slds-grid_vertical-align-end slds-gutters slider-container">
-                <div class="slds-col slds-size_2-of-3">
-                    <lightning-slider
-                        label="Min Margin (%)"
-                        value={marginValue}
-                        onchange={handleMarginChange}
-                        min="0"
-                        max="100"
-                        step="1"
-                        class="custom-slider">
-                    </lightning-slider>
-                </div>
-                <div class="slds-col slds-size_1-of-3 slds-text-align_right">
-                    <button class="btn btn-save" onclick={handleSave} disabled={isSaving}>
-                        <template if:true={isSaving}>Saving...</template>
-                        <template if:false={isSaving}>Save</template>
-                    </button>
-                </div>
-            </div>
+            <input
+                type="range"
+                class="margin-slider"
+                min="0"
+                max="50"
+                value={marginValue}
+                oninput={handleMarginInput}
+                onchange={handleMarginChange}
+            />
 
-            <div class="slds-m-top_medium status-preview">
-                <div class="preview-box">
-                    <div class="preview-header">Preview</div>
-                    <div class="slds-grid slds-wrap">
-                        <div class="slds-col slds-size_1-of-2 slds-p-around_small border-right">
-                            <span class="preview-label">≥ {marginValue}%</span>
-                            <div class="preview-badge badge-approved">Auto-Approved</div>
-                        </div>
-                        <div class="slds-col slds-size_1-of-2 slds-p-around_small">
-                            <span class="preview-label">&lt; {marginValue}%</span>
-                            <div class="preview-badge badge-pending">Manual Review</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="slider-labels">
+                <span>0% Floor (Full Review)</span>
+                <span>50% Ceiling (Auto-Approve Peak)</span>
             </div>
         </template>
     </div>

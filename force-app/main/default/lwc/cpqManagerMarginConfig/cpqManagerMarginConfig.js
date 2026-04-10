@@ -4,9 +4,8 @@ import getCompanySettings from '@salesforce/apex/AdminSettingsController.getComp
 import saveCompanySettings from '@salesforce/apex/AdminSettingsController.saveCompanySettings';
 
 export default class CpqManagerMarginConfig extends LightningElement {
-    @track marginValue = 0;
+    @track marginValue = 15;
     @track isLoading = true;
-    @track isSaving = false;
 
     connectedCallback() {
         this.loadSettings();
@@ -27,12 +26,17 @@ export default class CpqManagerMarginConfig extends LightningElement {
         }
     }
 
-    handleMarginChange(event) {
+    get marginDisplay() {
+        return this.marginValue + '%';
+    }
+
+    handleMarginInput(event) {
         this.marginValue = event.target.value;
     }
 
-    async handleSave() {
-        this.isSaving = true;
+    async handleMarginChange(event) {
+        this.marginValue = event.target.value;
+        // Auto-save on change
         try {
             const settings = {
                 Minimum_Margin__c: parseFloat(this.marginValue)
@@ -42,8 +46,6 @@ export default class CpqManagerMarginConfig extends LightningElement {
         } catch (error) {
             console.error('Error saving settings', error);
             this.showToast('Error', 'Failed to save minimum margin setting', 'error');
-        } finally {
-            this.isSaving = false;
         }
     }
 

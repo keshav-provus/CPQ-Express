@@ -3,151 +3,185 @@
     height: 100%;
 }
 
-.pending-card {
-    background: #ffffff;
-    border: 1px solid #eee;
-    border-radius: 14px;
-    padding: 1.125rem 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+.pending-panel {
+    background: #f2f4f6;
+    border: 1px solid rgba(195, 198, 215, 0.3);
+    border-radius: 0.75rem;
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.card-header {
+/* Sticky Header */
+.panel-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(195, 198, 215, 0.2);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #f3f4f6;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #f2f4f6;
+    border-radius: 0.75rem 0.75rem 0 0;
+    z-index: 2;
 }
 
-.card-title {
-    font-size: 0.9rem;
+.panel-title {
+    font-size: 0.75rem;
     font-weight: 700;
-    color: #1a1a2e;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #434655;
     margin: 0;
 }
 
-.card-subtitle {
-    font-size: 0.7rem;
-    color: #9ca3af;
-    margin: 0.125rem 0 0 0;
+.total-badge {
+    background: #2563eb;
+    color: #eeefff;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 700;
 }
 
-.list-container {
-    flex-grow: 1;
+/* Scrollable List */
+.quote-list {
+    flex: 1;
     overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    max-height: 400px;
-}
-
-.list-container::-webkit-scrollbar { width: 4px; }
-.list-container::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
-
-.quote-item {
     padding: 0.75rem;
-    background: #fafafe;
-    border-radius: 10px;
-    border: 1px solid #f0f0f5;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    transition: all 0.15s ease;
 }
 
-.quote-item:hover {
-    border-color: rgba(124, 92, 252, 0.2);
-    box-shadow: 0 2px 8px rgba(124, 92, 252, 0.06);
+.quote-list::-webkit-scrollbar {
+    width: 4px;
+}
+.quote-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.quote-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
-.quote-main {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.quote-name {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin: 0;
-}
-
-.account-name {
-    font-size: 0.675rem;
-    color: #6b7280;
-    margin-top: 0.125rem;
-}
-
-.quote-amount {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #1a1a2e;
-    text-align: right;
-    margin: 0;
-}
-
-.quote-date {
-    font-size: 0.65rem;
-    color: #9ca3af;
-    text-align: right;
-    margin: 0.125rem 0 0 0;
-}
-
-.quote-actions {
-    display: flex;
-    gap: 0.375rem;
-}
-
-.action-btn {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    padding: 0.375rem 0.25rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.675rem;
-    font-weight: 600;
+/* Quote Cards */
+.quote-card {
+    background: #ffffff;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(195, 198, 215, 0.2);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.approve {
-    background: #dcfce7;
-    color: #16a34a;
+.quote-card:hover {
+    border-color: rgba(0, 74, 198, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 74, 198, 0.06);
 }
 
-.approve:hover {
-    background: #bbf7d0;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.15);
+.quote-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.25rem;
 }
 
-.reject {
-    background: #fee2e2;
-    color: #dc2626;
+.quote-number {
+    font-size: 0.625rem;
+    font-weight: 900;
+    color: #004ac6;
+    text-transform: uppercase;
 }
 
-.reject:hover {
-    background: #fecaca;
-    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+.urgency-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
 }
 
-.recall {
-    background: #f0f0ff;
-    color: #7c5cfc;
+.urgency-badge.urgent {
+    color: #00632b;
+    background: rgba(17, 126, 59, 0.2);
 }
 
-.recall:hover {
-    background: #e5e0ff;
-    box-shadow: 0 2px 6px rgba(124, 92, 252, 0.15);
+.urgency-badge.review {
+    color: #00632b;
+    background: rgba(17, 126, 59, 0.2);
 }
 
+.urgency-badge.standard {
+    color: #434655;
+    background: rgba(236, 238, 240, 0.5);
+}
+
+.quote-account {
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #191c1e;
+}
+
+.quote-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quote-amount {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #434655;
+}
+
+.chevron-icon {
+    font-family: 'Material Symbols Outlined';
+    font-size: 0.75rem;
+    color: #434655;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    transition: color 0.15s;
+}
+
+.quote-card:hover .chevron-icon {
+    color: #004ac6;
+}
+
+/* Footer */
+.panel-footer {
+    padding: 0.75rem;
+    border-top: 1px solid rgba(195, 198, 215, 0.2);
+}
+
+.bulk-approve-btn {
+    width: 100%;
+    padding: 0.625rem;
+    background: #004ac6;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(0, 74, 198, 0.2);
+}
+
+.bulk-approve-btn:hover {
+    background: #2563eb;
+    box-shadow: 0 2px 8px rgba(0, 74, 198, 0.3);
+}
+
+.bulk-approve-btn:active {
+    transform: scale(0.97);
+}
+
+/* Empty / Loading States */
 .empty-state {
     padding: 2rem 0;
     text-align: center;
@@ -174,7 +208,7 @@
 .empty-text {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #191c1e;
     margin: 0;
 }
 
@@ -182,4 +216,9 @@
     font-size: 0.725rem;
     color: #9ca3af;
     margin: 0;
+}
+
+.loading-state {
+    padding: 2rem 0;
+    text-align: center;
 }

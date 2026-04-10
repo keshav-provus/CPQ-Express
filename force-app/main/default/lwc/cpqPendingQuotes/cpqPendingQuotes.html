@@ -1,41 +1,25 @@
 <template>
-    <div class="pending-card">
-        <div class="card-header">
-            <div>
-                <h2 class="card-title">Quotes to Approve</h2>
-                <p class="card-subtitle">Pending your review</p>
-            </div>
-            <lightning-button-icon icon-name="utility:refresh" variant="bare" onclick={handleRefresh} alternative-text="Refresh"></lightning-button-icon>
+    <div class="pending-panel">
+        <!-- Sticky Header -->
+        <div class="panel-header">
+            <h3 class="panel-title">Quotes to Approve</h3>
+            <span class="total-badge">{totalLabel}</span>
         </div>
 
-        <div class="list-container">
+        <!-- Scrollable Quote List -->
+        <div class="quote-list">
             <template if:true={quotes}>
                 <template if:true={hasQuotes}>
                     <template for:each={formattedQuotes} for:item="quote">
-                        <div key={quote.Id} class="quote-item">
-                            <div class="quote-main">
-                                <div class="quote-info">
-                                    <p class="quote-name">{quote.Name}</p>
-                                    <p class="account-name">{quote.AccountName}</p>
-                                </div>
-                                <div class="quote-meta">
-                                    <p class="quote-amount">{quote.formattedAmount}</p>
-                                    <p class="quote-date">{quote.formattedDate}</p>
-                                </div>
+                        <div key={quote.Id} class="quote-card" onclick={handleNavigateToQuote} data-id={quote.Id}>
+                            <div class="quote-card-top">
+                                <span class="quote-number">{quote.Name}</span>
+                                <span class={quote.urgencyClass}>{quote.urgencyLabel}</span>
                             </div>
-                            <div class="quote-actions">
-                                <button class="action-btn approve" data-id={quote.Id} onclick={handleApprove} title="Approve">
-                                    <lightning-icon icon-name="utility:check" size="xx-small" class="slds-current-color"></lightning-icon>
-                                    Approve
-                                </button>
-                                <button class="action-btn reject" data-id={quote.Id} onclick={handleReject} title="Reject">
-                                    <lightning-icon icon-name="utility:close" size="xx-small" class="slds-current-color"></lightning-icon>
-                                    Reject
-                                </button>
-                                <button class="action-btn recall" data-id={quote.Id} onclick={handleRecall} title="Recall">
-                                    <lightning-icon icon-name="utility:undo" size="xx-small" class="slds-current-color"></lightning-icon>
-                                    Recall
-                                </button>
+                            <div class="quote-account">{quote.AccountName}</div>
+                            <div class="quote-card-bottom">
+                                <span class="quote-amount">{quote.formattedAmount}</span>
+                                <span class="material-symbols-outlined chevron-icon">chevron_right</span>
                             </div>
                         </div>
                     </template>
@@ -49,10 +33,19 @@
                 </template>
             </template>
             <template if:false={quotes}>
-                <div class="slds-p-around_medium slds-text-align_center">
+                <div class="loading-state">
                     <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
                 </div>
             </template>
         </div>
+
+        <!-- Bulk Approve Footer -->
+        <template if:true={hasQuotes}>
+            <div class="panel-footer">
+                <button class="bulk-approve-btn" onclick={handleBulkApprove}>
+                    Bulk Approve
+                </button>
+            </div>
+        </template>
     </div>
 </template>

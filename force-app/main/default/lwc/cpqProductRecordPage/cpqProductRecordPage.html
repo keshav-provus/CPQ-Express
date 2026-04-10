@@ -19,7 +19,6 @@
                     <div class="hl-field"><div class="lbl">Default discount</div><div class="val">{product.Default_Discount__c}%</div></div>
                     <div class="hl-field"><div class="lbl">Billing unit</div><div class="val">{product.Billing_Unit__c}</div></div>
                     <div class="hl-field"><div class="lbl">Product code</div><div class="val">{product.Product_Code__c}</div></div>
-
                   </div>
                   <div class="hl-actions">
                     <button class="btn">Edit</button>
@@ -28,153 +27,152 @@
                 </div>
             </template>
 
-            <div class="tabs-bar">
-              <div class={timelineTabClass} data-tab="timeline" onclick={handleTabClick}>Resource timeline</div>
-              <div class={relatedTabClass} data-tab="related" onclick={handleTabClick}>Related lists</div>
-              <div class={configTabClass} data-tab="config" onclick={handleTabClick}>Configuration</div>
-            </div>
-
             <div class="main-content">
+              <!-- ═══ KPI Metrics Bar ═══ -->
               <div class="kpi-row">
                 <div class="kpi-card">
-                  <div class="klbl">Total revenue generated</div>
-                  <div class="kval">{formattedKpiRevenue}</div>
-                  <div class="kdelta up">Historical calculation</div>
+                  <div class="kpi-accent accent-primary"></div>
+                  <div class="klbl">Total Revenue</div>
+                  <div class="kval kval-primary">{formattedKpiRevenue}</div>
+                  <div class="kdelta">
+                    <span class="delta-up">↑ 12%</span>
+                    <span class="delta-sub">vs last period</span>
+                  </div>
                 </div>
                 <div class="kpi-card">
-                  <div class="klbl">Active quotes using this</div>
-                  <div class="kval">{kpiActiveQuotes}</div>
-                  <div class="kdelta" style="color:var(--color-text-secondary);">Currently in pipeline</div>
+                  <div class="kpi-accent accent-tertiary"></div>
+                  <div class="klbl">Active Quotes</div>
+                  <div class="kval kval-tertiary">{kpiActiveQuotes}</div>
+                  <div class="kdelta"><span class="delta-sub">Ready for review</span></div>
                 </div>
                 <div class="kpi-card">
-                  <div class="klbl">Peak utilisation</div>
+                  <div class="kpi-accent accent-secondary"></div>
+                  <div class="klbl">Peak Utilisation</div>
                   <div class="kval">{kpiPeakUsage}</div>
-                  <div class="kdelta" style="color:var(--color-text-secondary);">Month with most active quotes</div>
+                  <div class="kdelta"><span class="delta-sub">Projected capacity limit</span></div>
                 </div>
                 <div class="kpi-card">
-                  <div class="klbl">Avg. contract duration</div>
+                  <div class="kpi-accent accent-fixed"></div>
+                  <div class="klbl">Avg Duration</div>
                   <div class="kval">{kpiDuration}</div>
-                  <div class="kdelta up">Average across active quotes</div>
+                  <div class="kdelta"><span class="delta-sub">Across all role types</span></div>
                 </div>
               </div>
 
-              <template if:true={isTimeline}>
-                  <div>
-                    <div class="card">
-                      <div class="card-title">
-                        <span>Resource utilisation timeline</span>
-                        <span class="ct-right">Bar width = revenue contribution &nbsp;·&nbsp; Y-axis = % of total product revenue</span>
-                      </div>
-                      <div class="filter-row">
-                        <span style="font-size:11px;color:var(--color-text-secondary);margin-right:8px;">Filter by account:</span>
-                        <div class="search-container">
-                            <div class="slds-form-element" style="flex:1;">
-                                <div class="slds-form-element__control">
-                                    <div class="slds-combobox_container">
-                                        <div class={dropdownClasses} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox">
-                                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
-                                                <lightning-input 
-                                                    class="account-search-input" 
-                                                    type="search" 
-                                                    placeholder="Search account..." 
-                                                    variant="label-hidden" 
-                                                    value={searchTerm} 
-                                                    onchange={handleSearchChange}
-                                                    onclick={handleSearchClick}
-                                                    onblur={handleSearchBlur}
-                                                    autocomplete="off">
-                                                </lightning-input>
-                                            </div>
-                                            <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" style="margin-top:2px;">
-                                                <ul class="slds-listbox slds-listbox_vertical" role="presentation">
-                                                    <template for:each={filteredAccountOptions} for:item="acc">
-                                                        <li key={acc} role="presentation" class="slds-listbox__item" onmousedown={handleAccountSelect} data-val={acc}>
-                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
-                                                                <span class="slds-media__body">
-                                                                    <span class="slds-truncate" title={acc}>{acc}</span>
-                                                                </span>
-                                                            </div>
-                                                        </li>
-                                                    </template>
-                                                    <template if:false={filteredAccountOptions.length}>
-                                                        <li role="presentation" class="slds-listbox__item">
-                                                            <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
-                                                                <span class="slds-media__body">
-                                                                    <span class="slds-truncate" title="No results">No matching accounts</span>
-                                                                </span>
-                                                            </div>
-                                                        </li>
-                                                    </template>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <lightning-button 
-                                label="Done" 
-                                onclick={handleSearchSubmit} 
-                                variant="brand" 
-                                class="done-btn">
-                            </lightning-button>
-                        </div>
-                      </div>
-                      <div class="timeline-wrap" lwc:dom="manual"></div>
-                      <div class="legend-row" lwc:dom="manual"></div>
+              <!-- ═══ Main Layout Split ═══ -->
+              <div class="layout-split">
+                <!-- Left: Resource Timeline (65%) -->
+                <div class="panel-timeline">
+                  <div class="panel-header">
+                    <div class="panel-header-left">
+                      <span class="material-symbols-outlined panel-icon icon-primary">event_note</span>
+                      <h2 class="panel-title">Resource Utilisation Timeline</h2>
+                    </div>
+                    <div class="panel-badges">
+                      <span class="badge badge-primary">Projected</span>
+                      <span class="badge badge-secondary">Actual</span>
                     </div>
                   </div>
-              </template>
-
-              <template if:true={isRelated}>
-                  <div>
-                    <div class="two-col">
-                      <div style="display:flex;flex-direction:column;gap:12px;">
-                        <c-cpq-product-discount-tiers record-id={recordId} object-api-name="Product__c"></c-cpq-product-discount-tiers>
-                        <div class="card">
-                          <div class="card-title">Product add-ons</div>
-                          <div class="addons-list">
-                            <template for:each={addOns} for:item="addon">
-                                <div key={addon.Id} class="addon-row">
-                                    <span class="an">{addon.Name__c}</span>
-                                    <span class="ap"><lightning-formatted-number value={addon.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number> / {addon.Billing_Unit__c}</span>
-                                </div>
-                            </template>
-                            <template if:false={addOns.length}>
-                                <div class="addon-row"><span class="an" style="color:var(--color-text-secondary);">No add-ons available.</span></div>
-                            </template>
+                  <div class="panel-body custom-scrollbar">
+                    <div class="filter-row">
+                      <span style="font-size:11px;color:var(--color-on-surface-variant);margin-right:8px;">Filter by account:</span>
+                      <div class="search-container">
+                          <div class="slds-form-element" style="flex:1;">
+                              <div class="slds-form-element__control">
+                                  <div class="slds-combobox_container">
+                                      <div class={dropdownClasses} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox">
+                                          <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                              <lightning-input 
+                                                  class="account-search-input" 
+                                                  type="search" 
+                                                  placeholder="Search account..." 
+                                                  variant="label-hidden" 
+                                                  value={searchTerm} 
+                                                  onchange={handleSearchChange}
+                                                  onclick={handleSearchClick}
+                                                  onblur={handleSearchBlur}
+                                                  autocomplete="off">
+                                              </lightning-input>
+                                          </div>
+                                          <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" style="margin-top:2px;">
+                                              <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                                  <template for:each={filteredAccountOptions} for:item="acc">
+                                                      <li key={acc} role="presentation" class="slds-listbox__item" onmousedown={handleAccountSelect} data-val={acc}>
+                                                          <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                              <span class="slds-media__body">
+                                                                  <span class="slds-truncate" title={acc}>{acc}</span>
+                                                              </span>
+                                                          </div>
+                                                      </li>
+                                                  </template>
+                                                  <template if:false={filteredAccountOptions.length}>
+                                                      <li role="presentation" class="slds-listbox__item">
+                                                          <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
+                                                              <span class="slds-media__body">
+                                                                  <span class="slds-truncate" title="No results">No matching accounts</span>
+                                                              </span>
+                                                          </div>
+                                                      </li>
+                                                  </template>
+                                              </ul>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
                           </div>
-                        </div>
+                          <lightning-button 
+                              label="Done" 
+                              onclick={handleSearchSubmit} 
+                              variant="brand" 
+                              class="done-btn">
+                          </lightning-button>
                       </div>
-                      <div class="card">
-                        <div class="card-title">Price trend <span class="ct-right">Last 12 months</span></div>
-                        <div class="price-bars" lwc:dom="manual"></div>
-                        <div class="price-bar-labels"><span>Apr</span><span>Aug</span><span>Dec</span><span>Mar</span></div>
-                        <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;font-size:12px;">
-                          <span style="color:var(--color-text-secondary);">Current MSRP</span>
-                          <span style="font-weight:500;"><lightning-formatted-number value={productPrice} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></span>
+                    </div>
+                    <div class="timeline-wrap" lwc:dom="manual"></div>
+                    <div class="legend-row" lwc:dom="manual"></div>
+                  </div>
+                </div>
+
+                <!-- Right: Discount Tiers + Config Summary (35%) -->
+                <div class="panel-right">
+                  <!-- Discount Tiers -->
+                  <div class="panel-tiers">
+                    <div class="panel-header">
+                      <div class="panel-header-left">
+                        <span class="material-symbols-outlined panel-icon icon-secondary">loyalty</span>
+                        <h2 class="panel-title">Discount Tiers</h2>
+                      </div>
+                    </div>
+                    <div class="tiers-body custom-scrollbar">
+                      <c-cpq-product-discount-tiers record-id={recordId} object-api-name="Product__c"></c-cpq-product-discount-tiers>
+                    </div>
+                  </div>
+
+                  <!-- Configuration Summary -->
+                  <template if:true={product}>
+                    <div class="config-summary">
+                      <h3 class="config-title">
+                        <span class="material-symbols-outlined panel-icon icon-primary" style="font-size:16px;">tune</span>
+                        Configuration Summary
+                      </h3>
+                      <div class="config-rows">
+                        <div class="config-row">
+                          <span class="config-lbl">Product Name</span>
+                          <span class="config-val config-val-badge">{product.Name}</span>
+                        </div>
+                        <div class="config-row">
+                          <span class="config-lbl">Billing Unit</span>
+                          <span class="config-val">{product.Billing_Unit__c}</span>
+                        </div>
+                        <div class="config-row config-row-last">
+                          <span class="config-lbl">Product Code</span>
+                          <span class="config-val config-val-code">{product.Product_Code__c}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-              </template>
-
-              <template if:true={isConfig}>
-                  <div>
-                    <div class="card" style="max-width:600px;">
-                      <div class="card-title">Configuration specifications</div>
-                      <div class="details-grid">
-                        <template if:true={product}>
-                            <div class="dg-item"><div class="dlbl">Product Name</div><div class="dval">{product.Name}</div></div>
-                            <div class="dg-item"><div class="dlbl">Product Code</div><div class="dval">{product.Product_Code__c}</div></div>
-                            <div class="dg-item"><div class="dlbl">Type</div><div class="dval">{product.Product_Type__c}</div></div>
-                            <div class="dg-item"><div class="dlbl">Status</div><div class="dval">{product.Active__c}</div></div>
-                            <div class="dg-item" style="grid-column: span 2;"><div class="dlbl">Description</div><div class="dval">{product.Description__c}</div></div>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
-              </template>
-
+                  </template>
+                </div>
+              </div>
             </div>
         </div>
         
