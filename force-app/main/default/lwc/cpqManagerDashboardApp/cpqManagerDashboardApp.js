@@ -45,4 +45,16 @@ export default class CpqManagerDashboardApp extends NavigationMixin(LightningEle
             }
         });
     }
+
+    handleNavigate(event) {
+        if (event.detail && event.detail.recordId) {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: event.detail.recordId,
+                    actionName: 'view'
+                }
+            });
+        }
+    }
 }

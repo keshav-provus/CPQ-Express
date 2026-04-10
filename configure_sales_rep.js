@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+const fs = require('fs');
+
+const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <hasActivationRequired>false</hasActivationRequired>
     <label>CPQ Sales Rep</label>
@@ -180,3 +182,7 @@
         <name>SendEmail</name>
     </userPermissions>
 </PermissionSet>
+`;
+
+fs.writeFileSync('force-app/main/default/permissionsets/CPQ_Sales_Rep.permissionset-meta.xml', xml);
+console.log('Successfully written permission set overrides.');

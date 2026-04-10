@@ -293,68 +293,6 @@ h1, h2, h3, h4, h5, .font-headline {
     background: var(--blue-50);
 }
 
-/* AI Panel */
-.ai-panel {
-    background: linear-gradient(135deg, var(--blue-600), var(--blue-500));
-    border-radius: 1rem;
-    padding: 1rem;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
-    display: flex;
-    flex-direction: column;
-}
-
-.ai-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
-}
-
-.ai-header-icon {
-    background: rgba(255,255,255,0.2);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    display: flex;
-}
-
-.ai-alert-card {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-}
-
-.ai-alert-label {
-    font-size: 0.625rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--blue-100);
-    margin-bottom: 0.5rem;
-}
-
-.ai-alert-text {
-    font-size: 0.875rem;
-    line-height: 1.4;
-}
-
-.ai-action-btn {
-    width: 100%;
-    margin-top: 0.5rem;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    background: white;
-    color: var(--blue-700);
-    border: none;
-    cursor: pointer;
-}
-
 /* ─── Bottom Grid ─── */
 .bottom-grid {
     display: grid;
@@ -475,4 +413,12 @@ h1, h2, h3, h4, h5, .font-headline {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+c-cpq-ai-assistant {
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Make it look like a bounded card here */
 }
