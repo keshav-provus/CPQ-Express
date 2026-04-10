@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Velocity CPQ - Resource Intelligence</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#95f8a7",
+                        "secondary-container": "#d5e3fc",
+                        "inverse-surface": "#2d3133",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#117e3b",
+                        "on-tertiary-fixed": "#00210a",
+                        "on-surface-variant": "#434655",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#57657a",
+                        "on-primary-fixed": "#00174b",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#dbe1ff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "primary-container": "#2563eb",
+                        "tertiary": "#00632b",
+                        "surface-container-high": "#e6e8ea",
+                        "primary": "#004ac6",
+                        "outline-variant": "#c3c6d7",
+                        "on-surface": "#191c1e",
+                        "inverse-primary": "#b4c5ff",
+                        "secondary": "#515f74",
+                        "on-tertiary-fixed-variant": "#005323",
+                        "surface-variant": "#e0e3e5",
+                        "surface-dim": "#d8dadc",
+                        "outline": "#737686",
+                        "on-primary-container": "#eeefff",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-bright": "#f7f9fb",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-container": "#eceef0",
+                        "on-primary": "#ffffff",
+                        "background": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "on-tertiary-container": "#c4ffc9",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#79db8d",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "surface-tint": "#0053db",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-error-container": "#93000a",
+                        "on-background": "#191c1e"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-header { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        .primary-gradient { background: linear-gradient(135deg, #004ac6 0%, #2563eb 100%); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-outline-variant/10">
+<div class="flex items-center justify-between px-6 h-16 w-full max-w-[1920px] mx-auto">
+<div class="flex items-center gap-8">
+<!-- Branding -->
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl" data-icon="velocity">speed</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 font-headline">Velocity CPQ</span>
+</div>
+<!-- Navigation Links -->
+<div class="hidden md:flex items-center gap-6 font-manrope text-sm font-medium">
+<a class="text-slate-500 hover:text-slate-900 transition-colors" href="#">Dashboard</a>
+<a class="text-blue-600 font-semibold border-b-2 border-blue-600 h-16 flex items-center" href="#">Resource Pool</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors" href="#">Allocations</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors" href="#">Forecasting</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors" href="#">Reports</a>
+</div>
+</div>
+<!-- Search Bar (on_left logic implemented in center for balance) -->
+<div class="flex-1 max-w-md mx-8">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-all" placeholder="Search resources, quotes, or projects..." type="text"/>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:bg-slate-100/50 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100/50 rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
+<button class="flex items-center gap-2 primary-gradient text-white px-4 py-2 rounded-xl text-sm font-semibold active:scale-95 duration-200 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span>New Allocation</span>
+</button>
+<img alt="User profile avatar" class="w-10 h-10 rounded-full border-2 border-surface-container-highest shadow-sm object-cover" data-alt="Close-up portrait of a professional male executive in a tailored suit, warm office lighting, blurred corporate background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBtJen3MRgT3zlWVebg4p3rvniYgNL1xjmsoRd9arTY37BKj3Ut3pldpqmQymnf3too2DHBgOwwDaoPHwfakYNG1fGU1zlUnWEWwn1paHsik-80Si1eefzF0tvokY6ig_3AYqky6FJNZMYNNhiaLqiJB64ZGnoMnZkSsUMQ9tpqBRmqo0XhAb_QuyxUVYwlLTW5vmGPLyom-v1gyO-MKZqN7i7jRgEU2WUvq41biBJi60QbReA3GefU93t2g0s4I3FHmaNIvlvEXk"/>
+</div>
+</div>
+</nav>
+<div class="pt-20 flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden lg:flex h-[calc(100vh-64px)] w-64 flex-col p-4 gap-2 bg-slate-50 dark:bg-slate-950 sticky top-16 border-r border-slate-200/50">
+<div class="px-3 py-4">
+<h3 class="text-xs font-bold text-outline-variant uppercase tracking-widest mb-4">Main Menu</h3>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-manrope text-sm">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-manrope text-sm">Team Capacity</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="timeline">timeline</span>
+<span class="font-manrope text-sm">Project Pipeline</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-manrope text-sm">Rate Cards</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="font-manrope text-sm">Approvals</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto px-3 py-4 border-t border-slate-200/50">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all mb-4" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-manrope text-sm">Archive</span>
+</a>
+<div class="bg-primary-fixed p-4 rounded-xl">
+<p class="text-xs font-bold text-on-primary-fixed mb-1 uppercase tracking-tight">System Status</p>
+<p class="text-[10px] text-on-primary-fixed-variant leading-tight opacity-80">98% Optimization efficiency across current bench.</p>
+<button class="mt-3 w-full bg-white text-primary text-[10px] font-bold py-1.5 rounded-lg shadow-sm">Optimize Bench</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 bg-surface">
+<!-- Resource Info Header -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div>
+<nav class="flex items-center gap-2 text-xs font-medium text-on-surface-variant mb-2">
+<span>Resources</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary">Development Pool</span>
+</nav>
+<h1 class="text-3xl font-extrabold font-headline text-on-surface tracking-tight">Senior Developer</h1>
+<p class="text-on-surface-variant mt-1 text-sm">Primary technical resource for enterprise scale deployments.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-lowest p-4 px-6 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col min-w-[140px]">
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1">Billing Rate</span>
+<span class="text-xl font-bold font-headline text-on-surface">$150.00</span>
+</div>
+<div class="bg-surface-container-lowest p-4 px-6 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col min-w-[140px]">
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1">Resource Cost</span>
+<span class="text-xl font-bold font-headline text-on-surface">$75.00</span>
+</div>
+<div class="bg-surface-container-lowest p-4 px-6 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col min-w-[140px]">
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest mb-1">Billing Unit</span>
+<span class="text-xl font-bold font-headline text-on-surface">Hour</span>
+</div>
+</div>
+</header>
+<!-- Metric Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<span class="text-tertiary text-xs font-bold bg-tertiary-fixed/30 px-2 py-1 rounded-full">+12.4%</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium">Total Revenue</p>
+<h2 class="text-2xl font-extrabold font-headline text-on-surface mt-1">$20,400.00</h2>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm font-medium">Active Quotes</p>
+<h2 class="text-2xl font-extrabold font-headline text-on-surface mt-1">1</h2>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-fixed/30 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="speed">speed</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm font-medium">Peak Utilisation</p>
+<h2 class="text-2xl font-extrabold font-headline text-on-surface mt-1">Apr 2026</h2>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-surface-container-high rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="timer">timer</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm font-medium">Avg Duration</p>
+<h2 class="text-2xl font-extrabold font-headline text-on-surface mt-1">1.0 mo</h2>
+</div>
+</section>
+<!-- Main Content Split -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<!-- Chart Section -->
+<section class="xl:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-6">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-bold font-headline text-on-surface">Resource Utilisation Timeline</h3>
+<p class="text-xs text-on-surface-variant font-medium">Projected allocation for FY26</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 bg-surface-container-low text-xs font-semibold rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">Daily</button>
+<button class="px-3 py-1.5 bg-primary text-xs font-semibold rounded-lg text-white">Monthly</button>
+</div>
+</div>
+<!-- Simplified Visual Representation of Timeline Chart -->
+<div class="space-y-6 relative h-[320px] flex flex-col justify-end">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="border-b border-outline-variant w-full"></div>
+<div class="border-b border-outline-variant w-full"></div>
+<div class="border-b border-outline-variant w-full"></div>
+<div class="border-b border-outline-variant w-full"></div>
+<div class="border-b border-outline-variant w-full"></div>
+</div>
+<div class="flex items-end justify-between h-full px-4 gap-4 pb-4">
+<!-- Placeholder Bar Chart Visual -->
+<div class="flex-1 bg-primary-container/20 rounded-t-lg h-[40%] relative group cursor-pointer hover:bg-primary-container/30 transition-all">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">40%</div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg h-[60%] relative group cursor-pointer hover:bg-primary-container/30 transition-all">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">60%</div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg h-[45%] relative group cursor-pointer hover:bg-primary-container/30 transition-all">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">45%</div>
+</div>
+<div class="flex-1 primary-gradient rounded-t-lg h-[95%] relative group cursor-pointer shadow-lg shadow-primary/20">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">95%</div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg h-[70%] relative group cursor-pointer hover:bg-primary-container/30 transition-all">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">70%</div>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg h-[50%] relative group cursor-pointer hover:bg-primary-container/30 transition-all">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">50%</div>
+</div>
+</div>
+<div class="flex justify-between px-4 text-[10px] font-bold text-outline uppercase tracking-wider">
+<span>JAN</span>
+<span>FEB</span>
+<span>MAR</span>
+<span class="text-primary font-extrabold">APR</span>
+<span>MAY</span>
+<span>JUN</span>
+</div>
+</div>
+</section>
+<!-- Configuration/Table Section -->
+<section class="xl:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/10 p-6 overflow-hidden">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold font-headline text-on-surface">Discount Tiers</h3>
+<button class="text-primary text-xs font-bold hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                                ADD DISCOUNT TIER
+                            </button>
+</div>
+<!-- Data Table Style List -->
+<div class="space-y-4">
+<div class="grid grid-cols-4 pb-2 border-b border-outline-variant/10">
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest">MIN</span>
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest">MAX</span>
+<span class="text-[10px] font-bold text-outline-variant uppercase tracking-widest">DISC %</span>
+<span></span>
+</div>
+<!-- Tier Item -->
+<div class="grid grid-cols-4 items-center group">
+<div class="text-sm font-semibold text-on-surface">1.0</div>
+<div class="text-sm font-semibold text-on-surface">3.0</div>
+<div class="text-sm font-semibold text-primary">0.0%</div>
+<div class="flex justify-end">
+<button class="p-1 hover:bg-surface-container rounded transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+<!-- Tier Item -->
+<div class="grid grid-cols-4 items-center group">
+<div class="text-sm font-semibold text-on-surface">3.0</div>
+<div class="text-sm font-semibold text-on-surface">6.0</div>
+<div class="text-sm font-semibold text-primary">5.0%</div>
+<div class="flex justify-end">
+<button class="p-1 hover:bg-surface-container rounded transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+<!-- Tier Item -->
+<div class="grid grid-cols-4 items-center group">
+<div class="text-sm font-semibold text-on-surface">6.0</div>
+<div class="text-sm font-semibold text-on-surface">12.0</div>
+<div class="text-sm font-semibold text-primary">10.0%</div>
+<div class="flex justify-end">
+<button class="p-1 hover:bg-surface-container rounded transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Summary Panel -->
+<div class="mt-8 pt-6 border-t border-outline-variant/30">
+<div class="bg-surface-container p-5 rounded-xl">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="settings_input_component">settings_input_component</span>
+<h4 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">TUNE CONFIGURATION SUMMARY</h4>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-xs font-medium text-on-surface-variant">Default Discount</span>
+<span class="text-xs font-bold text-on-surface">0.00%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-medium text-on-surface-variant">Max Capacity Limit</span>
+<span class="text-xs font-bold text-on-surface">100.00%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-xs font-medium text-on-surface-variant">Overtime Multiplier</span>
+<span class="text-xs font-bold text-on-surface">1.5x</span>
+</div>
+</div>
+<button class="w-full mt-5 bg-white border border-outline-variant/50 text-on-surface text-xs font-bold py-2.5 rounded-lg shadow-sm hover:bg-surface-container-lowest transition-all">
+                                    APPLY ALL CHANGES
+                                </button>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Mobile Bottom Navigation (Shared Component Constraint) -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/50 flex justify-around p-3 z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[10px] font-bold">Overview</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-[10px] font-medium">Resources</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-[10px] font-medium">Rates</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</div>
+</body></html>
