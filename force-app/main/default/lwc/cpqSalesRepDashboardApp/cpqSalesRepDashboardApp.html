@@ -63,45 +63,114 @@
         <!-- ─── Middle Section Grid ─── -->
         <section class="middle-grid">
             
-            <!-- My Quotes Panel -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">My Quotes</h2>
-                    <button class="panel-action">View All Quotes</button>
-                </div>
-                <div class="quotes-table-container">
-                    <table class="quotes-table">
-                        <thead>
-                            <tr>
-                                <th>Project Name</th>
-                                <th>Client</th>
-                                <th>Value</th>
-                                <th>Status</th>
-                                <th style="text-align:right;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template for:each={recentQuotes} for:item="quote">
-                                <tr key={quote.id}>
-                                    <td class="td-project">
-                                        <span class="project-name">{quote.name}</span>
-                                        <span class="project-sub">{quote.subtitle}</span>
-                                    </td>
-                                    <td class="td-client">{quote.client}</td>
-                                    <td class="td-value">{quote.value}</td>
-                                    <td>
-                                        <span class={quote.badgeClass}>{quote.status}</span>
-                                    </td>
-                                    <td style="text-align:right;">
-                                        <button class="action-btn" data-id={quote.id} onclick={handleActionClick}>
-                                            <lightning-icon icon-name={quote.iconName} size="x-small"></lightning-icon>
-                                        </button>
-                                    </td>
+            <div class="left-col">
+                <!-- My Quotes Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">My Quotes</h2>
+                        <button class="panel-action">View All Quotes</button>
+                    </div>
+                    <div class="quotes-table-container">
+                        <table class="quotes-table">
+                            <thead>
+                                <tr>
+                                    <th>Project Name</th>
+                                    <th>Client</th>
+                                    <th>Value</th>
+                                    <th>Status</th>
+                                    <th style="text-align:right;">Action</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <template for:each={recentQuotes} for:item="quote">
+                                    <tr key={quote.id}>
+                                        <td class="td-project">
+                                            <span class="project-name">{quote.name}</span>
+                                            <span class="project-sub">{quote.subtitle}</span>
+                                        </td>
+                                        <td class="td-client">{quote.client}</td>
+                                        <td class="td-value">{quote.value}</td>
+                                        <td>
+                                            <span class={quote.badgeClass}>{quote.status}</span>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <button class="action-btn" data-id={quote.id} onclick={handleActionClick}>
+                                                <lightning-icon icon-name={quote.iconName} size="x-small"></lightning-icon>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <!-- ─── Bottom Section Grid ─── -->
+                <section class="bottom-grid">
+                    
+                    <!-- Catalog Discounts -->
+                    <div class="panel" style="padding: 1rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                            <div>
+                                <h2 class="panel-title">Catalog Discounts</h2>
+                                <div class="metric-subtext" style="margin-top:0.25rem;">Active manufacturer rebates &amp; seasonal pricing</div>
+                            </div>
+                            <lightning-icon icon-name="utility:pricetags" size="small"></lightning-icon>
+                        </div>
+                        
+                        <div class="catalog-item">
+                            <div class="catalog-item-icon">
+                                <lightning-icon icon-name="utility:sun" size="x-small" variant="success"></lightning-icon>
+                            </div>
+                            <div class="catalog-item-text">
+                                <div class="catalog-item-title">Solar Panels Gen 4</div>
+                                <div class="catalog-item-sub">End of Quarter Rebate</div>
+                            </div>
+                            <div class="catalog-item-val">-18%</div>
+                        </div>
+
+                        <div class="catalog-item">
+                            <div class="catalog-item-icon">
+                                <lightning-icon icon-name="utility:apps" size="x-small" variant="success"></lightning-icon>
+                            </div>
+                            <div class="catalog-item-text">
+                                <div class="catalog-item-title">Triple-Pane Low-E</div>
+                                <div class="catalog-item-sub">Bulk Project Volume</div>
+                            </div>
+                            <div class="catalog-item-val">-12%</div>
+                        </div>
+                    </div>
+
+                    <!-- Product Feed -->
+                    <div class="panel" style="padding: 1rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                            <div>
+                                <h2 class="panel-title">Product Feed</h2>
+                                <div class="metric-subtext" style="margin-top:0.25rem;">Latest updates from engineering &amp; inventory</div>
+                            </div>
+                            <lightning-icon icon-name="utility:rss" size="small"></lightning-icon>
+                        </div>
+
+                        <div class="feed-item">
+                            <lightning-icon icon-name="utility:favorite" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
+                            <div>
+                                <div class="feed-tag blue">New Release</div>
+                                <div class="feed-title">Ultra-Light Titanium Support Frames</div>
+                                <div class="feed-desc">Available for custom quoting in North America starting Monday.</div>
+                            </div>
+                        </div>
+
+                        <div class="feed-item">
+                            <lightning-icon icon-name="utility:locker_service_api_viewer" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
+                            <div>
+                                <div class="feed-tag green">Inventory</div>
+                                <div class="feed-title">Smart Glass Backlog Cleared</div>
+                                <div class="feed-desc">Lead times reduced to 3 weeks for all current glass-heavy quotes.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
             </div>
 
             <!-- AI Assistant Panel -->
@@ -133,74 +202,6 @@
                 </div>
             </div>
             
-        </section>
-
-        <!-- ─── Bottom Section Grid ─── -->
-        <section class="bottom-grid">
-            
-            <!-- Catalog Discounts -->
-            <div class="panel" style="padding: 1rem;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
-                    <div>
-                        <h2 class="panel-title">Catalog Discounts</h2>
-                        <div class="metric-subtext" style="margin-top:0.25rem;">Active manufacturer rebates &amp; seasonal pricing</div>
-                    </div>
-                    <lightning-icon icon-name="utility:pricetags" size="small"></lightning-icon>
-                </div>
-                
-                <div class="catalog-item">
-                    <div class="catalog-item-icon">
-                        <lightning-icon icon-name="utility:sun" size="x-small" variant="success"></lightning-icon>
-                    </div>
-                    <div class="catalog-item-text">
-                        <div class="catalog-item-title">Solar Panels Gen 4</div>
-                        <div class="catalog-item-sub">End of Quarter Rebate</div>
-                    </div>
-                    <div class="catalog-item-val">-18%</div>
-                </div>
-
-                <div class="catalog-item">
-                    <div class="catalog-item-icon">
-                        <lightning-icon icon-name="utility:apps" size="x-small" variant="success"></lightning-icon>
-                    </div>
-                    <div class="catalog-item-text">
-                        <div class="catalog-item-title">Triple-Pane Low-E</div>
-                        <div class="catalog-item-sub">Bulk Project Volume</div>
-                    </div>
-                    <div class="catalog-item-val">-12%</div>
-                </div>
-            </div>
-
-            <!-- Product Feed -->
-            <div class="panel" style="padding: 1rem;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
-                    <div>
-                        <h2 class="panel-title">Product Feed</h2>
-                        <div class="metric-subtext" style="margin-top:0.25rem;">Latest updates from engineering &amp; inventory</div>
-                    </div>
-                    <lightning-icon icon-name="utility:rss" size="small"></lightning-icon>
-                </div>
-
-                <div class="feed-item">
-                    <lightning-icon icon-name="utility:favorite" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
-                    <div>
-                        <div class="feed-tag blue">New Release</div>
-                        <div class="feed-title">Ultra-Light Titanium Support Frames</div>
-                        <div class="feed-desc">Available for custom quoting in North America starting Monday.</div>
-                    </div>
-                </div>
-
-                <div class="feed-item">
-                    <lightning-icon icon-name="utility:locker_service_api_viewer" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
-                    <div>
-                        <div class="feed-tag green">Inventory</div>
-                        <div class="feed-title">Smart Glass Backlog Cleared</div>
-                        <div class="feed-desc">Lead times reduced to 3 weeks for all current glass-heavy quotes.</div>
-                    </div>
-                </div>
-
-            </div>
-
         </section>
 
     </div>
