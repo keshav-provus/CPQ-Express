@@ -140,4 +140,15 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
             { id: 'pf2', tag: 'Inventory', tagClass: 'feed-tag green', title: 'Smart Glass Backlog Cleared', desc: 'New Resource Role Smart Glass Backlog Cleared added', icon: 'utility:locker_service_api_viewer' }
         ];
     }
+    handleNavigate(event) {
+        if (event.detail && event.detail.recordId) {
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: event.detail.recordId,
+                    actionName: 'view'
+                }
+            });
+        }
+    }
 }

@@ -118,13 +118,11 @@ export default class CpqQuoteMap extends LightningElement {
             svg.call(zoom);
 
             // 3. Setup Map Projection
-            // eslint-disable-next-line no-undef
-            const projection = d3.geoMercator()
+            let projection = d3.geoMercator()
                 .scale(width / 6.5)
                 .translate([width / 2, height / 1.4]);
-
-            // eslint-disable-next-line no-undef
-            const path = d3.geoPath().projection(projection);
+                
+            let path = d3.geoPath().projection(projection);
 
             const countryDataRef = this.countryData;
             const highlightColorRef = this.highlightColor;
@@ -142,6 +140,7 @@ export default class CpqQuoteMap extends LightningElement {
                 })
                 .attr('stroke', '#FFFFFF')
                 .attr('stroke-width', '0.5')
+                .attr('class', d => 'country-' + d.properties.name.replace(/[^a-zA-Z]/g, ''))
                 .style('cursor', 'pointer')
                 .style('transition', 'opacity 0.2s')
                 // Hover Interactions
@@ -149,27 +148,18 @@ export default class CpqQuoteMap extends LightningElement {
                     const countryName = d.properties.name;
                     const value = countryDataRef[countryName] || 0;
 
-                    const formattedValue = new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                    }).format(value);
-
-                    // eslint-disable-next-line no-undef
                     d3.select(tooltip)
                         .style('opacity', '1')
-                        .html(`<strong>${countryName}</strong><br/>Approved Quotes: ${formattedValue}`);
+                        .html('<strong>' + countryName + '</strong><br/>Approved Quotes: ' + value);
 
-                    // Position tooltip relative to the map container
                     const containerRect = container.getBoundingClientRect();
                     const tooltipX = event.clientX - containerRect.left + 12;
                     const tooltipY = event.clientY - containerRect.top - 20;
 
-                    // eslint-disable-next-line no-undef
                     d3.select(tooltip)
                         .style('left', tooltipX + 'px')
                         .style('top', tooltipY + 'px');
 
-                    // eslint-disable-next-line no-undef
                     d3.select(event.currentTarget).attr('opacity', 0.75);
                 })
                 .on('mousemove', (event) => {
@@ -177,17 +167,16 @@ export default class CpqQuoteMap extends LightningElement {
                     const tooltipX = event.clientX - containerRect.left + 12;
                     const tooltipY = event.clientY - containerRect.top - 20;
 
-                    // eslint-disable-next-line no-undef
                     d3.select(tooltip)
                         .style('left', tooltipX + 'px')
                         .style('top', tooltipY + 'px');
                 })
                 .on('mouseout', (event) => {
-                    // eslint-disable-next-line no-undef
                     d3.select(tooltip).style('opacity', '0');
-                    // eslint-disable-next-line no-undef
                     d3.select(event.currentTarget).attr('opacity', 1);
                 });
+
+
 
             this.isLoading = false;
         } catch (error) {

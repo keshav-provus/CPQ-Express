@@ -2118,26 +2118,66 @@ public with sharing class AgentforceController {
      *              a navigation response.
      */
     private static Map<String, Object> createQuoteRecord(Id accountId, Id opportunityId) {
+        String accountName = 'Unknown';
+        String oppName = 'Unknown';
+
+        List<Account> accts = [SELECT Name FROM Account WHERE Id = :accountId LIMIT 1];
+        if (!accts.isEmpty()) accountName = accts[0].Name;
+        
+        List<Opportunity> opps = [SELECT Name FROM Opportunity WHERE Id = :opportunityId LIMIT 1];
+        if (!opps.isEmpty()) oppName = opps[0].Name;
+
         Quote__c q = new Quote__c(
             Account__c = accountId,
             Opportunity__c = opportunityId,
             Status__c = 'Draft',
-            Start_Date__c = Date.today()
+            Start_Date__c = Date.today(),
+            Description__c = generateQuoteDescription(accountName, oppName)
         );
         insert q;
 
         // Re-query to get auto-number name
-        q = [SELECT Id, Name, Account__r.Name, Opportunity__r.Name FROM Quote__c WHERE Id = :q.Id LIMIT 1];
+        q = [SELECT Id, Name FROM Quote__c WHERE Id = :q.Id LIMIT 1];
 
         String msg = '✅ **Quote Created Successfully!**\n\n';
         msg += '• **Quote:** ' + q.Name + '\n';
-        msg += '• **Account:** ' + q.Account__r.Name + '\n';
-        msg += '• **Opportunity:** ' + q.Opportunity__r.Name + '\n';
+        msg += '• **Account:** ' + accountName + '\n';
+        msg += '• **Opportunity:** ' + oppName + '\n';
         msg += '• **Status:** Draft\n\n';
         msg += 'Opening the new quote...';
 
         Map<String, Object> response = buildResponse('action_result', msg, true, 'NAVIGATE', q.Id, null);
         return response;
+    }
+
+    /**
+     * @description Generates a contextual description for the quote using AI.
+     */
+    private static String generateQuoteDescription(String accountName, String oppName) {
+        try {
+            String prompt = 'Generate a professional, concise 2-3 sentence description for a new CPQ Quote.\n' +
+                          'Context:\n' +
+                          '- Account: ' + accountName + '\n' +
+                          '- Opportunity: ' + oppName + '\n' +
+                          'The description should focus on the strategic partnership and value delivery.';
+
+            aiplatform.ModelsAPI.createGenerations_Request request = new aiplatform.ModelsAPI.createGenerations_Request();
+            request.modelName = 'sfdc_ai__DefaultGPT4Omni';
+
+            aiplatform.ModelsAPI_GenerationRequest body = new aiplatform.ModelsAPI_GenerationRequest();
+            body.prompt = prompt;
+            request.body = body;
+
+            aiplatform.ModelsAPI modelsAPI = new aiplatform.ModelsAPI();
+            aiplatform.ModelsAPI.createGenerations_Response response = modelsAPI.createGenerations(request);
+
+            if (response != null && response.Code200 != null && response.Code200.generation != null) {
+                return response.Code200.generation.generatedText;
+            }
+        } catch (Exception e) {
+            System.debug('AI Description Generation Failed: ' + e.getMessage());
+        }
+        return 'Standard quote for ' + accountName + ' focused on ' + oppName + '.';
     }
 
     // ═══════════════════════════════════════════════════════════════
