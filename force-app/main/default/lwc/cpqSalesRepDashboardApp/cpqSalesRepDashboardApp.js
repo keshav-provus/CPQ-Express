@@ -126,8 +126,8 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
             return this.dashboardData.catalogDiscounts;
         }
         return [
-            { id: 'cd1', title: 'Solar Panels Gen 4', text: 'Discount 18% on 100-500 items of Solar Panels Gen 4', val: '-18%', icon: 'utility:sun' },
-            { id: 'cd2', title: 'Triple-Pane Low-E', text: 'Discount 12% on 50-200 items of Triple-Pane Low-E', val: '-12%', icon: 'utility:apps' }
+            { id: 'cd1', title: 'Solar Panels Gen 4', text: 'Quantity - 100-500', val: '-18%', icon: 'utility:sun' },
+            { id: 'cd2', title: 'Triple-Pane Low-E', text: 'Quantity - 50-200', val: '-12%', icon: 'utility:apps' }
         ];
     }
 

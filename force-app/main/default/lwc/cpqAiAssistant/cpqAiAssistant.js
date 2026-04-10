@@ -257,13 +257,13 @@ export default class CpqAiAssistant extends LightningElement {
             } else if (actionType === 'APPLY_DISCOUNT') {
                 actionData = { lineItemId: optionId, discountPercent: quantity };
             } else if (actionType === 'UPDATE_QUANTITY') {
-                actionData = { lineItemId: optionId, quantity: quantity };
+                actionData = { lineItemId: optionId, quantity: quantity, startDate: lastDisambiguation.pendingStartDate, endDate: lastDisambiguation.pendingEndDate };
             } else if (actionType === 'SELECT_ACCOUNT') {
                 actionData = { itemId: optionId, itemType: optionType };
             } else if (actionType === 'SELECT_OPPORTUNITY') {
                 actionData = { itemId: optionId, itemType: optionType, accountId: pendingAccountId };
             } else {
-                actionData = { itemId: optionId, itemType: optionType, quantity: quantity };
+                actionData = { itemId: optionId, itemType: optionType, quantity: quantity, startDate: lastDisambiguation.pendingStartDate, endDate: lastDisambiguation.pendingEndDate };
             }
 
             const result = await executeAction({
