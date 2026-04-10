@@ -330,7 +330,7 @@ public with sharing class AgentforceController {
 
             // Route create_quote intent back to Apex engine (multi-step flow)
             if (intent == 'create_quote') {
-                return null; // Let Apex engine handle with handleCreateQuote()
+                return handleCreateQuote(ctx);
             }
 
             // If LLM provides a clear match, execute directly based on intent

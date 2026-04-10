@@ -230,13 +230,13 @@
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
-    background: rgba(167, 139, 250, 0.06);
-    border: 1px solid rgba(167, 139, 250, 0.15);
+    background: rgba(124, 58, 237, 0.04);
+    border: 1px solid rgba(124, 58, 237, 0.15);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     text-align: left;
-    color: #e8eaed;
+    color: #1f2937;
     font-family: inherit;
     width: 100%;
 }
@@ -275,7 +275,7 @@
 .option-name {
     font-size: 13px;
     font-weight: 600;
-    color: #fff;
+    color: #111827;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -283,7 +283,7 @@
 
 .option-detail {
     font-size: 11px;
-    color: #9ca3af;
+    color: #4b5563;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -707,6 +707,26 @@
     gap: 0.5rem;
     max-width: 95%;
     animation: cardMsgFadeIn 0.2s ease;
+}
+
+/* Card Mode Option Overrides */
+.ai-card .option-card {
+    background: rgba(167, 139, 250, 0.06);
+    border: 1px solid rgba(167, 139, 250, 0.15);
+    color: #e8eaed;
+}
+
+.ai-card .option-card:hover {
+    background: rgba(167, 139, 250, 0.14);
+    border-color: rgba(167, 139, 250, 0.4);
+}
+
+.ai-card .option-name {
+    color: #fff;
+}
+
+.ai-card .option-detail {
+    color: #9ca3af;
 }
 
 @keyframes cardMsgFadeIn {
