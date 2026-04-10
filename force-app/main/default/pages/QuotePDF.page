@@ -1,297 +1,709 @@
 <apex:page controller="QuotePDFController" renderAs="pdf" applyBodyTag="false" applyHtmlTag="false" showHeader="false">
-    <head>
-        <style type="text/css" media="print">
-            @page {
-                margin: 1cm;
-                @bottom-right {
-                    content: "Page " counter(page) " of " counter(pages);
-                    font-size: 10px;
-                }
+<html>
+<head>
+    <style type="text/css" media="print">
+        /* ═══════════════════════════════════════════════════════════════
+           CPQ Express — Professional Quote PDF Template
+           ═══════════════════════════════════════════════════════════════ */
+        @page {
+            size: A4;
+            margin: 0.7in 0.7in 0.9in 0.7in;
+            @bottom-center {
+                content: element(footer);
             }
-            body {
-                font-family: 'Helvetica', 'Arial', sans-serif;
-                font-size: 12px;
-                color: #333;
-                margin: 0;
-                padding: 0;
-            }
-            .header {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 40px;
-            }
-            .company-info {
-                float: left;
-                width: 50%;
-            }
-            .quote-title {
-                float: right;
-                width: 40%;
-                text-align: right;
-            }
-            .logo-placeholder {
-                background-color: #4F46E5;
-                width: 40px;
-                height: 40px;
-                border-radius: 4px;
-                display: inline-block;
-                margin-bottom: 10px;
-            }
-            .company-name {
-                font-size: 20px;
-                font-weight: bold;
-                letter-spacing: 1px;
-                color: #111;
-                margin-bottom: 10px;
-            }
-            .address-text {
-                font-size: 11px;
-                color: #666;
-                line-height: 1.4;
-            }
-            .quote-label {
-                font-size: 40px;
-                font-weight: bold;
-                color: #111;
-                margin: 0;
-            }
-            .quote-meta {
-                margin-top: 10px;
-                font-size: 12px;
-            }
-            .meta-row {
-                margin-bottom: 2px;
-            }
-            .meta-label {
-                color: #666;
-                width: 100px;
-                display: inline-block;
-            }
-            .meta-value {
-                font-weight: bold;
-                color: #111;
-            }
-            .clear {
-                clear: both;
-            }
-            .info-section {
-                margin-top: 30px;
-                margin-bottom: 40px;
-            }
-            .info-box {
-                float: left;
-                width: 48%;
-            }
-            .info-label {
-                font-size: 10px;
-                color: #666;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                margin-bottom: 8px;
-            }
-            .info-content {
-                font-size: 13px;
-                font-weight: bold;
-                color: #111;
-                line-height: 1.4;
-            }
-            .info-sub {
-                font-size: 12px;
-                font-weight: normal;
-                color: #444;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
-            th {
-                text-align: left;
-                font-size: 10px;
-                color: #666;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                border-bottom: 1px solid #eee;
-                padding: 10px 5px;
-            }
-            td {
-                padding: 15px 5px;
-                border-bottom: 1px solid #f9f9f9;
-                vertical-align: top;
-            }
-            .item-name {
-                font-weight: bold;
-                font-size: 13px;
-                color: #111;
-            }
-            .item-desc {
-                font-size: 11px;
-                color: #666;
-                margin-top: 4px;
-            }
-            .text-right {
-                text-align: right;
-            }
-            .totals-section {
-                margin-top: 30px;
-                float: right;
-                width: 40%;
-            }
-            .total-row {
-                margin-bottom: 10px;
-                font-size: 14px;
-            }
-            .total-label {
-                color: #666;
-                display: inline-block;
-                width: 120px;
-            }
-            .total-value {
-                font-weight: bold;
-                color: #111;
-                float: right;
-            }
-            .grand-total {
-                font-size: 18px;
-                border-top: 1px solid #eee;
-                padding-top: 15px;
-                margin-top: 15px;
-            }
-            .grand-total .total-value {
-                color: #4F46E5;
-            }
-            .footer-note {
-                margin-top: 100px;
-                text-align: center;
-                font-size: 10px;
-                color: #999;
-                border-top: 1px solid #eee;
-                padding-top: 20px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="header">
-            <div class="company-info">
-                <div class="logo-placeholder"></div>
-                <div class="company-name">{!companyName}</div>
-                <div class="address-text">
-                    {!companyAddress}<br/>
-                    {!companyEmail}
-                </div>
-            </div>
-            <div class="quote-title">
-                <div class="quote-label">QUOTE</div>
-                <div class="quote-meta">
-                    <div class="meta-row">
-                        <span class="meta-label">Quote Number:</span>
-                        <span class="meta-value">{!quote.Name}</span>
-                    </div>
-                    <div class="meta-row">
-                        <span class="meta-label">Date Issued:</span>
-                        <span class="meta-value">{!todayDate}</span>
-                    </div>
-                    <div class="meta-row">
-                        <span class="meta-label">Expires:</span>
-                        <span class="meta-value">
-                            <apex:outputText value="{0,date,MMM dd, yyyy}">
-                                <apex:param value="{!quote.Valid_Until__c}" />
-                            </apex:outputText>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="clear"></div>
+        }
 
-        <div class="info-section">
-            <div class="info-box">
-                <div class="info-label">PREPARED FOR</div>
-                <div class="info-content">
-                    {!quote.Account__r.Name}<br/>
-                    <div class="info-sub">
-                        {!quote.Account__r.BillingStreet}<br/>
-                        {!quote.Account__r.BillingCity}, {!quote.Account__r.BillingState} {!quote.Account__r.BillingPostalCode}
-                    </div>
-                </div>
-            </div>
-            <div class="info-box">
-                <div class="info-label">SALES REPRESENTATIVE</div>
-                <div class="info-content">
-                    {!quote.CreatedBy.Name}<br/>
-                    <div class="info-sub">
-                        Senior Account Architect<br/>
-                        {!quote.CreatedBy.Name}@precision.arch<br/>
-                        +1 (555) 012-3456
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="clear"></div>
+        /* ── Footer running element ── */
+        #running-footer {
+            position: running(footer);
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 8px;
+            color: #94a3b8;
+            text-align: center;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+        }
+        #running-footer .page-num::after {
+            content: counter(page) " of " counter(pages);
+        }
 
-        <table>
+        /* ── Base typography ── */
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10px;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* ── Utility ── */
+        .clear { clear: both; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .text-muted { color: #64748b; }
+        .text-sm { font-size: 9px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-8 { margin-top: 32px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+
+        /* ═════════════════════════════════════════════════════════════
+           HEADER
+           ═════════════════════════════════════════════════════════════ */
+        .header-bar {
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 20px 24px;
+            margin: -0.7in -0.7in 0 -0.7in;
+            width: calc(100% + 1.4in);
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header-table td {
+            vertical-align: middle;
+            padding: 0;
+        }
+        .logo-cell {
+            width: 55%;
+        }
+        .logo-img {
+            max-height: 48px;
+            max-width: 180px;
+            display: block;
+        }
+        .co-name-header {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+        .quote-title-cell {
+            width: 45%;
+            text-align: right;
+        }
+        .quote-title-text {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: #ffffff;
+            margin: 0;
+        }
+        .quote-ref {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           STATUS RIBBON
+           ═════════════════════════════════════════════════════════════ */
+        .status-ribbon {
+            text-align: right;
+            margin-top: 12px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .status-draft { background: #f1f5f9; color: #475569; }
+        .status-approved { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-rejected { background: #fecaca; color: #991b1b; }
+
+        /* ═════════════════════════════════════════════════════════════
+           INFO CARDS (Quote Details + Client)
+           ═════════════════════════════════════════════════════════════ */
+        .info-section {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+        .info-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 14px 16px;
+        }
+        .info-card-left {
+            width: 48%;
+        }
+        .info-card-right {
+            width: 48%;
+        }
+        .info-card-spacer {
+            width: 4%;
+        }
+        .card-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+        }
+        .card-field {
+            margin-bottom: 5px;
+        }
+        .card-field-label {
+            font-size: 9px;
+            color: #94a3b8;
+            display: inline-block;
+            width: 85px;
+        }
+        .card-field-value {
+            font-size: 10px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .client-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        .client-address {
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           DESCRIPTION
+           ═════════════════════════════════════════════════════════════ */
+        .description-block {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .description-block p {
+            margin: 0;
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           PHASE HEADERS + LINE ITEMS TABLE
+           ═════════════════════════════════════════════════════════════ */
+        .phase-header {
+            background: #f1f5f9;
+            border-left: 4px solid #3b82f6;
+            padding: 6px 12px;
+            margin-top: 16px;
+            margin-bottom: 2px;
+            page-break-inside: avoid;
+        }
+        .phase-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            display: inline-block;
+        }
+        .phase-meta {
+            font-size: 9px;
+            color: #64748b;
+            float: right;
+            margin-top: 2px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+        .items-table thead th {
+            font-size: 8px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 6px;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: left;
+        }
+        .items-table thead th.col-right {
+            text-align: right;
+        }
+        .items-table tbody td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+            font-size: 10px;
+        }
+        .items-table tbody td.col-right {
+            text-align: right;
+        }
+        .row-even { background-color: #ffffff; }
+        .row-odd { background-color: #fafbfc; }
+
+        .item-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 10px;
+        }
+        .item-task {
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+        .type-dot {
+            display: inline-block;
+            width: 7px;
+            font-size: 7px;
+            margin-right: 4px;
+        }
+        .type-label {
+            font-size: 8px;
+            color: #64748b;
+            padding: 1px 6px;
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        .discount-tag {
+            font-size: 8px;
+            color: #2563eb;
+            font-weight: 700;
+        }
+        .phase-subtotal-row td {
+            padding: 6px 6px;
+            border-top: 1px solid #e2e8f0;
+            font-weight: 700;
+            font-size: 10px;
+            color: #475569;
+            background: #f8fafc;
+        }
+
+        /* ═════════════════════════════════════════════════════════════
+           FINANCIAL SUMMARY
+           ═════════════════════════════════════════════════════════════ */
+        .summary-section {
+            margin-top: 20px;
+            page-break-inside: avoid;
+        }
+        .summary-outer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-outer-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+        .summary-box {
+            width: 280px;
+            float: right;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .summary-row {
+            padding: 8px 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .summary-row-label {
+            font-size: 10px;
+            color: #64748b;
+            display: inline-block;
+            width: 130px;
+        }
+        .summary-row-value {
+            font-size: 10px;
+            font-weight: 600;
+            color: #1e293b;
+            float: right;
+        }
+        .grand-total-row {
+            background: #1e293b;
+            padding: 12px 16px;
+        }
+        .grand-total-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #e2e8f0;
+            display: inline-block;
+            width: 130px;
+        }
+        .grand-total-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+            float: right;
+        }
+        .margin-positive { color: #16a34a; }
+        .margin-negative { color: #dc2626; }
+
+        /* ═════════════════════════════════════════════════════════════
+           TERMS + SIGNATURE
+           ═════════════════════════════════════════════════════════════ */
+        .terms-section {
+            margin-top: 28px;
+            page-break-inside: avoid;
+        }
+        .terms-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .terms-list {
+            margin: 0;
+            padding: 0 0 0 16px;
+            color: #64748b;
+            font-size: 9px;
+            line-height: 1.7;
+        }
+
+        .signature-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+        .sig-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .sig-table td {
+            vertical-align: bottom;
+            padding: 0;
+            width: 48%;
+        }
+        .sig-spacer {
+            width: 4%;
+        }
+        .sig-block {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 8px;
+        }
+        .sig-img {
+            max-height: 50px;
+            max-width: 160px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .sig-label-text {
+            font-size: 9px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .sig-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .sig-title-text {
+            font-size: 9px;
+            color: #64748b;
+        }
+        .sig-date {
+            font-size: 9px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ── Company footer info ── */
+        .co-footer-info {
+            font-size: 8px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ RUNNING FOOTER ═══ -->
+    <div id="running-footer">
+        <span class="co-footer-info">{!companyName} &bull; {!companyAddress}</span>
+        <apex:outputPanel rendered="{!companyPhone != null && companyPhone != ''}">
+            <span class="co-footer-info">&bull; {!companyPhone}</span>
+        </apex:outputPanel>
+        <br/>
+        <span class="page-num">Page </span>
+    </div>
+
+    <!-- ═══ DARK HEADER BAR ═══ -->
+    <div class="header-bar">
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell">
+                    <apex:outputPanel rendered="{!hasLogo}">
+                        <img src="{!logoUrl}" class="logo-img" />
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!!hasLogo}">
+                        <div class="co-name-header">{!companyName}</div>
+                    </apex:outputPanel>
+                </td>
+                <td class="quote-title-cell">
+                    <div class="quote-title-text">QUOTE</div>
+                    <div class="quote-ref">{!quote.Name}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══ STATUS ═══ -->
+    <div class="status-ribbon">
+        <span class="status-badge {!statusClass}">{!quote.Status__c}</span>
+    </div>
+
+    <!-- ═══ INFORMATION CARDS ═══ -->
+    <div class="info-section">
+        <table class="info-table">
+            <tr>
+                <!-- Quote Details -->
+                <td class="info-card-left">
+                    <div class="info-card">
+                        <div class="card-label">Quote Details</div>
+                        <div class="card-field">
+                            <span class="card-field-label">Quote #</span>
+                            <span class="card-field-value">{!quote.Name}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Date Issued</span>
+                            <span class="card-field-value">{!todayDate}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Valid Until</span>
+                            <span class="card-field-value">
+                                <apex:outputText value="{0,date,MMM dd, yyyy}" rendered="{!quote.Valid_Until__c != null}">
+                                    <apex:param value="{!quote.Valid_Until__c}" />
+                                </apex:outputText>
+                                <apex:outputPanel rendered="{!quote.Valid_Until__c == null}">—</apex:outputPanel>
+                            </span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Period</span>
+                            <span class="card-field-value">
+                                <apex:outputText value="{0,date,MMM dd, yyyy}" rendered="{!quote.Start_Date__c != null}">
+                                    <apex:param value="{!quote.Start_Date__c}" />
+                                </apex:outputText>
+                                <apex:outputPanel rendered="{!quote.End_Date__c != null}">
+                                    &nbsp;— <apex:outputText value="{0,date,MMM dd, yyyy}">
+                                        <apex:param value="{!quote.End_Date__c}" />
+                                    </apex:outputText>
+                                </apex:outputPanel>
+                            </span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Billing</span>
+                            <span class="card-field-value">{!quote.Time_Period_Metric__c}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Prepared By</span>
+                            <span class="card-field-value">{!quote.CreatedBy.Name}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">Currency</span>
+                            <span class="card-field-value">{!currencyIso}</span>
+                        </div>
+                    </div>
+                </td>
+
+                <td class="info-card-spacer"></td>
+
+                <!-- Client Information -->
+                <td class="info-card-right">
+                    <div class="info-card">
+                        <div class="card-label">Prepared For</div>
+                        <div class="client-name">{!quote.Account__r.Name}</div>
+                        <div class="client-address">
+                            <apex:outputPanel rendered="{!quote.Account__r.BillingStreet != null}">
+                                {!quote.Account__r.BillingStreet}<br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!quote.Account__r.BillingCity != null}">
+                                {!quote.Account__r.BillingCity}<apex:outputPanel rendered="{!quote.Account__r.BillingState != null}">, {!quote.Account__r.BillingState}</apex:outputPanel>
+                                <apex:outputPanel rendered="{!quote.Account__r.BillingPostalCode != null}"> {!quote.Account__r.BillingPostalCode}</apex:outputPanel>
+                                <br/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!quote.Account__r.BillingCountry != null}">
+                                {!quote.Account__r.BillingCountry}
+                            </apex:outputPanel>
+                        </div>
+                        <apex:outputPanel rendered="{!quote.Opportunity__r.Name != null}">
+                            <div class="card-field" style="margin-top:12px;">
+                                <span class="card-field-label">Opportunity</span>
+                                <span class="card-field-value">{!quote.Opportunity__r.Name}</span>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ═══ DESCRIPTION ═══ -->
+    <apex:outputPanel rendered="{!quote.Description__c != null && quote.Description__c != ''}">
+        <div class="description-block">
+            <div class="card-label" style="margin-bottom:6px;">Description</div>
+            <p>{!quote.Description__c}</p>
+        </div>
+    </apex:outputPanel>
+
+    <!-- ═══ LINE ITEMS BY PHASE ═══ -->
+    <apex:repeat value="{!phaseGroups}" var="pg">
+        <!-- Phase Header -->
+        <div class="phase-header">
+            <span class="phase-name">{!pg.phaseName}</span>
+            <span class="phase-meta">{!pg.itemCount} item(s) &bull; Subtotal: {!pg.phaseTotal}</span>
+        </div>
+
+        <!-- Items Table for this Phase -->
+        <table class="items-table">
             <thead>
                 <tr>
-                    <th width="60%">PRODUCT DESCRIPTION</th>
-                    <th width="10%" class="text-right">QTY</th>
-                    <th width="15%" class="text-right">UNIT PRICE</th>
-                    <th width="15%" class="text-right">TOTAL</th>
+                    <th style="width:5%;">#</th>
+                    <th style="width:38%;">Description</th>
+                    <th style="width:12%;">Type</th>
+                    <th class="col-right" style="width:8%;">Qty</th>
+                    <th class="col-right" style="width:15%;">Unit Price</th>
+                    <th class="col-right" style="width:8%;">Disc.</th>
+                    <th class="col-right" style="width:14%;">Net Total</th>
                 </tr>
             </thead>
             <tbody>
-                <apex:repeat value="{!lineItems}" var="item">
-                    <tr>
+                <apex:repeat value="{!pg.items}" var="item">
+                    <tr class="{!item.rowClass}">
+                        <td class="text-muted text-sm">{!item.rowNumber}</td>
                         <td>
-                            <div class="item-name">{!item.Name__c}</div>
-                            <div class="item-desc">{!item.Task__c}</div>
+                            <div class="item-name">{!item.name}</div>
+                            <apex:outputPanel rendered="{!item.task != null && item.task != ''}">
+                                <div class="item-task">{!item.task}</div>
+                            </apex:outputPanel>
                         </td>
-                        <td class="text-right">
-                            <apex:outputText value="{0,number,###,###,##0}">
-                                <apex:param value="{!item.Quantity__c}" />
-                            </apex:outputText>
+                        <td><span class="type-label">{!item.itemType}</span></td>
+                        <td class="col-right">{!item.formattedQty}</td>
+                        <td class="col-right">{!item.formattedUnitPrice}</td>
+                        <td class="col-right">
+                            <apex:outputPanel rendered="{!item.hasDiscount}">
+                                <span class="discount-tag">{!item.discountLabel}</span>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{!!item.hasDiscount}">
+                                <span class="text-muted">—</span>
+                            </apex:outputPanel>
                         </td>
-                        <td class="text-right">
-                            <apex:outputText value="{0,number,currency}">
-                                <apex:param value="{!item.Unit_Price__c}" />
-                            </apex:outputText>
-                        </td>
-                        <td class="text-right">
-                            <apex:outputText value="{0,number,currency}">
-                                <apex:param value="{!item.Net_Total__c}" />
-                            </apex:outputText>
-                        </td>
+                        <td class="col-right" style="font-weight:600;">{!item.formattedNetTotal}</td>
                     </tr>
                 </apex:repeat>
+                <!-- Phase Subtotal -->
+                <tr class="phase-subtotal-row">
+                    <td colspan="6" class="text-right" style="text-transform:uppercase; font-size:9px; letter-spacing:1px;">
+                        {!pg.phaseName} Subtotal
+                    </td>
+                    <td class="col-right">{!pg.phaseTotal}</td>
+                </tr>
             </tbody>
         </table>
+    </apex:repeat>
 
-        <div class="totals-section">
-            <div class="total-row">
-                <span class="total-label">Subtotal:</span>
-                <span class="total-value">
-                    <apex:outputText value="{0,number,currency}">
-                        <apex:param value="{!quote.Total_Amount__c}" />
-                    </apex:outputText>
-                </span>
-            </div>
-            <!-- Discount logic if needed -->
-            <!-- <div class="total-row">
-                <span class="total-label">Discount:</span>
-                <span class="total-value">-$0.00</span>
-            </div> -->
-            <div class="total-row grand-total">
-                <span class="total-label">Total Amount:</span>
-                <span class="total-value">
-                    <apex:outputText value="{0,number,currency}">
-                        <apex:param value="{!quote.Total_Amount__c}" />
-                    </apex:outputText>
-                </span>
-            </div>
-        </div>
-        <div class="clear"></div>
+    <!-- ═══ FINANCIAL SUMMARY ═══ -->
+    <div class="summary-section">
+        <table class="summary-outer-table">
+            <tr>
+                <td style="width:50%; vertical-align:bottom;">
+                    <div class="text-muted text-sm">
+                        {!totalLineItemCount} line items across {!phaseGroups.size} phase(s)<br/>
+                        All amounts in {!currencyIso}
+                    </div>
+                </td>
+                <td style="width:50%;">
+                    <div class="summary-box">
+                        <div class="summary-row">
+                            <span class="summary-row-label">Subtotal (List)</span>
+                            <span class="summary-row-value">{!formattedSubtotal}</span>
+                            <div class="clear"></div>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-row-label">Total Cost</span>
+                            <span class="summary-row-value">{!formattedTotalCost}</span>
+                            <div class="clear"></div>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-row-label">Margin</span>
+                            <span class="summary-row-value {!IF(quote.Margin_Amount__c >= 0, 'margin-positive', 'margin-negative')}">
+                                {!formattedMarginAmount} ({!formattedMarginPercent})
+                            </span>
+                            <div class="clear"></div>
+                        </div>
+                        <div class="grand-total-row">
+                            <span class="grand-total-label">TOTAL</span>
+                            <span class="grand-total-value">{!formattedTotalAmount}</span>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
-        <div class="footer-note">
-            This quote is valid for 30 days. All pricing is subject to our Standard Terms and Conditions of Sale.
-        </div>
-    </body>
+    <!-- ═══ TERMS & CONDITIONS ═══ -->
+    <div class="terms-section">
+        <div class="terms-title">Terms &amp; Conditions</div>
+        <ol class="terms-list">
+            <li>This quote is valid until the expiry date stated above.</li>
+            <li>All prices are in {!currencyIso} and exclusive of applicable taxes unless otherwise stated.</li>
+            <li>Payment is due within 30 days of invoice date unless otherwise agreed in writing.</li>
+            <li>Delivery timelines are estimates and subject to resource availability.</li>
+            <li>Changes to scope after acceptance may result in additional charges.</li>
+            <li>This quote constitutes an offer and is subject to our standard terms and conditions of sale.</li>
+        </ol>
+    </div>
+
+    <!-- ═══ SIGNATURE BLOCK ═══ -->
+    <div class="signature-section">
+        <table class="sig-table">
+            <tr>
+                <!-- Company Signature -->
+                <td>
+                    <div class="sig-label-text">Authorized by {!companyName}</div>
+                    <apex:outputPanel rendered="{!hasSignature}">
+                        <img src="{!signatureUrl}" class="sig-img" />
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!!hasSignature}">
+                        <div style="height:50px;"></div>
+                    </apex:outputPanel>
+                    <div class="sig-block">
+                        <div class="sig-name">{!quote.CreatedBy.Name}</div>
+                        <apex:outputPanel rendered="{!signerTitle != null && signerTitle != ''}">
+                            <div class="sig-title-text">{!signerTitle}</div>
+                        </apex:outputPanel>
+                        <div class="sig-date">Date: {!todayDate}</div>
+                    </div>
+                </td>
+
+                <td class="sig-spacer"></td>
+
+                <!-- Client Signature -->
+                <td>
+                    <div class="sig-label-text">Accepted by {!quote.Account__r.Name}</div>
+                    <div style="height:50px;"></div>
+                    <div class="sig-block">
+                        <div class="sig-name" style="color: #94a3b8;">Authorized Signatory</div>
+                        <div class="sig-date">Date: ___________________</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>
 </apex:page>

@@ -173,7 +173,8 @@ public with sharing class QuoteTemplateController {
 
         // 1. Fetch Quote data
         Quote__c q = [
-            SELECT Id, Name, Status__c, Total_Amount__c, Start_Date__c, End_Date__c,
+            SELECT Id, Name, Status__c, Description__c, Total_Amount__c, Start_Date__c, End_Date__c,
+                   Valid_Until__c, Time_Period_Metric__c,
                    Account__c, Account__r.Name, Account__r.BillingStreet, Account__r.BillingCity,
                    Account__r.BillingState, Account__r.BillingPostalCode, Account__r.BillingCountry,
                    CreatedBy.Name, Total_Cost__c, Margin_Amount__c, Margin_Percent__c
@@ -182,16 +183,27 @@ public with sharing class QuoteTemplateController {
             LIMIT 1
         ];
 
-        // 2. Quote & Account replacements
+        // 2. Resolve currency
+        Company_Settings__c cs = Company_Settings__c.getOrgDefaults();
+        String currencyIso = 'USD';
+        if (cs != null && cs.Default_Currency__c != null) {
+            currencyIso = cs.Default_Currency__c;
+        }
+
+        // 3. Quote & Account replacements
         html = replacePlaceholder(html, '[[Quote.Name]]',             q.Name);
         html = replacePlaceholder(html, '[[Quote.Status__c]]',        q.Status__c);
+        html = replacePlaceholder(html, '[[Quote.Description__c]]',   q.Description__c);
         html = replacePlaceholder(html, '[[Quote.Total_Amount__c]]',  formatCurrency(q.Total_Amount__c));
         html = replacePlaceholder(html, '[[Quote.Total_Cost__c]]',    formatCurrency(q.Total_Cost__c));
         html = replacePlaceholder(html, '[[Quote.Margin_Amount__c]]', formatCurrency(q.Margin_Amount__c));
         html = replacePlaceholder(html, '[[Quote.Margin_Percent__c]]',
-            q.Margin_Percent__c != null ? (q.Margin_Percent__c * 100).setScale(2) + '%' : '0%');
+            q.Margin_Percent__c != null ? q.Margin_Percent__c.setScale(1) + '%' : '0.0%');
         html = replacePlaceholder(html, '[[Quote.Start_Date__c]]', formatDate(q.Start_Date__c));
         html = replacePlaceholder(html, '[[Quote.End_Date__c]]',   formatDate(q.End_Date__c));
+        html = replacePlaceholder(html, '[[Quote.Valid_Until__c]]', formatDate(q.Valid_Until__c));
+        html = replacePlaceholder(html, '[[Quote.Time_Period_Metric__c]]', q.Time_Period_Metric__c);
+        html = replacePlaceholder(html, '[[Quote.Currency]]',      currencyIso);
         html = replacePlaceholder(html, '[[Account.Name]]',        q.Account__r.Name);
 
         String accAddress = '';
@@ -204,8 +216,7 @@ public with sharing class QuoteTemplateController {
         html = replacePlaceholder(html, '[[User.Name]]', q.CreatedBy.Name);
         html = replacePlaceholder(html, '[[Today]]',     Date.today().format());
 
-        // 3. Company Settings replacements
-        Company_Settings__c cs = Company_Settings__c.getOrgDefaults();
+        // 4. Company Settings replacements
         if (cs != null) {
             html = replacePlaceholder(html, '[[Company.Name]]',  cs.Company_Name__c);
             html = replacePlaceholder(html, '[[Company.Phone]]', cs.Company_Phone__c);
@@ -221,7 +232,7 @@ public with sharing class QuoteTemplateController {
             html = replacePlaceholder(html, '[[Company.Address]]', compAddress);
         }
 
-        // 4. Image placeholders — use absolute Static Resource URLs so the
+        // 5. Image placeholders — use absolute Static Resource URLs so the
         //    Visualforce PDF renderer (Flying Saucer) can fetch them via HTTP.
         if (html.contains('[[Company.Logo]]') || html.contains('[[Company.Signature]]')) {
             String baseUrl = URL.getOrgDomainUrl().toExternalForm();
@@ -231,14 +242,15 @@ public with sharing class QuoteTemplateController {
                 baseUrl + '/resource/' + SIGNATURE_RESOURCE);
         }
 
-        // 5. Line item loop
+        // 6. Line item loop
         if (html.contains('[[LINE_ITEMS_START]]') && html.contains('[[LINE_ITEMS_END]]')) {
             String part1        = html.substringBefore('[[LINE_ITEMS_START]]');
             String part2        = html.substringAfter('[[LINE_ITEMS_END]]');
             String loopTemplate = html.substringBetween('[[LINE_ITEMS_START]]', '[[LINE_ITEMS_END]]');
 
             List<Quote_Line_Item__c> items = [
-                SELECT Name__c, Item_Type__c, Task__c, Phase__c, Quantity__c, Unit_Price__c, Net_Total__c
+                SELECT Name__c, Item_Type__c, Task__c, Phase__c, Quantity__c,
+                       Unit_Price__c, Net_Total__c, Discount_Percent__c
                 FROM Quote_Line_Item__c
                 WHERE Quote__c = :quoteId
                 ORDER BY Phase__c, CreatedDate
@@ -254,6 +266,9 @@ public with sharing class QuoteTemplateController {
                 row = replacePlaceholder(row, '[[Item.Quantity__c]]',   String.valueOf(item.Quantity__c));
                 row = replacePlaceholder(row, '[[Item.Unit_Price__c]]', formatCurrency(item.Unit_Price__c));
                 row = replacePlaceholder(row, '[[Item.Net_Total__c]]',  formatCurrency(item.Net_Total__c));
+                row = replacePlaceholder(row, '[[Item.Discount_Percent__c]]',
+                    item.Discount_Percent__c != null && item.Discount_Percent__c > 0
+                        ? '-' + item.Discount_Percent__c.setScale(0).toPlainString() + '%' : '—');
                 itemsHtml += row;
             }
             html = part1 + itemsHtml + part2;

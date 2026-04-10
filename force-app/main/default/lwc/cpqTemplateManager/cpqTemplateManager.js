@@ -90,90 +90,128 @@ export default class CpqTemplateManager extends LightningElement {
             <html>
             <head>
                 <style>
-                    body { font-family: sans-serif; font-size: 12px; color: #333; margin: 0; padding: 20px; }
+                    @page { size: A4; margin: 0.7in 0.7in 0.9in 0.7in; }
+                    body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10px; color: #1e293b; margin: 0; padding: 0; line-height: 1.5; }
                     table { width: 100%; border-collapse: collapse; }
-                    .header-table { margin-bottom: 40px; }
-                    .header-left { width: 60%; vertical-align: top; }
-                    .header-right { width: 40%; text-align: right; vertical-align: top; }
-                    .company-logo { max-height: 50px; max-width: 200px; margin-bottom: 20px; display: block; }
-                    .company-info { color: #666; line-height: 1.4; }
-                    .quote-badge { background-color: #f0f2f6; color: #5a6b8c; padding: 4px 12px; border-radius: 4px; font-weight: bold; font-size: 10px; display: inline-block; margin-bottom: 10px; }
-                    .quote-number { font-size: 24px; color: #2563eb; font-weight: bold; margin-bottom: 15px; }
-                    .quote-meta { color: #555; line-height: 1.5; font-size: 11px; }
-                    .meta-label { color: #888; margin-right: 5px; }
-
-                    .prepared-for { text-align: right; margin-bottom: 50px; }
-                    .prep-label { color: #8b9bb4; font-size: 10px; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
-                    .prep-name { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 2px; }
-                    .prep-attn { color: #666; font-size: 11px; }
-
-                    .items-table { margin-bottom: 40px; }
-                    .items-table th { text-align: left; padding: 12px 8px; border-bottom: 2px solid #eee; color: #8b9bb4; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
-                    .items-table th.right { text-align: right; }
-                    .items-table td { padding: 16px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-                    .items-table td.right { text-align: right; }
-                    .item-name { font-weight: bold; color: #333; margin-bottom: 4px; font-size: 13px; }
-                    .item-desc { color: #888; font-size: 11px; font-style: italic; }
-                    .item-val { font-size: 13px; }
-                    .item-disc { color: #2563eb; font-size: 13px; }
-
-                    .summary-table { width: 50%; float: right; margin-bottom: 50px; }
-                    .summary-table td { padding: 8px; }
-                    .summary-table .s-label { color: #666; }
-                    .summary-table .s-val { text-align: right; font-weight: bold; }
-                    .summary-table .highlight { color: #2563eb; font-weight: bold; }
-                    .grand-total-row td { border-top: 2px solid #eee; padding-top: 15px !important; margin-top: 5px; }
-                    .grand-total-row .s-label { font-weight: bold; color: #333; font-size: 14px; }
-                    .grand-total-row .s-val { font-size: 24px; color: #333; }
-
                     .clear { clear: both; }
+                    .text-right { text-align: right; }
+                    .text-muted { color: #64748b; }
 
-                    .footer-table { width: 100%; margin-top: 50px; page-break-inside: avoid; }
-                    .signature-box { width: 250px; text-align: center; margin: 0 auto; }
-                    .sig-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 10px; }
-                    .sig-img-container { height: 60px; margin-bottom: 10px; }
-                    .sig-img { max-height: 60px; max-width: 200px; }
-                    .sig-line { border-bottom: 1px solid #333; margin-bottom: 5px; }
-                    .sig-title { font-size: 11px; color: #666; }
+                    /* Header */
+                    .header-bar { background-color: #1e293b; color: #fff; padding: 20px 24px; }
+                    .logo-img { max-height: 48px; max-width: 180px; display: block; }
+                    .co-name-header { font-size: 18px; font-weight: 700; letter-spacing: 1px; color: #fff; }
+                    .quote-title-text { font-size: 28px; font-weight: 800; letter-spacing: 3px; color: #fff; text-align: right; }
+                    .quote-ref { font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px; }
+
+                    /* Info Cards */
+                    .info-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; margin-top: 20px; }
+                    .card-label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+                    .card-field { margin-bottom: 5px; }
+                    .card-field-label { font-size: 9px; color: #94a3b8; display: inline-block; width: 85px; }
+                    .card-field-value { font-size: 10px; font-weight: 600; color: #1e293b; }
+                    .client-name { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+                    .client-address { font-size: 10px; color: #64748b; line-height: 1.5; }
+
+                    /* Description */
+                    .desc-block { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin: 16px 0; }
+                    .desc-block p { margin: 0; font-size: 10px; color: #475569; line-height: 1.6; }
+
+                    /* Phase Header */
+                    .phase-header { background: #f1f5f9; border-left: 4px solid #3b82f6; padding: 6px 12px; margin-top: 16px; margin-bottom: 2px; }
+                    .phase-name { font-size: 11px; font-weight: 700; color: #1e293b; }
+
+                    /* Line Items */
+                    .items-table th { font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; padding: 8px 6px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+                    .items-table th.col-right { text-align: right; }
+                    .items-table td { padding: 8px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; font-size: 10px; }
+                    .items-table td.col-right { text-align: right; }
+                    .item-name { font-weight: 600; color: #1e293b; }
+                    .item-task { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+                    .type-label { font-size: 8px; color: #64748b; padding: 1px 6px; background: #f1f5f9; border-radius: 3px; }
+                    .discount-tag { font-size: 8px; color: #2563eb; font-weight: 700; }
+
+                    /* Summary */
+                    .summary-box { width: 280px; float: right; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-top: 20px; }
+                    .summary-row { padding: 8px 16px; border-bottom: 1px solid #f1f5f9; }
+                    .summary-row-label { font-size: 10px; color: #64748b; display: inline-block; width: 130px; }
+                    .summary-row-value { font-size: 10px; font-weight: 600; color: #1e293b; float: right; }
+                    .grand-total-row { background: #1e293b; padding: 12px 16px; }
+                    .grand-total-label { font-size: 12px; font-weight: 700; color: #e2e8f0; display: inline-block; width: 130px; }
+                    .grand-total-value { font-size: 16px; font-weight: 800; color: #fff; float: right; }
+
+                    /* Terms */
+                    .terms-title { font-size: 10px; font-weight: 700; color: #1e293b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; margin-top: 28px; }
+                    .terms-list { margin: 0; padding: 0 0 0 16px; color: #64748b; font-size: 9px; line-height: 1.7; }
+
+                    /* Signature */
+                    .sig-img { max-height: 50px; max-width: 160px; margin-bottom: 6px; display: block; }
+                    .sig-block { border-top: 1px solid #cbd5e1; padding-top: 8px; }
+                    .sig-label-text { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; margin-top: 30px; }
+                    .sig-name { font-size: 11px; font-weight: 700; color: #1e293b; }
+                    .sig-title-text { font-size: 9px; color: #64748b; }
+                    .sig-date { font-size: 9px; color: #64748b; margin-top: 2px; }
                 </style>
             </head>
             <body>
-                <table class="header-table">
+                <!-- Dark Header -->
+                <div class="header-bar">
+                    <table>
+                        <tr>
+                            <td style="width:55%; vertical-align:middle;">
+                                <img src="[[Company.Logo]]" class="logo-img" />
+                            </td>
+                            <td style="width:45%; vertical-align:middle;">
+                                <div class="quote-title-text">QUOTE</div>
+                                <div class="quote-ref">[[Quote.Name]]</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Info Cards -->
+                <table style="margin-top:20px;">
                     <tr>
-                        <td class="header-left">
-                            <img src="[[Company.Logo]]" class="company-logo" />
-                            <div class="company-info">
-                                <strong>[[Company.Name]]</strong><br/>
-                                [[Company.Address]]<br/><br/>
-                                [[Company.Phone]]<br/>
-                                [[Company.Email]]
+                        <td style="width:48%; vertical-align:top;">
+                            <div class="info-card">
+                                <div class="card-label">Quote Details</div>
+                                <div class="card-field"><span class="card-field-label">Quote #</span><span class="card-field-value">[[Quote.Name]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Date Issued</span><span class="card-field-value">[[Today]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Valid Until</span><span class="card-field-value">[[Quote.Valid_Until__c]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Period</span><span class="card-field-value">[[Quote.Start_Date__c]] — [[Quote.End_Date__c]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Billing</span><span class="card-field-value">[[Quote.Time_Period_Metric__c]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Prepared By</span><span class="card-field-value">[[User.Name]]</span></div>
+                                <div class="card-field"><span class="card-field-label">Currency</span><span class="card-field-value">[[Quote.Currency]]</span></div>
                             </div>
                         </td>
-                        <td class="header-right">
-                            <div class="quote-badge">SALES QUOTE</div>
-                            <div class="quote-number">[[Quote.Name]]</div>
-                            <div class="quote-meta">
-                                <div><span class="meta-label">Created:</span> [[Today]]</div>
-                                <div><span class="meta-label">Expires:</span> [[Quote.End_Date__c]]</div>
-                                <div><span class="meta-label">Owner:</span> [[User.Name]]</div>
+                        <td style="width:4%;"></td>
+                        <td style="width:48%; vertical-align:top;">
+                            <div class="info-card">
+                                <div class="card-label">Prepared For</div>
+                                <div class="client-name">[[Account.Name]]</div>
+                                <div class="client-address">[[Account.Address]]</div>
                             </div>
                         </td>
                     </tr>
                 </table>
 
-                <div class="prepared-for">
-                    <div class="prep-label">PREPARED FOR</div>
-                    <div class="prep-name">[[Account.Name]]</div>
-                    <div class="prep-attn">[[Account.Address]]</div>
+                <!-- Description -->
+                <div class="desc-block">
+                    <div class="card-label" style="margin-bottom:6px;">Description</div>
+                    <p>[[Quote.Description__c]]</p>
                 </div>
 
+                <!-- Line Items -->
                 <table class="items-table">
                     <thead>
                         <tr>
-                            <th>PRODUCT DETAILS</th>
-                            <th class="right">QTY</th>
-                            <th class="right">LIST PRICE</th>
-                            <th class="right">NET TOTAL</th>
+                            <th style="width:38%;">Description</th>
+                            <th style="width:12%;">Type</th>
+                            <th style="width:10%;">Phase</th>
+                            <th class="col-right" style="width:8%;">Qty</th>
+                            <th class="col-right" style="width:12%;">Unit Price</th>
+                            <th class="col-right" style="width:8%;">Disc.</th>
+                            <th class="col-right" style="width:12%;">Net Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -181,46 +219,69 @@ export default class CpqTemplateManager extends LightningElement {
                         <tr>
                             <td>
                                 <div class="item-name">[[Item.Name__c]]</div>
-                                <div class="item-desc">[[Item.Item_Type__c]] - [[Item.Phase__c]]</div>
+                                <div class="item-task">[[Item.Task__c]]</div>
                             </td>
-                            <td class="right item-val">[[Item.Quantity__c]]</td>
-                            <td class="right item-val">[[Item.Unit_Price__c]]</td>
-                            <td class="right item-val">[[Item.Net_Total__c]]</td>
+                            <td><span class="type-label">[[Item.Item_Type__c]]</span></td>
+                            <td><span class="type-label">[[Item.Phase__c]]</span></td>
+                            <td class="col-right">[[Item.Quantity__c]]</td>
+                            <td class="col-right">[[Item.Unit_Price__c]]</td>
+                            <td class="col-right"><span class="discount-tag">[[Item.Discount_Percent__c]]</span></td>
+                            <td class="col-right" style="font-weight:600;">[[Item.Net_Total__c]]</td>
                         </tr>
                         [[LINE_ITEMS_END]]
                     </tbody>
                 </table>
 
-                <table class="summary-table">
-                    <tr>
-                        <td class="s-label">Total Cost</td>
-                        <td class="s-val">[[Quote.Total_Cost__c]]</td>
-                    </tr>
-                    <tr>
-                        <td class="s-label">Margin Amount</td>
-                        <td class="s-val">[[Quote.Margin_Amount__c]]</td>
-                    </tr>
-                    <tr>
-                        <td class="s-label highlight">Margin %</td>
-                        <td class="s-val highlight">[[Quote.Margin_Percent__c]]</td>
-                    </tr>
-                    <tr class="grand-total-row">
-                        <td class="s-label">GRAND TOTAL</td>
-                        <td class="s-val">[[Quote.Total_Amount__c]]</td>
-                    </tr>
-                </table>
+                <!-- Financial Summary -->
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span class="summary-row-label">Total Cost</span>
+                        <span class="summary-row-value">[[Quote.Total_Cost__c]]</span>
+                        <div class="clear"></div>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-row-label">Margin</span>
+                        <span class="summary-row-value">[[Quote.Margin_Amount__c]] ([[Quote.Margin_Percent__c]])</span>
+                        <div class="clear"></div>
+                    </div>
+                    <div class="grand-total-row">
+                        <span class="grand-total-label">TOTAL</span>
+                        <span class="grand-total-value">[[Quote.Total_Amount__c]]</span>
+                        <div class="clear"></div>
+                    </div>
+                </div>
                 <div class="clear"></div>
 
-                <table class="footer-table">
+                <!-- Terms -->
+                <div class="terms-title">Terms &amp; Conditions</div>
+                <ol class="terms-list">
+                    <li>This quote is valid until the expiry date stated above.</li>
+                    <li>All prices are in [[Quote.Currency]] and exclusive of applicable taxes unless otherwise stated.</li>
+                    <li>Payment is due within 30 days of invoice date unless otherwise agreed in writing.</li>
+                    <li>Delivery timelines are estimates and subject to resource availability.</li>
+                    <li>Changes to scope after acceptance may result in additional charges.</li>
+                    <li>This quote constitutes an offer and is subject to our standard terms and conditions of sale.</li>
+                </ol>
+
+                <!-- Signature -->
+                <table style="margin-top:30px;">
                     <tr>
-                        <td align="center">
-                            <div class="signature-box">
-                                <div class="sig-label">Authorized Signature</div>
-                                <div class="sig-img-container">
-                                    <img src="[[Company.Signature]]" class="sig-img" />
-                                </div>
-                                <div class="sig-line"></div>
-                                <div class="sig-title">[[Signer.Title]]</div>
+                        <td style="width:48%; vertical-align:bottom;">
+                            <div class="sig-label-text">Authorized by [[Company.Name]]</div>
+                            <img src="[[Company.Signature]]" class="sig-img" />
+                            <div class="sig-block">
+                                <div class="sig-name">[[User.Name]]</div>
+                                <div class="sig-title-text">[[Signer.Title]]</div>
+                                <div class="sig-date">Date: [[Today]]</div>
+                            </div>
+                        </td>
+                        <td style="width:4%;"></td>
+                        <td style="width:48%; vertical-align:bottom;">
+                            <div class="sig-label-text">Accepted by [[Account.Name]]</div>
+                            <div style="height:50px;"></div>
+                            <div class="sig-block">
+                                <div class="sig-name" style="color:#94a3b8;">Authorized Signatory</div>
+                                <div class="sig-date">Date: ___________________</div>
                             </div>
                         </td>
                     </tr>
