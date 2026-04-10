@@ -243,9 +243,21 @@ export default class CpqAiAssistant extends LightningElement {
         this.scrollToBottom();
 
         try {
+            // Handle cancel actions (user chose not to proceed)
+            if (optionType === 'CancelDiscount' || optionId === 'CANCEL') {
+                this.isTyping = false;
+                this.addAssistantMessage({ responseType: 'text', message: '✅ No changes made. Current pricing is preserved.', success: true });
+                this.scrollToBottom();
+                return;
+            }
+
             let actionData;
             if (actionType === 'REMOVE_ITEM') {
                 actionData = { lineItemId: optionId };
+            } else if (actionType === 'APPLY_DISCOUNT') {
+                actionData = { lineItemId: optionId, discountPercent: quantity };
+            } else if (actionType === 'UPDATE_QUANTITY') {
+                actionData = { lineItemId: optionId, quantity: quantity };
             } else if (actionType === 'SELECT_ACCOUNT') {
                 actionData = { itemId: optionId, itemType: optionType };
             } else if (actionType === 'SELECT_OPPORTUNITY') {

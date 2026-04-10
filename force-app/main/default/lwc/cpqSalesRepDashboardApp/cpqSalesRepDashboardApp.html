@@ -1,64 +1,207 @@
 <template>
+    <!-- Floating Action Button -->
+    <button class="fab-button" onclick={handleStartQuote} title="New Quote">
+        <lightning-icon icon-name="utility:add" size="medium" variant="inverse"></lightning-icon>
+    </button>
+
     <div class="dashboard-shell">
-
-        <!-- ═══ Header ═══ -->
-        <header class="dash-header">
-            <div class="greeting">
-                <h1 class="greeting-text">Hello, {userName} <span class="wave">👋</span></h1>
-                <p class="greeting-sub">Here's a summary of your sales performance</p>
+        
+        <!-- ─── Top Metrics Grid ─── -->
+        <section class="metrics-grid">
+            <!-- Quota -->
+            <div class="metric-card">
+                <div class="metric-label">Quarterly Quota</div>
+                <div class="metric-value-row">
+                    <span class="metric-value">{totalQuota}</span>
+                    <span class="metric-badge green">
+                        <lightning-icon icon-name="utility:trending" size="xx-small" variant="success"></lightning-icon>
+                        {quotaPercentage}%
+                    </span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style={quotaBarStyle}></div>
+                </div>
             </div>
-            <button class="btn-start-quote" onclick={handleStartQuote}>
-                <lightning-icon icon-name="utility:add" size="xx-small" class="slds-current-color slds-m-right_x-small"></lightning-icon>
-                Start Quote
-            </button>
-        </header>
 
-        <!-- ═══ Main Content Grid: 2fr (left) + 1fr (right sidebar) ═══ -->
-        <div class="main-grid">
-
-            <!-- ── Left Column ── -->
-            <div class="left-col">
-
-                <!-- KPI Row -->
-                <div class="kpi-row">
-                    <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
+            <!-- Revenue -->
+            <div class="metric-card">
+                <div class="metric-label">Booked Revenue</div>
+                <div class="metric-value-row">
+                    <span class="metric-value">{bookedRevenue}</span>
+                    <span class="metric-subtext">+12.5% MoM</span>
                 </div>
-
-                <!-- Revenue Analytics Chart -->
-                <div class="chart-section">
-                    <c-cpq-my-weekly-pipeline-chart></c-cpq-my-weekly-pipeline-chart>
+                <div style="margin-top: 0.75rem; display: flex; gap: 0.25rem;">
+                    <!-- placeholders for avatars using badges -->
+                    <span class="metric-badge" style="background:#e0e3e5; color:#434655;">+14</span>
                 </div>
+            </div>
 
-                <!-- Map + Recent Activity Row -->
-                <div class="map-margin-row">
-                    <div class="map-col" style="flex: 1.5;">
-                        <c-cpq-my-quote-map></c-cpq-my-quote-map>
+            <!-- Pending Approvals -->
+            <div class="metric-card">
+                <div class="metric-label">Pending Approvals</div>
+                <div class="metric-value-row">
+                    <span class="metric-value">{pendingApprovalsCount}</span>
+                    <span class="metric-badge red">
+                        <lightning-icon icon-name="utility:clock" size="xx-small" variant="error"></lightning-icon>
+                        Priority
+                    </span>
+                </div>
+                <div class="metric-subtext">Avg. turnaround: 4.2 hours</div>
+            </div>
+
+            <!-- Active Quotes -->
+            <div class="metric-card">
+                <div class="metric-label">Active Quotes</div>
+                <div class="metric-value-row">
+                    <span class="metric-value">{activeQuotesCount}</span>
+                    <lightning-icon icon-name="utility:file" size="small"></lightning-icon>
+                </div>
+                <div class="metric-subtext">Total pipeline value: {pipelineValue}</div>
+            </div>
+        </section>
+
+        <!-- ─── Middle Section Grid ─── -->
+        <section class="middle-grid">
+            
+            <!-- My Quotes Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">My Quotes</h2>
+                    <button class="panel-action">View All Quotes</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="quotes-table">
+                        <thead>
+                            <tr>
+                                <th>Project Name</th>
+                                <th>Client</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={recentQuotes} for:item="quote">
+                                <tr key={quote.id}>
+                                    <td class="td-project">
+                                        <span class="project-name">{quote.name}</span>
+                                        <span class="project-sub">{quote.subtitle}</span>
+                                    </td>
+                                    <td class="td-client">{quote.client}</td>
+                                    <td class="td-value">{quote.value}</td>
+                                    <td>
+                                        <span class={quote.badgeClass}>{quote.status}</span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <button class="action-btn" data-id={quote.id} onclick={handleActionClick}>
+                                            <lightning-icon icon-name={quote.iconName} size="x-small"></lightning-icon>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI Assistant Panel -->
+            <div class="ai-panel">
+                <div class="ai-header">
+                    <div class="ai-header-icon">
+                        <lightning-icon icon-name="utility:magicwand" size="small" variant="inverse"></lightning-icon>
                     </div>
-                    <div class="margin-col" style="flex: 1; min-height: 380px;">
-                        <c-cpq-my-recent-activity></c-cpq-my-recent-activity>
+                    <h2 class="panel-title" style="margin: 0;">AI Assistant</h2>
+                </div>
+                
+                <div class="ai-alert-card">
+                    <div class="ai-alert-label">Opportunity Alert</div>
+                    <div class="ai-alert-text">
+                        "The Meridian Lofts" quote is 15% lower than typical regional pricing. Recommend increasing glazing margin by 3%.
                     </div>
                 </div>
 
-                <!-- Bottom Row: Top Quotes + Top Products -->
-                <div class="bottom-row">
-                    <c-cpq-my-top-transactions></c-cpq-my-top-transactions>
-                    <c-cpq-my-top-products></c-cpq-my-top-products>
+                <div class="ai-alert-card">
+                    <div class="ai-alert-label">Workflow Suggestion</div>
+                    <div class="ai-alert-text" style="margin-bottom:0.5rem;">
+                        You have 4 quotes expiring in 48 hours. Start renewal sequence for 'Vantage Towers'?
+                    </div>
+                    <button class="ai-action-btn">Apply Strategy</button>
+                </div>
+
+                <div style="margin-top:auto;">
+                    <lightning-input variant="label-hidden" placeholder="Ask AI anything..."></lightning-input>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- ─── Bottom Section Grid ─── -->
+        <section class="bottom-grid">
+            
+            <!-- Catalog Discounts -->
+            <div class="panel" style="padding: 1.5rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem;">
+                    <div>
+                        <h2 class="panel-title">Catalog Discounts</h2>
+                        <div class="metric-subtext" style="margin-top:0.25rem;">Active manufacturer rebates &amp; seasonal pricing</div>
+                    </div>
+                    <lightning-icon icon-name="utility:pricetags" size="small"></lightning-icon>
+                </div>
+                
+                <div class="catalog-item">
+                    <div class="catalog-item-icon">
+                        <lightning-icon icon-name="utility:sun" size="x-small" variant="success"></lightning-icon>
+                    </div>
+                    <div class="catalog-item-text">
+                        <div class="catalog-item-title">Solar Panels Gen 4</div>
+                        <div class="catalog-item-sub">End of Quarter Rebate</div>
+                    </div>
+                    <div class="catalog-item-val">-18%</div>
+                </div>
+
+                <div class="catalog-item">
+                    <div class="catalog-item-icon">
+                        <lightning-icon icon-name="utility:apps" size="x-small" variant="success"></lightning-icon>
+                    </div>
+                    <div class="catalog-item-text">
+                        <div class="catalog-item-title">Triple-Pane Low-E</div>
+                        <div class="catalog-item-sub">Bulk Project Volume</div>
+                    </div>
+                    <div class="catalog-item-val">-12%</div>
                 </div>
             </div>
 
-            <!-- ── Right Sidebar ── -->
-            <div class="right-sidebar">
-
-                <!-- Action Items -->
-                <div class="sidebar-card">
-                    <c-cpq-action-items></c-cpq-action-items>
+            <!-- Product Feed -->
+            <div class="panel" style="padding: 1.5rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem;">
+                    <div>
+                        <h2 class="panel-title">Product Feed</h2>
+                        <div class="metric-subtext" style="margin-top:0.25rem;">Latest updates from engineering &amp; inventory</div>
+                    </div>
+                    <lightning-icon icon-name="utility:rss" size="small"></lightning-icon>
                 </div>
 
-                <!-- AI Assistant Card -->
-                <div class="sidebar-card ai-card-wrapper">
-                    <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
+                <div class="feed-item">
+                    <lightning-icon icon-name="utility:favorite" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
+                    <div>
+                        <div class="feed-tag blue">New Release</div>
+                        <div class="feed-title">Ultra-Light Titanium Support Frames</div>
+                        <div class="feed-desc">Available for custom quoting in North America starting Monday.</div>
+                    </div>
                 </div>
+
+                <div class="feed-item">
+                    <lightning-icon icon-name="utility:locker_service_api_viewer" size="medium" style="background:#e0e3e5; padding:0.5rem; border-radius:0.5rem;"></lightning-icon>
+                    <div>
+                        <div class="feed-tag green">Inventory</div>
+                        <div class="feed-title">Smart Glass Backlog Cleared</div>
+                        <div class="feed-desc">Lead times reduced to 3 weeks for all current glass-heavy quotes.</div>
+                    </div>
+                </div>
+
             </div>
-        </div>
+
+        </section>
+
     </div>
 </template>

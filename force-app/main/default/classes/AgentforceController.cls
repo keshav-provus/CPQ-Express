@@ -63,12 +63,12 @@ public with sharing class AgentforceController {
 
             // 3. If LLM unavailable, use smart Apex engine
             if (response == null) {
-                response = processWithEngine(userMessage, ctx);
+                response = processWithEngine(userMessage, ctx, conversationHistoryJson);
             }
 
             return response;
         } catch (Exception e) {
-            return buildResponse('text', '⚠️ An error occurred: ' + e.getMessage(), false, null, null, null);
+            return buildRecoveryResponse(e);
         }
     }
 
@@ -92,6 +92,12 @@ public with sharing class AgentforceController {
             if (actionType == 'REMOVE_ITEM') {
                 return executeRemoveItem(actionData, ctx);
             }
+            if (actionType == 'APPLY_DISCOUNT') {
+                return executeApplyDiscount(actionData, ctx);
+            }
+            if (actionType == 'UPDATE_QUANTITY') {
+                return executeUpdateQuantity(actionData, ctx);
+            }
             if (actionType == 'SELECT_ACCOUNT') {
                 return handleSelectAccount(actionData);
             }
@@ -101,10 +107,13 @@ public with sharing class AgentforceController {
             if (actionType == 'CREATE_QUOTE_FINAL') {
                 return handleCreateQuoteFinal(actionData);
             }
+            if (actionType == 'CREATE_ACCOUNT') {
+                return handleCreateAccount(actionData);
+            }
 
-            return buildResponse('text', 'Unknown action type.', false, null, null, null);
+            return buildResponse('text', 'Unknown action type: "' + actionType + '". Try saying **"help"** to see what I can do.', false, null, null, null);
         } catch (Exception e) {
-            return buildResponse('text', '⚠️ Action failed: ' + e.getMessage(), false, null, null, null);
+            return buildRecoveryResponse(e);
         }
     }
 
@@ -360,22 +369,28 @@ public with sharing class AgentforceController {
      * @description Processes the user message using weighted keyword matching,
      *              fuzzy search, and structured response generation.
      */
-    private static Map<String, Object> processWithEngine(String userMessage, CPQContext ctx) {
+    private static Map<String, Object> processWithEngine(String userMessage, CPQContext ctx, String conversationHistoryJson) {
+        // Strategy 3: Check conversation context for pending follow-ups
+        Map<String, Object> contextResult = handleConversationContext(userMessage, conversationHistoryJson);
+        if (contextResult != null) return contextResult;
+
         String msg = userMessage.toLowerCase().trim();
         String intent = detectIntent(msg);
 
         switch on intent {
-            when 'add_item'      { return handleAddItem(userMessage, ctx); }
-            when 'remove_item'   { return handleRemoveItem(userMessage, ctx); }
-            when 'create_quote'  { return handleCreateQuote(ctx); }
-            when 'summarize'     { return handleSummarize(ctx); }
-            when 'search'        { return handleSearch(userMessage, ctx); }
-            when 'recommend'     { return handleRecommend(ctx); }
-            when 'submit'        { return handleSubmit(ctx); }
-            when 'analyze'       { return handleAnalyze(ctx); }
-            when 'help'          { return handleHelp(); }
-            when 'details'       { return handleQuoteDetails(userMessage, ctx); }
-            when else            { return handleGeneral(userMessage, ctx); }
+            when 'add_item'       { return handleAddItem(userMessage, ctx); }
+            when 'remove_item'    { return handleRemoveItem(userMessage, ctx); }
+            when 'apply_discount' { return handleApplyDiscount(userMessage, ctx); }
+            when 'update_quantity' { return handleUpdateQuantity(userMessage, ctx); }
+            when 'create_quote'   { return handleCreateQuote(ctx); }
+            when 'summarize'      { return handleSummarize(ctx); }
+            when 'search'         { return handleSearch(userMessage, ctx); }
+            when 'recommend'      { return handleRecommend(ctx); }
+            when 'submit'         { return handleSubmit(ctx); }
+            when 'analyze'        { return handleAnalyze(ctx); }
+            when 'help'           { return handleHelp(); }
+            when 'details'        { return handleQuoteDetails(userMessage, ctx); }
+            when else             { return handleGeneral(userMessage, ctx); }
         }
     }
 
@@ -388,6 +403,8 @@ public with sharing class AgentforceController {
             'create_quote' => new List<String>{'create a quote', 'create quote', 'new quote', 'make a quote', 'create new quote', 'start a quote', 'start new quote', 'generate a quote', 'open a new quote'},
             'add_item'    => new List<String>{'add line', 'add item', 'add a ', 'add an ', 'add resource', 'add product', 'include', 'i need', 'i want', 'throw in', 'get me', 'put in', 'add addon', 'add add-on'},
             'remove_item' => new List<String>{'remove', 'delete', 'take out', 'drop', 'get rid of', 'eliminate'},
+            'apply_discount' => new List<String>{'apply discount', 'give discount', 'add discount', 'discount of', 'reduce price', 'lower price', 'mark down', 'price reduction', 'set discount', '% discount', '% off'},
+            'update_quantity' => new List<String>{'change quantity', 'update quantity', 'adjust quantity', 'modify quantity', 'set quantity', 'increase quantity', 'decrease quantity', 'change qty', 'update qty'},
             'summarize'   => new List<String>{'summarize', 'summary', 'overview', 'tell me about this', 'what is this', 'break down', 'run down'},
             'search'      => new List<String>{'search', 'find', 'look up', 'show me all', 'list all', 'what products', 'available products', 'available roles', 'catalog', 'browse'},
             'recommend'   => new List<String>{'recommend', 'suggest', 'what should i add', 'what else', 'ideas', 'suggestion'},
@@ -415,6 +432,139 @@ public with sharing class AgentforceController {
         }
 
         return bestIntent;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  CONVERSATION CONTEXT (Strategy 3: Multi-turn parameter gathering)
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * @description Checks the LAST assistant message for pending context.
+     *              Only inspects the most recent message to avoid false positives.
+     */
+    private static Map<String, Object> handleConversationContext(String userMessage, String conversationHistoryJson) {
+        if (String.isBlank(conversationHistoryJson)) return null;
+
+        String lastAssistantMsg = extractLastAssistantMessage(conversationHistoryJson);
+        if (String.isBlank(lastAssistantMsg)) return null;
+
+        String lastLower = lastAssistantMsg.toLowerCase();
+        String msgLower = userMessage.toLowerCase().trim();
+
+        if (isKnownCommand(msgLower)) return null;
+
+        // Context: AI was asking for an OPPORTUNITY — don't redirect to account search
+        if (lastLower.contains('select an opportunity') || lastLower.contains('link the quote to') || lastLower.contains('create a new one')) {
+            return null;
+        }
+
+        // Context: AI was asking for an ACCOUNT
+        if (lastLower.contains('which account') || lastLower.contains('select an account') || lastLower.contains('account is this quote for')) {
+            return searchAndShowAccounts(userMessage);
+        }
+
+        // Context: AI was asking for discount percentage
+        if (lastLower.contains('discount percentage') || lastLower.contains('what discount')) {
+            Decimal pct = extractDiscountPercent(userMessage);
+            if (pct != null) {
+                // This is just a percentage reply — the full discount flow will handle it
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static String extractLastAssistantMessage(String historyJson) {
+        if (String.isBlank(historyJson)) return null;
+        String[] lines = historyJson.split('\n');
+        String lastAssistant = null;
+        for (String line : lines) {
+            if (line.startsWith('Assistant: ')) {
+                lastAssistant = line.removeStart('Assistant: ');
+            }
+        }
+        return lastAssistant;
+    }
+
+    private static Boolean isKnownCommand(String msg) {
+        List<String> commands = new List<String>{
+            'help', 'catalog', 'summarize', 'summary', 'analyze', 'analysis',
+            'search', 'find', 'add ', 'remove', 'delete', 'submit', 'create a quote',
+            'create quote', 'new quote', 'recommend', 'apply discount', 'change quantity',
+            'update quantity', 'discount', 'reduce price'
+        };
+        for (String cmd : commands) {
+            if (msg.startsWith(cmd)) return true;
+        }
+        return false;
+    }
+
+    private static Map<String, Object> searchAndShowAccounts(String searchTerm) {
+        String searchLike = '%' + String.escapeSingleQuotes(searchTerm.trim()) + '%';
+        List<Account> matched = [
+            SELECT Id, Name, Industry
+            FROM Account
+            WHERE Name LIKE :searchLike
+            ORDER BY Name
+            LIMIT 20
+        ];
+
+        if (matched.size() == 1) {
+            Map<String, Object> actionData = new Map<String, Object>{
+                'itemId' => matched[0].Id,
+                'itemType' => 'Account'
+            };
+            return handleSelectAccount(actionData);
+        }
+
+        List<Map<String, Object>> options = new List<Map<String, Object>>();
+
+        if (matched.isEmpty()) {
+            List<Account> allAccounts = [
+                SELECT Id, Name, Industry
+                FROM Account
+                ORDER BY Name
+                LIMIT 50
+            ];
+            for (Account a : allAccounts) {
+                options.add(new Map<String, Object>{
+                    'id' => a.Id,
+                    'name' => a.Name,
+                    'type' => 'Account',
+                    'icon' => '🏢',
+                    'detail' => a.Industry != null ? a.Industry : 'Account'
+                });
+            }
+        } else {
+            for (Account a : matched) {
+                options.add(new Map<String, Object>{
+                    'id' => a.Id,
+                    'name' => a.Name,
+                    'type' => 'Account',
+                    'icon' => '🏢',
+                    'detail' => a.Industry != null ? a.Industry : 'Account'
+                });
+            }
+        }
+
+        options.add(new Map<String, Object>{
+            'id' => 'CREATE_NEW_ACCOUNT',
+            'name' => '＋ Create New Account',
+            'type' => 'NewAccount',
+            'icon' => '✨',
+            'detail' => 'Create a new account'
+        });
+
+        String message = matched.isEmpty()
+            ? 'No accounts match "' + searchTerm + '". Select from all accounts or create a new one:'
+            : 'I found ' + matched.size() + ' account(s) matching "' + searchTerm + '". Select one:';
+
+        Map<String, Object> response = buildResponse('disambiguation', message, true, null, null, null);
+        response.put('options', options);
+        response.put('pendingAction', 'SELECT_ACCOUNT');
+        response.put('pendingQuantity', 0);
+        return response;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -566,6 +716,175 @@ public with sharing class AgentforceController {
         response.put('options', options);
         response.put('pendingAction', 'REMOVE_ITEM');
         response.put('pendingQuantity', 0);
+        return response;
+    }
+
+    /**
+     * @description Strategy 3+4: Handles discount intent with slot-filling and policy guardrails.
+     *              Asks for missing info instead of failing.
+     */
+    private static Map<String, Object> handleApplyDiscount(String userMessage, CPQContext ctx) {
+        if (ctx.quote == null) {
+            return buildResponse('text', 'Please navigate to a quote first before applying discounts.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** and cannot be modified.', false, null, null, null);
+        }
+        if (ctx.lineItems.isEmpty()) {
+            return buildResponse('text', 'This quote has no items to discount. Add line items first.', true, null, null, null);
+        }
+
+        // Extract discount percentage
+        Decimal discountPct = extractDiscountPercent(userMessage);
+
+        // Slot filling: if no percentage, ask for it
+        if (discountPct == null) {
+            return buildResponse('text', '🏷️ What discount percentage would you like to apply?\\n\\nExample: **"Apply 15% discount on Senior Developer"**', true, null, null, null);
+        }
+
+        // Try to match an item name
+        String itemName = extractItemName(userMessage.replaceAll('(?i)(apply|give|add|set)\\s+(a\\s+)?\\d+\\.?\\d*\\s*(%|percent)\\s*(discount)?\\s*(on|to|for)?\\s*', '').trim());
+
+        // If no item specified, show all line items to choose from
+        if (String.isBlank(itemName)) {
+            List<Map<String, Object>> options = new List<Map<String, Object>>();
+            for (Quote_Line_Item__c qli : ctx.lineItems) {
+                options.add(new Map<String, Object>{
+                    'id' => qli.Id,
+                    'name' => nn(qli.Name__c),
+                    'price' => qli.Net_Total__c,
+                    'type' => nn(qli.Item_Type__c),
+                    'icon' => getIconForType(nn(qli.Item_Type__c)),
+                    'detail' => 'Current: $' + fmtDec(qli.Unit_Price__c) + ' · Discount: ' + fmtDec(discountPct) + '%'
+                });
+            }
+            Map<String, Object> response = buildResponse('disambiguation',
+                '🏷️ Apply **' + fmtDec(discountPct) + '%** discount to which item?',
+                true, null, null, null);
+            response.put('options', options);
+            response.put('pendingAction', 'APPLY_DISCOUNT');
+            response.put('pendingQuantity', discountPct);
+            return response;
+        }
+
+        // Find matching line item
+        String lower = itemName.toLowerCase();
+        List<Quote_Line_Item__c> matched = new List<Quote_Line_Item__c>();
+        for (Quote_Line_Item__c qli : ctx.lineItems) {
+            if (nn(qli.Name__c).toLowerCase().contains(lower)) matched.add(qli);
+        }
+
+        if (matched.isEmpty()) {
+            return buildResponse('text', 'I couldn\'t find **"' + itemName + '"** in the current line items.\\nSay **"summarize"** to see all items.', true, null, null, null);
+        }
+
+        if (matched.size() == 1) {
+            Map<String, Object> actionData = new Map<String, Object>{
+                'lineItemId' => matched[0].Id,
+                'discountPercent' => discountPct
+            };
+            return executeApplyDiscount(actionData, ctx);
+        }
+
+        // Multiple matches
+        List<Map<String, Object>> options = new List<Map<String, Object>>();
+        for (Quote_Line_Item__c qli : matched) {
+            options.add(new Map<String, Object>{
+                'id' => qli.Id,
+                'name' => nn(qli.Name__c),
+                'price' => qli.Net_Total__c,
+                'type' => nn(qli.Item_Type__c),
+                'icon' => getIconForType(nn(qli.Item_Type__c)),
+                'detail' => 'Discount: ' + fmtDec(discountPct) + '%'
+            });
+        }
+        Map<String, Object> response = buildResponse('disambiguation',
+            'Multiple items match. Apply **' + fmtDec(discountPct) + '%** discount to which one?',
+            true, null, null, null);
+        response.put('options', options);
+        response.put('pendingAction', 'APPLY_DISCOUNT');
+        response.put('pendingQuantity', discountPct);
+        return response;
+    }
+
+    /**
+     * @description Strategy 3: Handles quantity update intent with slot-filling.
+     */
+    private static Map<String, Object> handleUpdateQuantity(String userMessage, CPQContext ctx) {
+        if (ctx.quote == null) {
+            return buildResponse('text', 'Please navigate to a quote first.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** and cannot be modified.', false, null, null, null);
+        }
+        if (ctx.lineItems.isEmpty()) {
+            return buildResponse('text', 'This quote has no items. Add line items first.', true, null, null, null);
+        }
+
+        Decimal newQty = extractNewQuantity(userMessage);
+
+        if (newQty == null) {
+            return buildResponse('text', '🔢 What should the new quantity be?\\n\\nExample: **"Change quantity of Senior Developer to 5"**', true, null, null, null);
+        }
+
+        String itemName = extractItemName(userMessage.replaceAll('(?i)(change|update|adjust|modify|set|increase|decrease)\\s+(?:the\\s+)?(?:quantity|qty)\\s*(?:of|for)?\\s*', '').replaceAll('(?i)\\s*(?:to|=)\\s*\\d+.*$', '').trim());
+
+        if (String.isBlank(itemName)) {
+            List<Map<String, Object>> options = new List<Map<String, Object>>();
+            for (Quote_Line_Item__c qli : ctx.lineItems) {
+                options.add(new Map<String, Object>{
+                    'id' => qli.Id,
+                    'name' => nn(qli.Name__c),
+                    'price' => qli.Net_Total__c,
+                    'type' => nn(qli.Item_Type__c),
+                    'icon' => getIconForType(nn(qli.Item_Type__c)),
+                    'detail' => 'Current Qty: ' + qli.Quantity__c?.intValue() + ' → New: ' + newQty.intValue()
+                });
+            }
+            Map<String, Object> response = buildResponse('disambiguation',
+                '🔢 Update quantity to **' + newQty.intValue() + '** for which item?',
+                true, null, null, null);
+            response.put('options', options);
+            response.put('pendingAction', 'UPDATE_QUANTITY');
+            response.put('pendingQuantity', newQty);
+            return response;
+        }
+
+        String lower = itemName.toLowerCase();
+        List<Quote_Line_Item__c> matched = new List<Quote_Line_Item__c>();
+        for (Quote_Line_Item__c qli : ctx.lineItems) {
+            if (nn(qli.Name__c).toLowerCase().contains(lower)) matched.add(qli);
+        }
+
+        if (matched.isEmpty()) {
+            return buildResponse('text', 'I couldn\'t find **"' + itemName + '"** in the current line items.', true, null, null, null);
+        }
+
+        if (matched.size() == 1) {
+            Map<String, Object> actionData = new Map<String, Object>{
+                'lineItemId' => matched[0].Id,
+                'quantity' => newQty
+            };
+            return executeUpdateQuantity(actionData, ctx);
+        }
+
+        List<Map<String, Object>> options = new List<Map<String, Object>>();
+        for (Quote_Line_Item__c qli : matched) {
+            options.add(new Map<String, Object>{
+                'id' => qli.Id,
+                'name' => nn(qli.Name__c),
+                'price' => qli.Net_Total__c,
+                'type' => nn(qli.Item_Type__c),
+                'icon' => getIconForType(nn(qli.Item_Type__c)),
+                'detail' => 'Current: ' + qli.Quantity__c?.intValue() + ' → ' + newQty.intValue()
+            });
+        }
+        Map<String, Object> response = buildResponse('disambiguation',
+            'Multiple items match. Update quantity for which one?',
+            true, null, null, null);
+        response.put('options', options);
+        response.put('pendingAction', 'UPDATE_QUANTITY');
+        response.put('pendingQuantity', newQty);
         return response;
     }
 
@@ -806,37 +1125,42 @@ public with sharing class AgentforceController {
         Decimal revenue = q.Total_Amount__c != null ? q.Total_Amount__c : 0;
         Decimal cost = q.Total_Cost__c != null ? q.Total_Cost__c : 0;
 
-        String msg = '🧠 **Quote Analysis — ' + q.Name + '**\n\n';
+        String msg = '\uD83E\uDDE0 **Quote Analysis \u2014 ' + q.Name + '**\\n\\n';
 
         // Margin Health
-        msg += '**Margin Health**\n';
+        msg += '**Margin Health**\\n';
         if (margin >= 40) {
-            msg += '🟢 **Excellent** (' + fmtDec(margin) + '%) — Well above the ' + ctx.marginThreshold + '% threshold.\n';
+            msg += '\uD83D\uDFE2 **Excellent** (' + fmtDec(margin) + '%) \u2014 Well above the ' + ctx.marginThreshold + '% threshold.\\n';
         } else if (margin >= ctx.marginThreshold) {
-            msg += '🟡 **Adequate** (' + fmtDec(margin) + '%) — Above threshold but room for improvement.\n';
+            msg += '\uD83D\uDFE1 **Adequate** (' + fmtDec(margin) + '%) \u2014 Above threshold but room for improvement.\\n';
         } else if (margin >= 0) {
-            msg += '🔴 **Critical** (' + fmtDec(margin) + '%) — Below the ' + ctx.marginThreshold + '% minimum threshold.\n';
+            msg += '\uD83D\uDD34 **Critical** (' + fmtDec(margin) + '%) \u2014 Below the ' + ctx.marginThreshold + '% minimum threshold.\\n';
         } else {
-            msg += '🔴 **Negative** (' + fmtDec(margin) + '%) — This quote is losing money.\n';
+            msg += '\uD83D\uDD34 **Negative** (' + fmtDec(margin) + '%) \u2014 This quote is losing money.\\n';
         }
 
         // Approval Likelihood
-        msg += '\n**Approval Likelihood**\n';
+        msg += '\\n**Approval Likelihood**\\n';
         if (margin >= ctx.marginThreshold) {
-            msg += '⚡ **Auto-Approve** — Margin meets the minimum threshold.\n';
+            msg += '\u26A1 **Auto-Approve** \u2014 Margin meets the minimum threshold.\\n';
         } else {
-            msg += '📤 **Requires Manager Review** — Will need manual approval.\n';
+            msg += '\uD83D\uDCE4 **Requires Manager Review** \u2014 Will need manual approval.\\n';
         }
 
-        // Line item analysis
+        // Strategy 7: Deep Line Item Analysis
         if (!ctx.lineItems.isEmpty()) {
-            msg += '\n**Line Item Breakdown**\n';
+            msg += '\\n**\uD83D\uDCE6 Line Item Breakdown**\\n';
 
-            // Find highest and lowest margin items
             Quote_Line_Item__c highestMarginItem = null;
             Quote_Line_Item__c lowestMarginItem = null;
+            Quote_Line_Item__c highestCostItem = null;
             Decimal highestMargin = -999;
             Decimal lowestMargin = 999;
+            Decimal highestCostVal = 0;
+            Decimal totalDiscount = 0;
+            Integer discountedCount = 0;
+            Integer zeroCostCount = 0;
+            Integer highQtyCount = 0;
 
             for (Quote_Line_Item__c qli : ctx.lineItems) {
                 Decimal lineRevenue = qli.Net_Total__c != null ? qli.Net_Total__c : 0;
@@ -845,15 +1169,72 @@ public with sharing class AgentforceController {
 
                 if (lineMargin > highestMargin) { highestMargin = lineMargin; highestMarginItem = qli; }
                 if (lineMargin < lowestMargin) { lowestMargin = lineMargin; lowestMarginItem = qli; }
+                if (lineCost > highestCostVal) { highestCostVal = lineCost; highestCostItem = qli; }
+
+                if (qli.Discount_Percent__c != null && qli.Discount_Percent__c > 0) {
+                    discountedCount++;
+                    totalDiscount += qli.Discount_Percent__c;
+                }
+
+                if (lineCost == 0 && lineRevenue > 0) zeroCostCount++;
+                if (qli.Quantity__c != null && qli.Quantity__c > 10) highQtyCount++;
             }
 
             if (highestMarginItem != null) {
-                msg += '• Best margin: **' + nn(highestMarginItem.Name__c) + '** (' + fmtDec(highestMargin) + '%)\n';
+                msg += '\u2022 Best margin: **' + nn(highestMarginItem.Name__c) + '** (' + fmtDec(highestMargin) + '%)\\n';
             }
             if (lowestMarginItem != null && lowestMarginItem.Id != highestMarginItem?.Id) {
-                msg += '• Lowest margin: **' + nn(lowestMarginItem.Name__c) + '** (' + fmtDec(lowestMargin) + '%)';
-                if (lowestMargin < ctx.marginThreshold) msg += ' ⚠️';
-                msg += '\n';
+                msg += '\u2022 Lowest margin: **' + nn(lowestMarginItem.Name__c) + '** (' + fmtDec(lowestMargin) + '%)';
+                if (lowestMargin < ctx.marginThreshold) msg += ' \u26A0\uFE0F';
+                msg += '\\n';
+            }
+
+            // Cost Driver Analysis
+            if (highestCostItem != null) {
+                Decimal costPct = cost > 0 ? (highestCostVal / cost * 100) : 0;
+                msg += '\\n**\uD83D\uDCB0 Cost Driver**\\n';
+                msg += '\u2022 **' + nn(highestCostItem.Name__c) + '** accounts for **' + fmtDec(costPct) + '%** of total cost ($' + fmtDec(highestCostVal) + ')\\n';
+            }
+
+            // Discount Exposure
+            if (discountedCount > 0) {
+                Decimal avgDiscount = totalDiscount / discountedCount;
+                msg += '\\n**\uD83C\uDFF7\uFE0F Discount Exposure**\\n';
+                msg += '\u2022 ' + discountedCount + ' of ' + ctx.lineItems.size() + ' items have discounts\\n';
+                msg += '\u2022 Average discount: **' + fmtDec(avgDiscount) + '%**\\n';
+            }
+
+            // Risk Flags
+            List<String> risks = new List<String>();
+            if (zeroCostCount > 0) risks.add('\u26A0\uFE0F **' + zeroCostCount + ' items** have no cost data \u2014 margin may be inaccurate');
+            if (highQtyCount > 0) risks.add('\uD83D\uDCCA **' + highQtyCount + ' items** have quantity > 10 \u2014 verify these are correct');
+            if (margin < 0) risks.add('\u26D4 **Negative margin** \u2014 this quote loses money');
+            if (ctx.lineItems.size() == 1) risks.add('\uD83D\uDCA1 Only 1 line item \u2014 consider adding more for a comprehensive quote');
+
+            if (!risks.isEmpty()) {
+                msg += '\\n**\uD83D\uDEA9 Risk Flags**\\n';
+                for (String risk : risks) {
+                    msg += '\u2022 ' + risk + '\\n';
+                }
+            }
+
+            // Revenue Concentration
+            if (ctx.lineItems.size() > 1 && revenue > 0) {
+                Decimal topItemRevenue = 0;
+                String topItemName = '';
+                for (Quote_Line_Item__c qli : ctx.lineItems) {
+                    Decimal lr = qli.Net_Total__c != null ? qli.Net_Total__c : 0;
+                    if (lr > topItemRevenue) {
+                        topItemRevenue = lr;
+                        topItemName = nn(qli.Name__c);
+                    }
+                }
+                Decimal concentration = (topItemRevenue / revenue) * 100;
+                if (concentration > 60) {
+                    msg += '\\n**\uD83D\uDCCA Revenue Concentration**\\n';
+                    msg += '\u2022 **' + topItemName + '** represents **' + fmtDec(concentration) + '%** of total revenue\\n';
+                    msg += '\u2022 High concentration \u2014 consider diversifying the quote\\n';
+                }
             }
         }
 
@@ -869,6 +1250,7 @@ public with sharing class AgentforceController {
         resp.put('data', insightData);
         return resp;
     }
+
 
     /**
      * @description Answers specific questions about the current quote.
@@ -938,9 +1320,17 @@ public with sharing class AgentforceController {
         msg += '  • _"Analyze this quote"_\n';
         msg += '  • _"How is the margin?"_\n';
         msg += '  • _"Will this get approved?"_\n\n';
+        msg += '🏷️ **Discounting**\n';
+        msg += '  • _"Apply 15% discount on Senior Developer"_\n';
+        msg += '  • _"Give discount"_ (I\'ll ask for details)\n';
+        msg += '  • _"Reduce price by 20%"_\n\n';
+        msg += '🔢 **Quantity Management**\n';
+        msg += '  • _"Change quantity of Developer to 5"_\n';
+        msg += '  • _"Update quantity"_ (shows items)\n\n';
         msg += '📤 **Approval**\n';
         msg += '  • _"Submit for approval"_\n\n';
-        msg += '🛡️ I respect your permissions and only modify Draft quotes.';
+        msg += '🛡️ I enforce company discount policies, warn about margin impacts, and respect your permissions.\n';
+        msg += '📋 I only modify **Draft** quotes and will negotiate when requests exceed policy limits.';
 
         return buildResponse('text', msg, true, null, null, null);
     }
@@ -965,15 +1355,19 @@ public with sharing class AgentforceController {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  ACTION EXECUTORS
+    //  ACTION EXECUTORS (Strategy 1: Conversational Error Handling)
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * @description Executes the add-item action (called directly or from disambiguation).
+     * @description Executes the add-item action with conversational error handling
+     *              and post-action state narrative (Strategy 1 + 6).
      */
     private static Map<String, Object> executeAddItem(Map<String, Object> actionData, CPQContext ctx) {
         if (ctx.quote == null) {
-            return buildResponse('text', 'No quote context available.', false, null, null, null);
+            return buildResponse('text', '📋 No quote is open right now. Navigate to a quote first, or say **"Create a quote"** to start one.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** and cannot be modified. Only Draft quotes can have items added.\\nTo make changes, ask your manager to revert it to Draft.', false, null, null, null);
         }
 
         Id itemId = (Id) actionData.get('itemId');
@@ -1001,6 +1395,7 @@ public with sharing class AgentforceController {
                     qli.Base_Rate__c = r.Price__c != null ? r.Price__c : 0;
                     itemName = r.Name;
                     unitPrice = r.Price__c != null ? r.Price__c : 0;
+                    unitCost = r.Cost__c != null ? r.Cost__c : 0;
                     break;
                 }
             }
@@ -1015,6 +1410,7 @@ public with sharing class AgentforceController {
                     qli.Base_Rate__c = p.Price__c != null ? p.Price__c : 0;
                     itemName = p.Name;
                     unitPrice = p.Price__c != null ? p.Price__c : 0;
+                    unitCost = p.Cost__c != null ? p.Cost__c : 0;
                     break;
                 }
             }
@@ -1029,35 +1425,48 @@ public with sharing class AgentforceController {
                     qli.Base_Rate__c = a.Price__c != null ? a.Price__c : 0;
                     itemName = a.Name;
                     unitPrice = a.Price__c != null ? a.Price__c : 0;
+                    unitCost = a.Cost__c != null ? a.Cost__c : 0;
                     break;
                 }
             }
         }
 
         if (String.isBlank(itemName)) {
-            return buildResponse('text', 'Could not find the selected item in the catalog.', false, null, null, null);
+            return buildResponse('text', 'I couldn\'t find that item in the catalog. It may have been deactivated.\\nTry **"search"** to browse available items.', false, null, null, null);
         }
 
-        insert qli;
-        QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        try {
+            insert qli;
+            QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        } catch (Exception e) {
+            return buildRecoveryResponse(e, 'adding ' + itemName + ' to the quote');
+        }
 
-        String msg = '✅ **Added to Quote**\n\n';
-        msg += '• **Item:** ' + itemName + '\n';
-        msg += '• **Type:** ' + itemType + '\n';
-        msg += '• **Quantity:** ' + quantity.intValue() + '\n';
-        msg += '• **Unit Price:** $' + fmtDec(unitPrice) + '\n';
-        msg += '• **Line Total:** $' + fmtDec(unitPrice * quantity) + '\n';
+        String msg = '✅ **Added to Quote**\\n\\n';
+        msg += '• **Item:** ' + itemName + '\\n';
+        msg += '• **Type:** ' + itemType + '\\n';
+        msg += '• **Quantity:** ' + quantity.intValue() + '\\n';
+        msg += '• **Unit Price:** $' + fmtDec(unitPrice) + '\\n';
+        msg += '• **Line Total:** $' + fmtDec(unitPrice * quantity) + '\\n';
+
+        // Strategy 6: State narrative with margin impact
+        msg += buildStateNarrative(ctx.quote.Id, ctx.marginThreshold);
 
         return buildResponse('action_result', msg, true, 'REFRESH', null, null);
     }
 
     /**
-     * @description Executes the remove-item action.
+     * @description Executes the remove-item action with error handling and state feedback.
      */
     private static Map<String, Object> executeRemoveItem(Map<String, Object> actionData, CPQContext ctx) {
-        Id lineItemId = (Id) actionData.get('lineItemId');
+        if (ctx.quote == null) {
+            return buildResponse('text', '📋 No quote is open. Navigate to a quote first.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** — items cannot be removed.', false, null, null, null);
+        }
 
-        // Find the item name before deleting
+        Id lineItemId = (Id) actionData.get('lineItemId');
         String removedName = '';
         for (Quote_Line_Item__c qli : ctx.lineItems) {
             if (qli.Id == lineItemId) {
@@ -1066,29 +1475,264 @@ public with sharing class AgentforceController {
             }
         }
 
-        delete [SELECT Id FROM Quote_Line_Item__c WHERE Id = :lineItemId];
-        QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        try {
+            delete [SELECT Id FROM Quote_Line_Item__c WHERE Id = :lineItemId];
+            QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        } catch (Exception e) {
+            return buildRecoveryResponse(e, 'removing ' + removedName + ' from the quote');
+        }
 
-        String msg = '🗑️ **Removed from Quote**\n\n';
-        msg += '• **Item:** ' + removedName + '\n';
-        msg += '\nQuote totals have been recalculated.';
+        String msg = '🗑️ **Removed from Quote**\\n\\n';
+        msg += '• **Item:** ' + removedName + '\\n';
+        msg += buildStateNarrative(ctx.quote.Id, ctx.marginThreshold);
+
+        return buildResponse('action_result', msg, true, 'REFRESH', null, null);
+    }
+
+    /**
+     * @description Strategy 4: Applies a discount with policy enforcement and negotiation.
+     */
+    private static Map<String, Object> executeApplyDiscount(Map<String, Object> actionData, CPQContext ctx) {
+        if (ctx.quote == null) {
+            return buildResponse('text', '📋 No quote is open.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** — discounts cannot be applied.', false, null, null, null);
+        }
+
+        Id lineItemId = (Id) actionData.get('lineItemId');
+        Object discObj = actionData.get('discountPercent');
+        Decimal requestedDiscount = discObj != null ? Decimal.valueOf(String.valueOf(discObj)) : 0;
+
+        Quote_Line_Item__c target = null;
+        for (Quote_Line_Item__c qli : ctx.lineItems) {
+            if (qli.Id == lineItemId) { target = qli; break; }
+        }
+
+        if (target == null) {
+            return buildResponse('text', 'I couldn\'t find that line item. It may have been removed.', false, null, null, null);
+        }
+
+        // Strategy 4: Policy check
+        Decimal maxAllowed = getMaxAllowedDiscount(target, ctx);
+
+        if (requestedDiscount > maxAllowed && maxAllowed > 0) {
+            String msg = '🛡️ **Policy Limit Reached**\\n\\n';
+            msg += '• You requested: **' + fmtDec(requestedDiscount) + '%** discount on **' + nn(target.Name__c) + '**\\n';
+            msg += '• Maximum allowed: **' + fmtDec(maxAllowed) + '%**\\n\\n';
+            msg += 'Would you like me to apply the maximum **' + fmtDec(maxAllowed) + '%** discount instead?';
+
+            List<Map<String, Object>> options = new List<Map<String, Object>>();
+            options.add(new Map<String, Object>{
+                'id' => lineItemId,
+                'name' => 'Apply ' + fmtDec(maxAllowed) + '% (max allowed)',
+                'type' => 'DiscountOption',
+                'icon' => '✅',
+                'detail' => 'Discount: ' + fmtDec(maxAllowed) + '%'
+            });
+            options.add(new Map<String, Object>{
+                'id' => 'CANCEL',
+                'name' => 'Keep current pricing',
+                'type' => 'CancelDiscount',
+                'icon' => '❌',
+                'detail' => 'No discount applied'
+            });
+
+            Map<String, Object> response = buildResponse('disambiguation', msg, true, null, null, null);
+            response.put('options', options);
+            response.put('pendingAction', 'APPLY_DISCOUNT');
+            response.put('pendingQuantity', maxAllowed);
+            return response;
+        }
+
+        if (requestedDiscount > 100 || requestedDiscount < 0) {
+            return buildResponse('text', '⚠️ Discount must be between **0%** and **100%**. Please specify a valid percentage.', false, null, null, null);
+        }
+
+        try {
+            target.Discount_Percent__c = requestedDiscount;
+            Decimal basePrice = target.Base_Rate__c != null ? target.Base_Rate__c : target.Unit_Price__c;
+            target.Unit_Price__c = basePrice * (1 - (requestedDiscount / 100));
+            update target;
+            QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        } catch (Exception e) {
+            return buildRecoveryResponse(e, 'applying discount to ' + nn(target.Name__c));
+        }
+
+        String msg = '✅ **Discount Applied**\\n\\n';
+        msg += '• **Item:** ' + nn(target.Name__c) + '\\n';
+        msg += '• **Discount:** ' + fmtDec(requestedDiscount) + '%\\n';
+        msg += '• **New Price:** $' + fmtDec(target.Unit_Price__c) + '\\n';
+        msg += buildStateNarrative(ctx.quote.Id, ctx.marginThreshold);
+
+        return buildResponse('action_result', msg, true, 'REFRESH', null, null);
+    }
+
+    /**
+     * @description Updates quantity for a line item with validation.
+     */
+    private static Map<String, Object> executeUpdateQuantity(Map<String, Object> actionData, CPQContext ctx) {
+        if (ctx.quote == null) {
+            return buildResponse('text', '📋 No quote is open.', false, null, null, null);
+        }
+        if (ctx.quote.Status__c != 'Draft') {
+            return buildResponse('text', '🔒 This quote is **' + ctx.quote.Status__c + '** — quantities cannot be changed.', false, null, null, null);
+        }
+
+        Id lineItemId = (Id) actionData.get('lineItemId');
+        Object qtyObj = actionData.get('quantity');
+        Decimal newQuantity = qtyObj != null ? Decimal.valueOf(String.valueOf(qtyObj)) : 1;
+
+        Quote_Line_Item__c target = null;
+        for (Quote_Line_Item__c qli : ctx.lineItems) {
+            if (qli.Id == lineItemId) { target = qli; break; }
+        }
+
+        if (target == null) {
+            return buildResponse('text', 'I couldn\'t find that line item.', false, null, null, null);
+        }
+        if (newQuantity <= 0) {
+            return buildResponse('text', '⚠️ Quantity must be greater than 0. Did you mean to **remove** this item instead?', false, null, null, null);
+        }
+
+        Decimal oldQuantity = target.Quantity__c;
+        try {
+            target.Quantity__c = newQuantity;
+            update target;
+            QuoteController.recalculateQuoteTotals(ctx.quote.Id);
+        } catch (Exception e) {
+            return buildRecoveryResponse(e, 'updating quantity for ' + nn(target.Name__c));
+        }
+
+        String msg = '✅ **Quantity Updated**\\n\\n';
+        msg += '• **Item:** ' + nn(target.Name__c) + '\\n';
+        msg += '• **Old Qty:** ' + oldQuantity?.intValue() + ' → **New Qty:** ' + newQuantity.intValue() + '\\n';
+        msg += '• **New Line Total:** $' + fmtDec(target.Unit_Price__c * newQuantity) + '\\n';
+        msg += buildStateNarrative(ctx.quote.Id, ctx.marginThreshold);
 
         return buildResponse('action_result', msg, true, 'REFRESH', null, null);
     }
 
     // ═══════════════════════════════════════════════════════════════
-    //  CATALOG SEARCH
+    //  STRATEGY 6: STATE NARRATIVE (Post-Action Health Assessment)
     // ═══════════════════════════════════════════════════════════════
 
-    /**
-     * @description Searches across all catalog types using fuzzy matching.
-     */
+    private static String buildStateNarrative(Id quoteId, Decimal marginThreshold) {
+        Quote__c q = [
+            SELECT Total_Amount__c, Total_Cost__c, Margin_Percent__c, Margin_Amount__c
+            FROM Quote__c WHERE Id = :quoteId LIMIT 1
+        ];
+        Integer lineCount = [SELECT COUNT() FROM Quote_Line_Item__c WHERE Quote__c = :quoteId];
+
+        String narrative = '\\n\\n📊 **Quote Health Update**\\n';
+        Decimal margin = q.Margin_Percent__c != null ? q.Margin_Percent__c : 0;
+        Decimal revenue = q.Total_Amount__c != null ? q.Total_Amount__c : 0;
+
+        narrative += '• Total: **$' + fmtDec(revenue) + '** · Margin: **' + fmtDec(margin) + '%**';
+
+        if (margin < 0) {
+            narrative += '\\n⛔ **CRITICAL:** This quote is **losing money** (negative margin). Review pricing immediately.';
+        } else if (margin < marginThreshold) {
+            narrative += '\\n⚠️ **Warning:** Margin dropped below **' + fmtDec(marginThreshold) + '%** threshold. Will require **manager approval**.';
+        } else if (margin >= 40) {
+            narrative += ' 🟢 Excellent';
+        } else {
+            narrative += ' 🟡 Above threshold';
+        }
+
+        if (lineCount == 0) {
+            narrative += '\\n📭 The quote is now **empty** — no line items remaining.';
+        }
+
+        return narrative;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STRATEGY 4: DISCOUNT POLICY HELPER
+    // ═══════════════════════════════════════════════════════════════
+
+    private static Decimal getMaxAllowedDiscount(Quote_Line_Item__c qli, CPQContext ctx) {
+        Decimal maxDiscount = 0;
+        Boolean hasTier = false;
+
+        for (Discount_Tier__c tier : ctx.discountTiers) {
+            Boolean matches = false;
+            if (qli.Product__c != null && tier.Product__c == qli.Product__c) matches = true;
+            if (qli.Resource_Role__c != null && tier.Resource_Role__c == qli.Resource_Role__c) matches = true;
+            if (qli.Add_On__c != null && tier.Add_On__c == qli.Add_On__c) matches = true;
+
+            if (matches && tier.Discount_Percent__c != null) {
+                hasTier = true;
+                if (tier.Discount_Percent__c > maxDiscount) {
+                    maxDiscount = tier.Discount_Percent__c;
+                }
+            }
+        }
+
+        if (!hasTier) {
+            if (ctx.userRole == 'Admin' || ctx.userRole == 'Manager') {
+                maxDiscount = 50;
+            } else {
+                maxDiscount = 25;
+            }
+        }
+
+        return maxDiscount;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STRATEGY 1: CONVERSATIONAL ERROR RECOVERY
+    // ═══════════════════════════════════════════════════════════════
+
+    private static Map<String, Object> buildRecoveryResponse(Exception e) {
+        return buildRecoveryResponse(e, null);
+    }
+
+    private static Map<String, Object> buildRecoveryResponse(Exception e, String actionContext) {
+        String errorMsg = e.getMessage();
+        String context = String.isNotBlank(actionContext) ? ' while ' + actionContext : '';
+        String msg = '';
+
+        if (errorMsg.containsIgnoreCase('FIELD_CUSTOM_VALIDATION_EXCEPTION')) {
+            String ruleMsg = errorMsg.substringAfter('FIELD_CUSTOM_VALIDATION_EXCEPTION,');
+            if (String.isNotBlank(ruleMsg)) {
+                ruleMsg = ruleMsg.substringBefore(':').trim();
+            }
+            msg = '🛡️ **Business Rule Violation**' + context + '\\n\\n';
+            msg += '**Rule:** ' + (String.isNotBlank(ruleMsg) ? ruleMsg : errorMsg) + '\\n\\n';
+            msg += 'Please adjust the data and try again.';
+        } else if (errorMsg.containsIgnoreCase('UNABLE_TO_LOCK_ROW')) {
+            msg = '⏳ **Record is busy**' + context + '\\n\\n';
+            msg += 'Another user is currently editing this record. Please wait a moment and try again.';
+        } else if (errorMsg.containsIgnoreCase('DUPLICATE')) {
+            msg = '🔄 **Duplicate Detected**' + context + '\\n\\n';
+            msg += 'A similar record already exists. Would you like me to search for the existing one instead?';
+        } else if (errorMsg.containsIgnoreCase('INSUFFICIENT_ACCESS') || errorMsg.containsIgnoreCase('FIELD_INTEGRITY_EXCEPTION')) {
+            msg = '🔐 **Permission Issue**' + context + '\\n\\n';
+            msg += 'You may not have the required permissions for this action. Contact your admin if needed.';
+        } else if (errorMsg.containsIgnoreCase('REQUIRED_FIELD_MISSING')) {
+            msg = '📝 **Missing Required Information**' + context + '\\n\\n';
+            msg += 'Some required fields are empty. Please provide all necessary data and try again.';
+        } else {
+            msg = '⚠️ **Something went wrong**' + context + '\\n\\n';
+            msg += '**Details:** ' + errorMsg.abbreviate(200) + '\\n\\n';
+            msg += 'Please verify the data and try again, or say **"help"** for guidance.';
+        }
+
+        return buildResponse('text', msg, false, null, null, null);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  CATALOG SEARCH (Strategy 2: Enhanced Fuzzy Matching)
+    // ═══════════════════════════════════════════════════════════════
+
     private static List<CatalogItem> searchCatalog(String searchTerm, CPQContext ctx) {
         String lower = searchTerm.toLowerCase().trim();
+        List<String> searchTokens = lower.split('\\s+');
         List<CatalogItem> matches = new List<CatalogItem>();
 
         for (Resource_Role__c r : ctx.resourceRoles) {
-            if (r.Name.toLowerCase().contains(lower)) {
+            if (fuzzyMatch(r.Name, lower, searchTokens)) {
                 CatalogItem item = new CatalogItem();
                 item.itemId = r.Id;
                 item.name = r.Name;
@@ -1103,7 +1747,7 @@ public with sharing class AgentforceController {
         }
 
         for (Product__c p : ctx.products) {
-            if (p.Name.toLowerCase().contains(lower)) {
+            if (fuzzyMatch(p.Name, lower, searchTokens)) {
                 CatalogItem item = new CatalogItem();
                 item.itemId = p.Id;
                 item.name = p.Name;
@@ -1118,7 +1762,7 @@ public with sharing class AgentforceController {
         }
 
         for (Add_On__c a : ctx.addOns) {
-            if (a.Name.toLowerCase().contains(lower)) {
+            if (fuzzyMatch(a.Name, lower, searchTokens)) {
                 CatalogItem item = new CatalogItem();
                 item.itemId = a.Id;
                 item.name = a.Name;
@@ -1133,6 +1777,48 @@ public with sharing class AgentforceController {
         }
 
         return matches;
+    }
+
+    /**
+     * @description Strategy 2: Fuzzy matching with word-token overlap for typo tolerance.
+     */
+    private static Boolean fuzzyMatch(String recordName, String searchLower, List<String> searchTokens) {
+        String nameLower = recordName.toLowerCase();
+        if (nameLower.contains(searchLower)) return true;
+
+        List<String> nameTokens = nameLower.split('[\\s\\-_]+');
+        Integer matchedTokens = 0;
+
+        for (String searchToken : searchTokens) {
+            if (searchToken.length() < 2) continue;
+            for (String nameToken : nameTokens) {
+                if (nameToken == searchToken) { matchedTokens++; break; }
+                if (nameToken.contains(searchToken) || searchToken.contains(nameToken)) { matchedTokens++; break; }
+                if (Math.abs(nameToken.length() - searchToken.length()) <= 2) {
+                    Integer commonChars = countCommonChars(nameToken, searchToken);
+                    Integer minLen = Math.min(nameToken.length(), searchToken.length());
+                    if (minLen > 0 && commonChars >= minLen - 1) { matchedTokens++; break; }
+                }
+            }
+        }
+
+        return searchTokens.size() > 0 && matchedTokens >= Math.max(1, searchTokens.size() / 2);
+    }
+
+    private static Integer countCommonChars(String a, String b) {
+        Integer common = 0;
+        List<String> bChars = b.split('');
+        Set<Integer> used = new Set<Integer>();
+        for (String ch : a.split('')) {
+            for (Integer i = 0; i < bChars.size(); i++) {
+                if (!used.contains(i) && ch == bChars[i]) {
+                    common++;
+                    used.add(i);
+                    break;
+                }
+            }
+        }
+        return common;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1163,7 +1849,6 @@ public with sharing class AgentforceController {
         if (m.find()) {
             return Decimal.valueOf(m.group(1));
         }
-        // Also check for "X items" pattern
         Pattern p2 = Pattern.compile('(\\d+)\\s+(?!\\.)');
         Matcher m2 = p2.matcher(message);
         if (m2.find()) {
@@ -1174,15 +1859,10 @@ public with sharing class AgentforceController {
 
     private static String extractItemName(String message) {
         String cleaned = message;
-        // Remove intent verbs
         cleaned = cleaned.replaceAll('(?i)^(add|include|insert|put|throw in|get me|i need|i want|remove|delete|drop|take out|get rid of|eliminate)\\s+', '');
-        // Remove quantity
         cleaned = cleaned.replaceAll('^\\d+\\s+', '');
-        // Remove trailing context
         cleaned = cleaned.replaceAll('(?i)\\s+(to the quote|to quote|to this quote|from the quote|from this quote|please|thanks|thank you|now).*$', '');
-        // Remove articles
         cleaned = cleaned.replaceAll('(?i)^(a |an |the |some )', '');
-        // Remove "line item" prefix
         cleaned = cleaned.replaceAll('(?i)^(line item|item|items)\\s*', '');
         return cleaned.trim();
     }
@@ -1192,6 +1872,29 @@ public with sharing class AgentforceController {
         cleaned = cleaned.replaceAll('(?i)\\s*(products?|roles?|items?|add-?ons?|catalog)\\s*$', '');
         cleaned = cleaned.replaceAll('(?i)^(for |about |all )', '');
         return cleaned.trim();
+    }
+
+    private static Decimal extractDiscountPercent(String message) {
+        Pattern p = Pattern.compile('(\\d+\\.?\\d*)\\s*(%|percent)');
+        Matcher m = p.matcher(message);
+        if (m.find()) return Decimal.valueOf(m.group(1));
+
+        Pattern p2 = Pattern.compile('(?i)discount\\s+(?:of\\s+)?(\\d+\\.?\\d*)');
+        Matcher m2 = p2.matcher(message);
+        if (m2.find()) return Decimal.valueOf(m2.group(1));
+
+        return null;
+    }
+
+    private static Decimal extractNewQuantity(String message) {
+        Pattern p = Pattern.compile('(?i)(?:to|=|set to|change to|update to)\\s+(\\d+)');
+        Matcher m = p.matcher(message);
+        if (m.find()) return Decimal.valueOf(m.group(1));
+
+        Pattern p2 = Pattern.compile('(\\d+)');
+        Matcher m2 = p2.matcher(message.replaceAll('\\d+%', ''));
+        if (m2.find()) return Decimal.valueOf(m2.group(1));
+        return null;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1213,6 +1916,8 @@ public with sharing class AgentforceController {
         if (itemType == 'Add-on') return '➕';
         return '📋';
     }
+
+
 
     // ═══════════════════════════════════════════════════════════════
     //  QUOTE CREATION FLOW (Account → Opportunity → Create)
@@ -1387,6 +2092,30 @@ public with sharing class AgentforceController {
      *              instead of real Salesforce 18-char IDs. This method resolves
      *              each option to its actual catalog record by matching on name.
      */
+
+    /**
+     * @description Creates a new account from the AI conversation.
+     */
+    private static Map<String, Object> handleCreateAccount(Map<String, Object> actionData) {
+        String accountName = (String) actionData.get('accountName');
+        if (String.isBlank(accountName)) {
+            return buildResponse('text', 'Please provide the account name.', false, null, null, null);
+        }
+
+        try {
+            Account newAcct = new Account(Name = accountName);
+            insert newAcct;
+
+            Map<String, Object> selectData = new Map<String, Object>{
+                'itemId' => newAcct.Id,
+                'itemType' => 'Account'
+            };
+            return handleSelectAccount(selectData);
+        } catch (Exception e) {
+            return buildRecoveryResponse(e, 'creating account "' + accountName + '"');
+        }
+    }
+
     private static List<Map<String, Object>> resolveOptionIds(List<Object> rawOptions, CPQContext ctx) {
         List<Map<String, Object>> resolved = new List<Map<String, Object>>();
 

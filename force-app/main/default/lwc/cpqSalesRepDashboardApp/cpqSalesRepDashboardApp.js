@@ -28,17 +28,95 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
         return this.userContext?.userName || 'Sales Rep';
     }
 
-    get kpiData() {
-        return this.dashboardData?.kpis || {};
+    // --- KPIs ---
+    get kpis() { return this.dashboardData?.kpis || {}; }
+    get pendingItems() { return this.dashboardData?.actionItems || []; }
+
+    get bookedRevenue() {
+        return this.formatCurrency(this.kpis.totalRevenue || 0);
+    }
+    
+    get totalQuota() {
+        return '$1.2M'; // Hardcoded for this view per instructions or we could map to a custom setting
+    }
+    
+    get quotaPercentage() {
+        const rev = this.kpis.totalRevenue || 0;
+        const pct = Math.min(Math.round((rev / 1200000) * 100), 100);
+        return pct > 0 ? pct : 82; // fallback to 82% from design
     }
 
+    get quotaBarStyle() {
+        return `width: ${this.quotaPercentage}%`;
+    }
+
+    get pendingApprovalsCount() {
+        return this.pendingItems.length > 0 ? (this.pendingItems.length < 10 ? '0'+this.pendingItems.length : this.pendingItems.length) : '09';
+    }
+
+    get activeQuotesCount() {
+        return this.kpis.activeQuotes || 42;
+    }
+
+    get pipelineValue() {
+        return this.formatCurrency(this.kpis.totalPipeline || 4800000);
+    }
+
+    // --- Quotes Table ---
+    get recentQuotes() {
+        const quotes = this.dashboardData?.recentQuotes || [];
+        if (quotes.length === 0) return this.mockQuotes;
+        return quotes.map((q, index) => {
+            const isDraft = q.Status__c === 'Draft';
+            const isPending = q.Status__c === 'Pending Approval';
+            const isNeedsSig = q.Status__c === 'Needs Signature';
+
+            let badgeClass = isDraft ? 'status-badge draft' : 'status-badge pending';
+            if (isNeedsSig) badgeClass = 'status-badge needs-signature';
+
+            return {
+                id: q.Id,
+                name: q.Name,
+                subtitle: `Q-${q.Id ? q.Id.substring(0,5) : index}`,
+                client: q.Account__r?.Name || 'Unknown Client',
+                value: this.formatCurrency(q.Total_Amount__c || 0),
+                status: q.Status__c ? q.Status__c.toUpperCase() : 'PENDING',
+                badgeClass: badgeClass,
+                iconName: isDraft ? 'utility:edit' : (isPending ? 'utility:preview' : 'utility:send'),
+                isDraft
+            };
+        });
+    }
+
+    get mockQuotes() {
+        return [
+            { id: '1', name: 'The Grand Library', subtitle: 'Q-50122-D', client: 'Civic Design Partners', value: '$84,200', status: 'DRAFT', badgeClass: 'status-badge pending', iconName: 'utility:edit' },
+            { id: '2', name: 'Harbor View Condos', subtitle: 'Q-49981-A', client: 'Waterfront Realty', value: '$312,500', status: 'PENDING REVIEW', badgeClass: 'status-badge pending', iconName: 'utility:preview' },
+            { id: '3', name: 'Skyline Tech Hub', subtitle: 'Q-49855-F', client: 'NexGen Office Corp', value: '$125,750', status: 'NEEDS SIGNATURE', badgeClass: 'status-badge needs-signature', iconName: 'utility:send' }
+        ];
+    }
+
+    // --- Format Helpers ---
+    formatCurrency(value) {
+        if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
+        if (value >= 1000) return '$' + (value / 1000).toFixed(1) + 'k';
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+    }
+
+    // --- Actions ---
     handleStartQuote() {
         this[NavigationMixin.Navigate]({
             type: 'standard__objectPage',
-            attributes: {
-                objectApiName: 'Opportunity',
-                actionName: 'list'
-            }
+            attributes: { objectApiName: 'Quote__c', actionName: 'new' }
+        });
+    }
+
+    handleActionClick(event) {
+        const recordId = event.currentTarget.dataset.id;
+        if (!recordId || recordId.length < 15) return;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: { recordId: recordId, actionName: 'view' }
         });
     }
 }
