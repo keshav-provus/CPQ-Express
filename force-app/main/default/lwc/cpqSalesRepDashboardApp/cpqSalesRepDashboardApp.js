@@ -2,11 +2,18 @@ import { LightningElement, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getSalesRepDashboardPackage from '@salesforce/apex/DashboardController.getSalesRepDashboardPackage';
 import getUserContext from '@salesforce/apex/AgentforceController.getUserContext';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningElement) {
     @track dashboardData = {};
     @track userContext = {};
     @track isLoading = true;
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
 
     @wire(getUserContext)
     wiredContext({ data }) {
@@ -37,7 +44,8 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
     }
     
     get totalQuota() {
-        return '$1.2M'; // Hardcoded for this view per instructions or we could map to a custom setting
+        const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
+        return sym + '1.2M';
     }
     
     get quotaPercentage() {
@@ -98,9 +106,10 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
 
     // --- Format Helpers ---
     formatCurrency(value) {
-        if (value >= 1000000) return '$' + (value / 1000000).toFixed(1) + 'M';
-        if (value >= 1000) return '$' + (value / 1000).toFixed(1) + 'k';
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+        const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
+        if (value >= 1000000) return sym + (value / 1000000).toFixed(1) + 'M';
+        if (value >= 1000) return sym + (value / 1000).toFixed(1) + 'k';
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(value);
     }
 
     // --- Actions ---

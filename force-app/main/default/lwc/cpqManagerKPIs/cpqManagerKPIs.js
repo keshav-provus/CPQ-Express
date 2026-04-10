@@ -1,13 +1,34 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqManagerKPIs extends LightningElement {
     @api kpiData = {};
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
+
+    formatCurrencyValue(value) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(value);
+    }
+
+    formatCurrencyCompact(value) {
+        if (value >= 1000000) {
+            const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
+            return sym + (value / 1000000).toFixed(1) + 'M';
+        }
+        if (value >= 1000) {
+            const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
+            return sym + (value / 1000).toFixed(0) + 'k';
+        }
+        return this.formatCurrencyValue(value);
+    }
 
     get formattedRevenue() {
         const rev = this.kpiData?.totalRevenue || 0;
-        if (rev >= 1000000) return '$' + (rev / 1000000).toFixed(1) + 'M';
-        if (rev >= 1000) return '$' + (rev / 1000).toFixed(0) + 'k';
-        return '$' + rev;
+        return this.formatCurrencyCompact(rev);
     }
 
     get revenueTrend() { return this.kpiData?.revenueTrend || 12; }
@@ -26,9 +47,7 @@ export default class CpqManagerKPIs extends LightningElement {
 
     get formattedAvgValue() {
         const val = this.kpiData?.avgQuoteValue || 0;
-        if (val >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'M';
-        if (val >= 1000) return '$' + (val / 1000).toFixed(0) + 'k';
-        return '$' + val;
+        return this.formatCurrencyCompact(val);
     }
 
     get avgTrend() { return this.kpiData?.avgTrend || 6; }

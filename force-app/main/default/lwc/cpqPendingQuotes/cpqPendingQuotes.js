@@ -2,9 +2,16 @@ import { LightningElement, wire, track } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 import getPendingActionItems from '@salesforce/apex/DashboardController.getPendingActionItems';
 import submitForApproval from '@salesforce/apex/QuoteController.submitForApproval';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqPendingQuotes extends NavigationMixin(LightningElement) {
     @track quotes = [];
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
 
     @wire(getPendingActionItems)
     wiredQuotes({ data, error }) {
@@ -17,6 +24,7 @@ export default class CpqPendingQuotes extends NavigationMixin(LightningElement) 
                 const ownerName = q.Owner ? q.Owner.Name : 'Unknown';
                 const created = q.CreatedDate ? new Date(q.CreatedDate) : new Date();
                 const hoursAgo = Math.round((Date.now() - created) / 3600000);
+                const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
 
                 return {
                     ...q,
@@ -24,10 +32,10 @@ export default class CpqPendingQuotes extends NavigationMixin(LightningElement) 
                     ownerName,
                     timeAgo: hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.round(hoursAgo / 24)}d ago`,
                     formattedAmount: amount >= 1000000
-                        ? '$' + (amount / 1000000).toFixed(2) + 'M'
+                        ? sym + (amount / 1000000).toFixed(2) + 'M'
                         : amount >= 1000
-                            ? '$' + (amount / 1000).toFixed(0) + 'k'
-                            : '$' + amount.toFixed(0),
+                            ? sym + (amount / 1000).toFixed(0) + 'k'
+                            : sym + amount.toFixed(0),
                     initials: ownerName.split(' ').map(n => n[0]).join('').substring(0, 2),
                     avatarColor: colors[i % colors.length],
                     progressStyle: `width: ${Math.min(25 + (i * 20), 75)}%`,

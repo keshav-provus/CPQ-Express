@@ -1,4 +1,5 @@
-import { LightningElement, api, track } from 'lwc';
+import { LightningElement, api, track, wire } from 'lwc';
+import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class TeamQuotesPipeline extends LightningElement {
     @track totalPipeline = 0;
@@ -6,6 +7,12 @@ export default class TeamQuotesPipeline extends LightningElement {
     @track pendingApproval = 0;
     @track thisMonthQuotes = 0;
     @track isLoading = true;
+    @track currencyCode = 'USD';
+
+    @wire(getDefaultCurrency)
+    wiredDefaultCurrency({ data }) {
+        if (data) this.currencyCode = data;
+    }
 
     @api 
     set dashboardData(value) {
@@ -27,13 +34,14 @@ export default class TeamQuotesPipeline extends LightningElement {
     }
 
     get formattedPipeline() {
+        const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
         if (this.totalPipeline >= 1000000) {
-            return '$' + (this.totalPipeline / 1000000).toFixed(1) + 'M';
+            return sym + (this.totalPipeline / 1000000).toFixed(1) + 'M';
         }
         if (this.totalPipeline >= 1000) {
-            return '$' + (this.totalPipeline / 1000).toFixed(1) + 'K';
+            return sym + (this.totalPipeline / 1000).toFixed(1) + 'K';
         }
-        return '$' + this.totalPipeline.toFixed(0);
+        return sym + this.totalPipeline.toFixed(0);
     }
 
     get formattedMargin() {

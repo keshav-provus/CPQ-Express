@@ -270,8 +270,24 @@ public with sharing class QuoteTemplateController {
     }
 
     private static String formatCurrency(Decimal val) {
-        if (val == null) return '$0.00';
-        return '$' + val.setScale(2).toPlainString();
+        if (val == null) val = 0;
+        String isoCode = 'USD';
+        Company_Settings__c cs = Company_Settings__c.getOrgDefaults();
+        if (cs != null && cs.Default_Currency__c != null) {
+            isoCode = cs.Default_Currency__c;
+        }
+        Map<String, String> symbolMap = new Map<String, String>{
+            'USD' => '$', 'EUR' => '€', 'GBP' => '£', 'JPY' => '¥',
+            'CNY' => '¥', 'INR' => '₹', 'KRW' => '₩', 'BRL' => 'R$',
+            'AUD' => 'A$', 'CAD' => 'C$', 'CHF' => 'CHF ', 'MXN' => 'MX$',
+            'SGD' => 'S$', 'HKD' => 'HK$', 'NZD' => 'NZ$', 'SEK' => 'kr',
+            'NOK' => 'kr', 'DKK' => 'kr', 'ZAR' => 'R', 'RUB' => '₽',
+            'TRY' => '₺', 'PLN' => 'zł', 'THB' => '฿', 'IDR' => 'Rp',
+            'MYR' => 'RM', 'PHP' => '₱', 'CZK' => 'Kč', 'ILS' => '₪',
+            'CLP' => 'CLP$', 'AED' => 'AED ', 'SAR' => 'SAR ', 'TWD' => 'NT$'
+        };
+        String symbol = symbolMap.containsKey(isoCode) ? symbolMap.get(isoCode) : isoCode + ' ';
+        return symbol + val.setScale(2).toPlainString();
     }
 
     private static String formatDate(Date d) {
