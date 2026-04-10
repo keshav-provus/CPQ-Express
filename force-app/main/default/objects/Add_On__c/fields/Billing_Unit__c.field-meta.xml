@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Billing_Unit__c</fullName>
-    <description>Billing model: Subscription (time-based, rate per period) or Each (one-time flat price).</description>
+    <description>Billing model: Each (one-time flat price).</description>
     <label>Billing Unit</label>
     <required>true</required>
     <trackHistory>false</trackHistory>
@@ -10,11 +10,6 @@
     <valueSet>
         <valueSetDefinition>
             <sorted>false</sorted>
-            <value>
-                <fullName>Subscription</fullName>
-                <default>false</default>
-                <label>Subscription</label>
-            </value>
             <value>
                 <fullName>Each</fullName>
                 <default>true</default>

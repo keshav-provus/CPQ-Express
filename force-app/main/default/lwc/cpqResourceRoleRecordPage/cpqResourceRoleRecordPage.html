@@ -1,180 +1,153 @@
 <template>
-    <div class="page-wrapper">
-        <div class="page">
-            
-            <template if:true={item}>
-                <div class="highlight-bar">
-                  <div class="hl-left">
-                    <div>
-                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-                        <span class="hl-name">{item.Name__c}</span>
-                        <span class="hl-badge"><span class="hl-dot"></span>Resource Role</span>
-                      </div>
-                      <span class="hl-meta">{item.Name} &nbsp;·&nbsp; {item.Billing_Unit__c}ly</span>
-                    </div>
-                  </div>
-                  <div class="hl-fields">
-                    <div class="hl-field"><div class="lbl">Billing rate</div><div class="val"><lightning-formatted-number value={item.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
-                    <div class="hl-field"><div class="lbl">Cost</div><div class="val" style="color:#1b6d24;"><lightning-formatted-number value={item.Cost__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></div></div>
-                    <div class="hl-field"><div class="lbl">Billing unit</div><div class="val">{item.Billing_Unit__c}</div></div>
-                    <div class="hl-field"><div class="lbl">Role ID</div><div class="val">{item.Name}</div></div>
-                  </div>
-                  <div class="hl-actions">
-                    <button class="btn">Edit</button>
-                    <button class="btn btn-primary">Configuration</button>
-                  </div>
-                </div>
-            </template>
+<main class="product-page">
+<!-- Resource Info Header -->
+<header class="page-header">
+    <div class="header-left">
+        <nav class="breadcrumb">
+            <span>Resource Roles</span>
+            <lightning-icon icon-name="utility:chevronright" size="xx-small" class="breadcrumb-chevron"></lightning-icon>
+            <span class="breadcrumb-active"><template if:true={item}>{item.Name__c}</template></span>
+        </nav>
+        <h1 class="page-title"><template if:true={item}>{item.Name__c}</template></h1>
+        <p class="page-subtitle"><template if:true={item}>{item.Name} &nbsp;&middot;&nbsp; {item.Billing_Unit__c}</template></p>
+    </div>
+    <div class="header-stats">
+        <div class="stat-chip">
+            <span class="stat-chip-label">Billing Rate</span>
+            <span class="stat-chip-value"><template if:true={item}><lightning-formatted-number value={item.Price__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></template></span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-chip-label">Resource Cost</span>
+            <span class="stat-chip-value"><template if:true={item}><lightning-formatted-number value={item.Cost__c} format-style="currency" currency-code={currencyCode}></lightning-formatted-number></template></span>
+        </div>
+        <div class="stat-chip">
+            <span class="stat-chip-label">Billing Unit</span>
+            <span class="stat-chip-value"><template if:true={item}>{item.Billing_Unit__c}</template></span>
+        </div>
+    </div>
+</header>
 
-            <div class="main-content">
-              <!-- ═══ KPI Metrics Bar ═══ -->
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-accent accent-primary"></div>
-                  <div class="klbl">Total Revenue</div>
-                  <div class="kval kval-primary">{formattedKpiRevenue}</div>
-                  <div class="kdelta">
-                    <span class="delta-up">↑ 12%</span>
-                    <span class="delta-sub">vs last period</span>
-                  </div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-accent accent-tertiary"></div>
-                  <div class="klbl">Active Quotes</div>
-                  <div class="kval kval-tertiary">{kpiActiveQuotes}</div>
-                  <div class="kdelta"><span class="delta-sub">Ready for review</span></div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-accent accent-secondary"></div>
-                  <div class="klbl">Peak Utilisation</div>
-                  <div class="kval">{kpiPeakUsage}</div>
-                  <div class="kdelta"><span class="delta-sub">Projected capacity limit</span></div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-accent accent-fixed"></div>
-                  <div class="klbl">Avg Duration</div>
-                  <div class="kval">{kpiDuration}</div>
-                  <div class="kdelta"><span class="delta-sub">Across all role types</span></div>
-                </div>
-              </div>
-
-              <!-- ═══ Main Layout Split ═══ -->
-              <div class="layout-split">
-                <!-- Left: Resource Timeline (65%) -->
-                <div class="panel-timeline">
-                  <div class="panel-header">
-                    <div class="panel-header-left">
-                      <span class="material-symbols-outlined panel-icon icon-primary">event_note</span>
-                      <h2 class="panel-title">Resource Utilisation Timeline</h2>
-                    </div>
-                    <div class="panel-badges">
-                      <span class="badge badge-primary">Projected</span>
-                      <span class="badge badge-secondary">Actual</span>
-                    </div>
-                  </div>
-                  <div class="panel-body custom-scrollbar">
-                    <div class="filter-row">
-                      <span style="font-size:11px;color:var(--color-on-surface-variant);margin-right:8px;">Filter by account:</span>
-                      <div class="search-container">
-                          <div class="slds-form-element" style="flex:1;">
-                              <div class="slds-form-element__control">
-                                  <div class="slds-combobox_container">
-                                      <div class={dropdownClasses} aria-expanded={isDropdownOpen} aria-haspopup="listbox" role="combobox">
-                                          <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
-                                              <lightning-input 
-                                                  class="account-search-input" 
-                                                  type="search" 
-                                                  placeholder="Search account..." 
-                                                  variant="label-hidden" 
-                                                  value={searchTerm} 
-                                                  onchange={handleSearchChange}
-                                                  onclick={handleSearchClick}
-                                                  onblur={handleSearchBlur}
-                                                  autocomplete="off">
-                                              </lightning-input>
-                                          </div>
-                                          <div class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox" style="margin-top:2px;">
-                                              <ul class="slds-listbox slds-listbox_vertical" role="presentation">
-                                                  <template for:each={filteredAccountOptions} for:item="acc">
-                                                      <li key={acc} role="presentation" class="slds-listbox__item" onmousedown={handleAccountSelect} data-val={acc}>
-                                                          <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
-                                                              <span class="slds-media__body">
-                                                                  <span class="slds-truncate" title={acc}>{acc}</span>
-                                                              </span>
-                                                          </div>
-                                                      </li>
-                                                  </template>
-                                                  <template if:false={filteredAccountOptions.length}>
-                                                      <li role="presentation" class="slds-listbox__item">
-                                                          <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small" role="option">
-                                                              <span class="slds-media__body">
-                                                                  <span class="slds-truncate" title="No results">No matching accounts</span>
-                                                              </span>
-                                                          </div>
-                                                      </li>
-                                                  </template>
-                                              </ul>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                          <lightning-button 
-                              label="Done" 
-                              onclick={handleSearchSubmit} 
-                              variant="brand" 
-                              class="done-btn">
-                          </lightning-button>
-                      </div>
-                    </div>
-                    <div class="timeline-wrap" lwc:dom="manual"></div>
-                    <div class="legend-row" lwc:dom="manual"></div>
-                  </div>
-                </div>
-
-                <!-- Right: Discount Tiers + Config Summary (35%) -->
-                <div class="panel-right">
-                  <!-- Discount Tiers -->
-                  <div class="panel-tiers">
-                    <div class="panel-header">
-                      <div class="panel-header-left">
-                        <span class="material-symbols-outlined panel-icon icon-secondary">loyalty</span>
-                        <h2 class="panel-title">Discount Tiers</h2>
-                      </div>
-                    </div>
-                    <div class="tiers-body custom-scrollbar">
-                      <c-cpq-product-discount-tiers record-id={recordId} object-api-name="Resource_Role__c"></c-cpq-product-discount-tiers>
-                    </div>
-                  </div>
-
-                  <!-- Configuration Summary -->
-                  <template if:true={item}>
-                    <div class="config-summary">
-                      <h3 class="config-title">
-                        <span class="material-symbols-outlined panel-icon icon-primary" style="font-size:16px;">tune</span>
-                        Configuration Summary
-                      </h3>
-                      <div class="config-rows">
-                        <div class="config-row">
-                          <span class="config-lbl">Role Name</span>
-                          <span class="config-val config-val-badge">{item.Name__c}</span>
-                        </div>
-                        <div class="config-row">
-                          <span class="config-lbl">Billing Unit</span>
-                          <span class="config-val">{item.Billing_Unit__c}</span>
-                        </div>
-                        <div class="config-row config-row-last">
-                          <span class="config-lbl">Role ID</span>
-                          <span class="config-val config-val-code">{item.Name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
+<!-- Metric Grid -->
+<section class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-icon-row">
+            <div class="kpi-icon-wrap kpi-icon-blue">
+                <lightning-icon icon-name="utility:moneybag" size="small"></lightning-icon>
             </div>
         </div>
-        
-        <div class="tooltip-box" lwc:dom="manual"></div>
+        <p class="kpi-label">Total Revenue</p>
+        <h2 class="kpi-value">{formattedKpiRevenue}</h2>
     </div>
+    <div class="kpi-card">
+        <div class="kpi-icon-row">
+            <div class="kpi-icon-wrap kpi-icon-purple">
+                <lightning-icon icon-name="utility:file" size="small"></lightning-icon>
+            </div>
+        </div>
+        <p class="kpi-label">Active Quotes</p>
+        <h2 class="kpi-value">{kpiActiveQuotes}</h2>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon-row">
+            <div class="kpi-icon-wrap kpi-icon-green">
+                <lightning-icon icon-name="utility:trending" size="small"></lightning-icon>
+            </div>
+        </div>
+        <p class="kpi-label">Peak Utilisation</p>
+        <h2 class="kpi-value">{kpiPeakUsage}</h2>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon-row">
+            <div class="kpi-icon-wrap kpi-icon-gray">
+                <lightning-icon icon-name="utility:clock" size="small"></lightning-icon>
+            </div>
+        </div>
+        <p class="kpi-label">Avg Duration</p>
+        <h2 class="kpi-value">{kpiDuration}</h2>
+    </div>
+</section>
+
+<!-- Main Content Split -->
+<div class="content-grid">
+    <!-- Chart Section (Gantt) -->
+    <section class="chart-panel">
+        <div class="panel-header-row">
+            <div>
+                <h3 class="panel-title">Resource Utilisation Timeline</h3>
+                <p class="panel-subtitle">Projected allocation across quotes</p>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <span class="filter-label">Filter by account:</span>
+            <div class="search-wrapper">
+                <div class="search-input-container">
+                    <input 
+                        class="search-input" 
+                        type="search" 
+                        placeholder="Search account..." 
+                        value={searchTerm} 
+                        oninput={handleSearchChange}
+                        onclick={handleSearchClick}
+                        onblur={handleSearchBlur}
+                        autocomplete="off" />
+                    <template if:true={isDropdownOpen}>
+                        <div class="search-dropdown">
+                            <template for:each={filteredAccountOptions} for:item="acc">
+                                <div key={acc} class="search-option" onmousedown={handleAccountSelect} data-val={acc}>{acc}</div>
+                            </template>
+                            <template if:false={filteredAccountOptions.length}>
+                                <div class="search-option search-option-empty">No matching accounts</div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+                <button onclick={handleSearchSubmit} class="done-btn">Done</button>
+            </div>
+        </div>
+
+        <div class="gantt-container" lwc:dom="manual"></div>
+        <div class="legend-row" lwc:dom="manual"></div>
+    </section>
+
+    <!-- Configuration/Table Section -->
+    <section class="sidebar-panel">
+        <div class="sidebar-card">
+            <!-- Discount Tiers - delegated entirely to child component -->
+            <div class="tiers-body">
+                <c-cpq-product-discount-tiers record-id={recordId} object-api-name="Resource_Role__c"></c-cpq-product-discount-tiers>
+            </div>
+
+            <!-- Summary Panel -->
+            <template if:true={item}>
+                <div class="summary-section">
+                    <div class="summary-card">
+                        <div class="summary-header">
+                            <lightning-icon icon-name="utility:settings" size="x-small" class="summary-icon"></lightning-icon>
+                            <h4 class="summary-title">CONFIGURATION SUMMARY</h4>
+                        </div>
+                        <div class="summary-fields">
+                            <div class="summary-field">
+                                <span class="summary-field-label">Name</span>
+                                <span class="summary-field-value">{item.Name__c}</span>
+                            </div>
+                            <div class="summary-field">
+                                <span class="summary-field-label">Billing Unit</span>
+                                <span class="summary-field-value">{item.Billing_Unit__c}</span>
+                            </div>
+                            <div class="summary-field">
+                                <span class="summary-field-label">Role ID</span>
+                                <span class="summary-field-value">{item.Name}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </section>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip-box" lwc:dom="manual"></div>
+</main>
 </template>

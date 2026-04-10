@@ -513,6 +513,7 @@ export default class CpqQuoteLineEditor extends LightningElement {
             Item_Type__c: item.Item_Type__c,
             icon: this._getIcon(item.Item_Type__c),
             iconClass: this._getIconClass(item.Item_Type__c),
+            isResourceRole: item.Item_Type__c === 'Resource Role',
             Name: item.Name,
             Quantity__c: item.Quantity__c,
             Discount_Percent__c: item.Discount_Percent__c || 0,

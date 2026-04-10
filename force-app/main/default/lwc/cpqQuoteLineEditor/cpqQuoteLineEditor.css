@@ -515,6 +515,13 @@ table.li-table td:last-child {
     background: #fff;
 }
 
+.no-date {
+    color: #d1d5db;
+    font-size: 12px;
+    text-align: center;
+    display: block;
+}
+
 .qty-unit {
     color: #9ca3af;
     font-size: 11px;

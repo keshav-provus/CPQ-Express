@@ -151,7 +151,7 @@ export default class CpqAddOnRecordPage extends LightningElement {
     }
 
     drawGantt() {
-        const wrap = this.template.querySelector('.timeline-wrap');
+        const wrap = this.template.querySelector('.gantt-container');
         if (!wrap) return;
         
         const W = wrap.clientWidth || 700;

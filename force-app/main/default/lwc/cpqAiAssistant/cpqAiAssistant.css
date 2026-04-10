@@ -431,55 +431,8 @@
     flex: 1;
 }
 
-/* ── Suggested Section ── */
-.suggested-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
 
-.suggested-title {
-    font-size: 11px;
-    font-weight: 700;
-    color: #9ca3af;
-    letter-spacing: 0.05em;
-    margin: 0;
-}
 
-.suggested-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.suggested-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-    color: #4b5563;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    transition: all 0.15s;
-}
-
-.suggested-item:hover {
-    background: #f3f4f6;
-    color: #111827;
-}
-
-.sug-icon {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
-    flex-shrink: 0;
-}
 
 /* ── Footer ── */
 .chat-footer {

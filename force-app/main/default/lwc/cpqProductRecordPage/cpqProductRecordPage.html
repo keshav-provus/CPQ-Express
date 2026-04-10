@@ -8,7 +8,13 @@
             <lightning-icon icon-name="utility:chevronright" size="xx-small" class="breadcrumb-chevron"></lightning-icon>
             <span class="breadcrumb-active"><template if:true={product}>{product.Product_Type__c}</template></span>
         </nav>
-        <h1 class="page-title"><template if:true={product}>{product.Name}</template></h1>
+        <div class="title-row">
+            <h1 class="page-title"><template if:true={product}>{product.Name}</template></h1>
+            <button class="edit-btn" onclick={handleEditOpen}>
+                <lightning-icon icon-name="utility:edit" size="xx-small" class="edit-btn-icon"></lightning-icon>
+                Edit
+            </button>
+        </div>
         <p class="page-subtitle"><template if:true={product}>{product.Description__c}</template></p>
     </div>
     <div class="header-stats">
@@ -149,5 +155,61 @@
 
 <!-- Tooltip -->
 <div class="tooltip-box" lwc:dom="manual"></div>
+
+<!-- Edit Modal -->
+<template if:true={isEditModalOpen}>
+    <section class="modal-backdrop" onclick={handleEditClose}>
+        <div class="modal-container" onclick={handleModalClick}>
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Product</h2>
+                <button class="modal-close-btn" onclick={handleEditClose}>
+                    <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                </button>
+            </div>
+            <lightning-record-edit-form
+                record-id={recordId}
+                object-api-name="Product__c"
+                onsuccess={handleEditSuccess}
+                onerror={handleEditError}
+                density="comfy">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <lightning-input-field field-name="Name"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Product_Code__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Product_Type__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Billing_Unit__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Price__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Cost__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Default_Discount__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field">
+                            <lightning-input-field field-name="Active__c"></lightning-input-field>
+                        </div>
+                        <div class="form-field form-field-full">
+                            <lightning-input-field field-name="Description__c"></lightning-input-field>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick={handleEditClose}>Cancel</button>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </lightning-record-edit-form>
+        </div>
+    </section>
+</template>
 </main>
 </template>

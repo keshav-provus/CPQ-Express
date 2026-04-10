@@ -1,4 +1,6 @@
 import { LightningElement, api, wire, track } from 'lwc';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { refreshApex } from '@salesforce/apex';
 import getProductById from '@salesforce/apex/ProductController.getProductById';
 import getProductUsage from '@salesforce/apex/ProductController.getProductUsage';
 import getProductDiscountTiers from '@salesforce/apex/ProductController.getProductDiscountTiers';
@@ -25,6 +27,11 @@ export default class CpqProductRecordPage extends LightningElement {
     @track isDropdownOpen = false;
     @track uniqueAccounts = [];
     @track filteredAccountOptions = [];
+    @track isEditModalOpen = false;
+
+    // Wire result holders for refresh
+    _wiredProductResult;
+    _wiredUsageResult;
 
     // Gantt color palette
     ganttColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#ef4444', '#84cc16'];
@@ -35,8 +42,9 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     @wire(getProductById, { productId: '$recordId' })
-    wiredProduct({ data }) {
-        if (data) this.product = data;
+    wiredProduct(result) {
+        this._wiredProductResult = result;
+        if (result.data) this.product = result.data;
     }
 
     @wire(getProductDiscountTiers, { productId: '$recordId' })
@@ -50,9 +58,10 @@ export default class CpqProductRecordPage extends LightningElement {
     }
 
     @wire(getProductUsage, { productId: '$recordId' })
-    wiredUsage({ data }) {
-        if (data) {
-            this.allQuotes = data.map((item, i) => ({
+    wiredUsage(result) {
+        this._wiredUsageResult = result;
+        if (result.data) {
+            this.allQuotes = result.data.map((item, i) => ({
                 id: item.Quote__r ? item.Quote__r.Name : `Q-${i}`,
                 accountName: (item.Quote__r && item.Quote__r.Account__r) ? item.Quote__r.Account__r.Name : 'Unknown',
                 start: new Date(item.Start_Date__c),
@@ -316,5 +325,43 @@ export default class CpqProductRecordPage extends LightningElement {
     handleHideTT() {
         const tt = this.template.querySelector('.tooltip-box');
         if (tt) tt.style.display = 'none';
+    }
+
+    // ─── Edit Modal ──────────────────────────────────────────────────────
+
+    handleEditOpen() {
+        this.isEditModalOpen = true;
+    }
+
+    handleEditClose() {
+        this.isEditModalOpen = false;
+    }
+
+    handleModalClick(event) {
+        event.stopPropagation();
+    }
+
+    handleEditSuccess() {
+        this.isEditModalOpen = false;
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Success',
+                message: 'Product updated successfully.',
+                variant: 'success'
+            })
+        );
+        // Refresh wired data
+        if (this._wiredProductResult) refreshApex(this._wiredProductResult);
+        if (this._wiredUsageResult) refreshApex(this._wiredUsageResult);
+    }
+
+    handleEditError(event) {
+        this.dispatchEvent(
+            new ShowToastEvent({
+                title: 'Error',
+                message: event.detail.message || 'An error occurred while saving.',
+                variant: 'error'
+            })
+        );
     }
 }

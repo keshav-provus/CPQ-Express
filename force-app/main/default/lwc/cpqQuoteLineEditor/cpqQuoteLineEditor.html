@@ -186,18 +186,28 @@
                                 </td>
 
                                 <td class="date-cell">
-                                    <input disabled={isReadOnly} type="date" class="date-input"
-                                           value={row.Start_Date__c}
-                                           data-id={row.Id}
-                                           data-field="Start_Date__c"
-                                           onchange={handleUpdateItem}>
+                                    <template lwc:if={row.isResourceRole}>
+                                        <input disabled={isReadOnly} type="date" class="date-input"
+                                               value={row.Start_Date__c}
+                                               data-id={row.Id}
+                                               data-field="Start_Date__c"
+                                               onchange={handleUpdateItem}>
+                                    </template>
+                                    <template lwc:else>
+                                        <span class="no-date">—</span>
+                                    </template>
                                 </td>
                                 <td class="date-cell">
-                                    <input disabled={isReadOnly} type="date" class="date-input"
-                                           value={row.End_Date__c}
-                                           data-id={row.Id}
-                                           data-field="End_Date__c"
-                                           onchange={handleUpdateItem}>
+                                    <template lwc:if={row.isResourceRole}>
+                                        <input disabled={isReadOnly} type="date" class="date-input"
+                                               value={row.End_Date__c}
+                                               data-id={row.Id}
+                                               data-field="End_Date__c"
+                                               onchange={handleUpdateItem}>
+                                    </template>
+                                    <template lwc:else>
+                                        <span class="no-date">—</span>
+                                    </template>
                                 </td>
                                 <td class="editable-cell">
                                     <input disabled={isReadOnly} type="number" value={row.Quantity__c} min="0" step="0.5"

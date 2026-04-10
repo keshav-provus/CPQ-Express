@@ -128,6 +128,26 @@ export default class CpqQuoteMap extends LightningElement {
             const highlightColorRef = this.highlightColor;
             const baseColorRef = this.baseColor;
 
+            const getNormalizedValue = (geoName) => {
+                if (countryDataRef[geoName]) return countryDataRef[geoName];
+                const aliases = {
+                    'United States of America': ['United States', 'USA', 'US'],
+                    'United Kingdom': ['UK', 'Britain', 'Great Britain'],
+                    'Russia': ['Russian Federation'],
+                    'South Korea': ['Korea, Republic of'],
+                    'Vietnam': ['Viet Nam']
+                };
+                if (aliases[geoName]) {
+                    for (let alias of aliases[geoName]) {
+                        if (countryDataRef[alias] !== undefined) return countryDataRef[alias];
+                    }
+                }
+                for (let key in countryDataRef) {
+                    if (key.toLowerCase() === geoName.toLowerCase()) return countryDataRef[key];
+                }
+                return 0; // Return 0 if not found
+            };
+
             // 4. Draw Countries & Add Interactivity
             g.selectAll('path')
                 .data(geoData.features)
@@ -135,8 +155,8 @@ export default class CpqQuoteMap extends LightningElement {
                 .append('path')
                 .attr('d', path)
                 .attr('fill', (d) => {
-                    const countryName = d.properties.name;
-                    return countryDataRef[countryName] ? highlightColorRef : baseColorRef;
+                    const val = getNormalizedValue(d.properties.name);
+                    return val > 0 ? highlightColorRef : baseColorRef;
                 })
                 .attr('stroke', '#FFFFFF')
                 .attr('stroke-width', '0.5')
@@ -146,11 +166,11 @@ export default class CpqQuoteMap extends LightningElement {
                 // Hover Interactions
                 .on('mouseover', (event, d) => {
                     const countryName = d.properties.name;
-                    const value = countryDataRef[countryName] || 0;
+                    const value = getNormalizedValue(countryName);
 
                     d3.select(tooltip)
                         .style('opacity', '1')
-                        .html('<strong>' + countryName + '</strong><br/>Approved Quotes: ' + value);
+                        .html('<strong>' + countryName + '</strong><br/>Revenue: $' + (value ? value.toLocaleString() : '0'));
 
                     const containerRect = container.getBoundingClientRect();
                     const tooltipX = event.clientX - containerRect.left + 12;
