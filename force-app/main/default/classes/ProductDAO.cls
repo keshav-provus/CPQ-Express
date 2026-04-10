@@ -10,7 +10,7 @@ public with sharing class ProductDAO {
     public static List<Product__c> getActiveProducts() {
         return [
             SELECT Id, Name, Product_Code__c, Product_Type__c,
-                   Category__c, Category__r.Name,
+                   
                    Price__c, Cost__c, Billing_Unit__c, Active__c
             FROM Product__c
             WHERE Active__c = true
@@ -27,7 +27,7 @@ public with sharing class ProductDAO {
         String searchPattern = '%' + String.escapeSingleQuotes(searchTerm) + '%';
         return [
             SELECT Id, Name, Product_Code__c, Product_Type__c,
-                   Category__c, Category__r.Name,
+                   
                    Price__c, Cost__c, Billing_Unit__c, Active__c
             FROM Product__c
             WHERE Active__c = true

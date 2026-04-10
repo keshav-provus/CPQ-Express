@@ -22,36 +22,36 @@
             <c-cpq-manager-k-p-is kpi-data={kpiData}></c-cpq-manager-k-p-is>
         </section>
 
-        <!-- ═══ 3-Column Grid ═══ -->
-        <div class="grid-3col">
+        <!-- ═══ 2-Column Grid (Top) ═══ -->
+        <div class="grid-2col">
             <!-- Col 1: Quotes to Approve -->
             <div class="col-quotes">
                 <c-cpq-pending-quotes></c-cpq-pending-quotes>
             </div>
 
-            <!-- Col 2: CPQ AI Intelligence -->
-            <div class="col-ai">
-                <div class="ai-panel">
-                    <div class="ai-glow"></div>
-                    <div class="ai-header">
-                        <div class="ai-header-left">
-                            <div class="ai-icon-wrap">
-                                <span class="ai-icon">✦</span>
-                            </div>
-                            <h3 class="ai-title">CPQ AI Intelligence</h3>
-                        </div>
-                        <span class="ai-badge">Active</span>
-                    </div>
-                    <div class="ai-body">
-                        <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Col 3: Map + Margin -->
+            <!-- Col 2: Map + Margin -->
             <div class="col-right">
                 <c-cpq-quote-map></c-cpq-quote-map>
                 <c-cpq-manager-margin-config></c-cpq-manager-margin-config>
+            </div>
+        </div>
+
+        <!-- ═══ Full Width AI Intelligence (Bottom) ═══ -->
+        <div class="col-ai-full">
+            <div class="ai-panel">
+                <div class="ai-glow"></div>
+                <div class="ai-header">
+                    <div class="ai-header-left">
+                        <div class="ai-icon-wrap">
+                            <span class="ai-icon">✦</span>
+                        </div>
+                        <h3 class="ai-title">CPQ AI Intelligence</h3>
+                    </div>
+                    <span class="ai-badge">Active</span>
+                </div>
+                <div class="ai-body">
+                    <c-cpq-ai-assistant mode="card"></c-cpq-ai-assistant>
+                </div>
             </div>
         </div>
     </div>

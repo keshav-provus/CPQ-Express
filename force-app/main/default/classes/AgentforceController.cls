@@ -2144,47 +2144,21 @@ public with sharing class AgentforceController {
                 }
             }
 
-            // Resolve by matching name against the catalog
+            // Resolve by matching name against the catalog using Strategy 2: Fuzzy Matching
             Boolean found = false;
             if (String.isNotBlank(optName)) {
-                String lower = optName.toLowerCase().trim();
-
-                for (Resource_Role__c r : ctx.resourceRoles) {
-                    if (r.Name.toLowerCase() == lower) {
-                        resolved.add(new Map<String, Object>{
-                            'id' => r.Id, 'name' => r.Name,
-                            'price' => r.Price__c, 'type' => 'Resource Role',
-                            'icon' => '👤', 'detail' => '$' + fmtDec(r.Price__c) + '/hr'
-                        });
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    for (Product__c p : ctx.products) {
-                        if (p.Name.toLowerCase() == lower) {
-                            resolved.add(new Map<String, Object>{
-                                'id' => p.Id, 'name' => p.Name,
-                                'price' => p.Price__c, 'type' => 'Product',
-                                'icon' => '📦', 'detail' => '$' + fmtDec(p.Price__c)
-                            });
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found) {
-                    for (Add_On__c a : ctx.addOns) {
-                        if (a.Name.toLowerCase() == lower) {
-                            resolved.add(new Map<String, Object>{
-                                'id' => a.Id, 'name' => a.Name,
-                                'price' => a.Price__c, 'type' => 'Add-on',
-                                'icon' => '➕', 'detail' => '$' + fmtDec(a.Price__c)
-                            });
-                            found = true;
-                            break;
-                        }
-                    }
+                List<CatalogItem> matches = searchCatalog(optName, ctx);
+                if (!matches.isEmpty()) {
+                    CatalogItem match = matches[0];
+                    resolved.add(new Map<String, Object>{
+                        'id' => match.itemId,
+                        'name' => match.name,
+                        'price' => match.price,
+                        'type' => match.itemType,
+                        'icon' => match.icon,
+                        'detail' => match.detail
+                    });
+                    found = true;
                 }
             }
 

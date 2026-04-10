@@ -16,7 +16,6 @@
     <tabs>standard-Dashboard</tabs>
     <tabs>Manager_Dashboard</tabs>
     <tabs>Template_Manager</tabs>
-    <tabs>Categories__c</tabs>
     <tabs>Product__c</tabs>
     <tabs>Admin_Settings</tabs>
     <uiType>Lightning</uiType>

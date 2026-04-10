@@ -11,24 +11,26 @@
             </div>
 
             <!-- Quick Action Tiles -->
-            <div class="card-tiles">
-                <button class="tile" data-prompt="Give me a summary of all quotes" onclick={handleQuickAction}>
-                    <span class="tile-icon tile-icon-green">📊</span>
-                    <span class="tile-label">Quote Insights</span>
-                </button>
-                <button class="tile" data-prompt="Analyze margin health across the team" onclick={handleQuickAction}>
-                    <span class="tile-icon tile-icon-purple">⚡</span>
-                    <span class="tile-label">Margin Analysis</span>
-                </button>
-                <button class="tile" data-prompt="What products are trending?" onclick={handleQuickAction}>
-                    <span class="tile-icon tile-icon-amber">📦</span>
-                    <span class="tile-label">Catalog Trends</span>
-                </button>
-                <button class="tile" data-prompt="Suggest ways to improve win rate" onclick={handleQuickAction}>
-                    <span class="tile-icon tile-icon-blue">💡</span>
-                    <span class="tile-label">Smart Response</span>
-                </button>
-            </div>
+            <template if:false={hasMessages}>
+                <div class="card-tiles">
+                    <button class="tile" data-prompt="Give me a summary of all quotes" onclick={handleQuickAction}>
+                        <span class="tile-icon tile-icon-green">📊</span>
+                        <span class="tile-label">Quote Insights</span>
+                    </button>
+                    <button class="tile" data-prompt="Analyze margin health across the team" onclick={handleQuickAction}>
+                        <span class="tile-icon tile-icon-purple">⚡</span>
+                        <span class="tile-label">Margin Analysis</span>
+                    </button>
+                    <button class="tile" data-prompt="What products are trending?" onclick={handleQuickAction}>
+                        <span class="tile-icon tile-icon-amber">📦</span>
+                        <span class="tile-label">Catalog Trends</span>
+                    </button>
+                    <button class="tile" data-prompt="Suggest ways to improve win rate" onclick={handleQuickAction}>
+                        <span class="tile-icon tile-icon-blue">💡</span>
+                        <span class="tile-label">Smart Response</span>
+                    </button>
+                </div>
+            </template>
 
             <!-- Chat Messages (compact) -->
             <template if:true={hasMessages}>
@@ -66,8 +68,8 @@
                        class="card-input"
                        placeholder="Ask something…"
                        value={inputValue}
-                       onchange={handleInputChange}
-                       onkeydown={handleKeyDown}>
+                       oninput={handleInputChange}
+                       onkeyup={handleKeyDown}>
                 <button class="card-send-btn" onclick={handleSend} title="Send">
                     <span class="card-send-icon">↑</span>
                 </button>
@@ -246,8 +248,8 @@
                            class="chat-input"
                            placeholder="How can I help you today?"
                            value={inputValue}
-                           onchange={handleInputChange}
-                           onkeydown={handleKeyDown}>
+                           oninput={handleInputChange}
+                           onkeyup={handleKeyDown}>
                     <div class="input-actions">
                         <div class="context-chip">
                             <span class="chip-icon">📎</span> Quote {contextBadge}

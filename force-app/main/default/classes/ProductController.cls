@@ -10,7 +10,7 @@ public with sharing class ProductController {
         try {
             return [
                 SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c,
-                       Active__c, Billing_Unit__c, Category__c, Category__r.Name, Default_Discount__c, Description__c
+                       Active__c, Billing_Unit__c, Default_Discount__c, Description__c
                 FROM Product__c
                 WHERE Id = :productId
                 LIMIT 1
@@ -97,7 +97,7 @@ public with sharing class ProductController {
     public static List<Product__c> getActiveProducts() {
         return [
             SELECT Id, Name, Product_Code__c, Product_Type__c, Price__c, Cost__c,
-                   Active__c, Billing_Unit__c, Category__c, Category__r.Name, Description__c
+                   Active__c, Billing_Unit__c, Description__c
             FROM Product__c
             WHERE Active__c = true
             ORDER BY Name ASC

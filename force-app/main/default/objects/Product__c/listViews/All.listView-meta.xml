@@ -4,7 +4,6 @@
     <columns>NAME</columns>
     <columns>Product_Code__c</columns>
     <columns>Product_Type__c</columns>
-    <columns>Category__c</columns>
     <columns>Cost__c</columns>
     <columns>Price__c</columns>
     <columns>Billing_Unit__c</columns>

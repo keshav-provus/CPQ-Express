@@ -89,7 +89,6 @@ export default class ProductSelectorPopup extends LightningElement {
         if (data) {
             this.products = data.map(product => ({
                 ...product,
-                CategoryName: product.Category__r ? product.Category__r.Name : '—',
                 Quantity: 1,
                 Discount: 0
             }));
@@ -128,8 +127,8 @@ export default class ProductSelectorPopup extends LightningElement {
         const filtered = this.products.filter(product => {
             const name = (product.Name || '').toLowerCase();
             const code = (product.Product_Code__c || '').toLowerCase();
-            const category = (product.CategoryName || '').toLowerCase();
-            const type = (product.Product_Type__c || '').toLowerCase();
+            const category = "";
+const type = (product.Product_Type__c || '').toLowerCase();
             return name.includes(term) || code.includes(term) || category.includes(term) || type.includes(term);
         });
         this.applyOptionsToProducts(filtered);
