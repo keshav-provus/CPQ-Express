@@ -85,4 +85,7 @@
         <field>Quote_Version__c.Title__c</field>
         <readable>true</readable>
     </fieldPermissions>
+<layoutAssignments>
+        <layout>Opportunity-Opportunity Layout</layout>
+    </layoutAssignments>
 </Profile>

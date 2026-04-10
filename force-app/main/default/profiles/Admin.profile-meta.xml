@@ -87,6 +87,9 @@
     </classAccesses>
     <custom>false</custom>
     <layoutAssignments>
+        <layout>Opportunity-Opportunity Layout</layout>
+    </layoutAssignments>
+    <layoutAssignments>
         <layout>Quote__c-Quote Layout</layout>
     </layoutAssignments>
     <objectPermissions>
