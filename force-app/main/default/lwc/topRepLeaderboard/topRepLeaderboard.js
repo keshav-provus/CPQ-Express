@@ -2,16 +2,19 @@ import { LightningElement, api, track, wire } from 'lwc';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class TopRepLeaderboard extends LightningElement {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @track reps = [];
     @track isLoading = true;
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    @api 
+        @api 
     set dashboardData(value) {
         if (value) {
             this.reps = value;

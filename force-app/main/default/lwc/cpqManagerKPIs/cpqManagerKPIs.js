@@ -2,15 +2,18 @@ import { LightningElement, api, track, wire } from 'lwc';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqManagerKPIs extends LightningElement {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @api kpiData = {};
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    formatCurrencyValue(value) {
+        formatCurrencyValue(value) {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(value);
     }
 

@@ -18,12 +18,7 @@ export default class CpqAiAssistant extends LightningElement {
     @track userContext = {};
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    conversationHistory = [];
+        conversationHistory = [];
     messageIdCounter = 0;
 
     @wire(getUserContext)
@@ -32,7 +27,12 @@ export default class CpqAiAssistant extends LightningElement {
     }
 
     connectedCallback() {
+        this.fetchCurrency();
         // Light theme panel relies on the greeting row instead of an initial message block
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
     }
 
     get showGreeting() {

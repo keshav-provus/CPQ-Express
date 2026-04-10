@@ -5,14 +5,17 @@ import chartjs from '@salesforce/resourceUrl/chartjs';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqWeeklyPipelineChart extends LightningElement {
-    @track currencyCode = 'USD';
-
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
+    connectedCallback() {
+        this.fetchCurrency();
     }
 
-    @track chartData = [];
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
+    @track currencyCode = 'USD';
+
+        @track chartData = [];
     chartLoaded = false;
     chartInstance;
 

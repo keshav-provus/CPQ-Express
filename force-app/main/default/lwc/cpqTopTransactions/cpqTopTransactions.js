@@ -3,14 +3,17 @@ import getTopTransactions from '@salesforce/apex/DashboardController.getTopTrans
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqTopTransactions extends LightningElement {
-    @track currencyCode = 'USD';
-
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
+    connectedCallback() {
+        this.fetchCurrency();
     }
 
-    @track transactions;
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
+    @track currencyCode = 'USD';
+
+        @track transactions;
 
     @wire(getTopTransactions)
     wiredTransactions({ error, data }) {

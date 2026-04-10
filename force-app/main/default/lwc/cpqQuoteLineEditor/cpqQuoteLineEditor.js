@@ -21,14 +21,17 @@ const PHASE_COLORS = [
 ];
 
 export default class CpqQuoteLineEditor extends LightningElement {
-    @track currencyCode = 'USD';
-
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
+    connectedCallback() {
+        this.fetchCurrency();
     }
 
-    @api recordId;
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
+    @track currencyCode = 'USD';
+
+        @api recordId;
     @api lineItems = [];
     @api quoteData;
 

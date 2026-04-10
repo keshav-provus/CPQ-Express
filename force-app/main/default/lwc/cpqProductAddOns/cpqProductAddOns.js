@@ -4,14 +4,17 @@ import { refreshApex } from '@salesforce/apex';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqProductAddOns extends LightningElement {
-    @track currencyCode = 'USD';
-
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
+    connectedCallback() {
+        this.fetchCurrency();
     }
 
-    @api recordId;
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
+    @track currencyCode = 'USD';
+
+        @api recordId;
     @track isModalOpen = false;
 
     wiredAddOnsResult;

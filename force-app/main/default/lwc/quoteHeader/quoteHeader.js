@@ -9,14 +9,17 @@ import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefa
 const FIELDS = [QUOTE_NAME_FIELD, STATUS_FIELD, TOTAL_AMOUNT_FIELD, MARGIN_FIELD];
 
 export default class QuoteHeader extends LightningElement {
-    @track currencyCode = 'USD';
-
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
+    connectedCallback() {
+        this.fetchCurrency();
     }
 
-    @api recordId;
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
+    @track currencyCode = 'USD';
+
+        @api recordId;
 
     @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
     quote;

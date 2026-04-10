@@ -2,6 +2,14 @@ import { LightningElement, api, track, wire } from 'lwc';
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class TeamQuotesPipeline extends LightningElement {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @track totalPipeline = 0;
     @track avgMargin = 0;
     @track pendingApproval = 0;
@@ -9,12 +17,7 @@ export default class TeamQuotesPipeline extends LightningElement {
     @track isLoading = true;
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    @api 
+        @api 
     set dashboardData(value) {
         if (value) {
             this.totalPipeline = value.totalPipeline || 0;

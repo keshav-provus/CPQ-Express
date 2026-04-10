@@ -5,17 +5,20 @@ import getUserContext from '@salesforce/apex/AgentforceController.getUserContext
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningElement) {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @track dashboardData = {};
     @track userContext = {};
     @track isLoading = true;
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    @wire(getUserContext)
+        @wire(getUserContext)
     wiredContext({ data }) {
         if (data) this.userContext = data;
     }
@@ -44,14 +47,16 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
     }
     
     get totalQuota() {
-        const sym = new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currencyCode, maximumFractionDigits: 0 }).format(0).replace(/[\d,.]/g, '').trim();
-        return sym + '1.2M';
+        // Calculate quota as pipeline value (total of all quotes)
+        const pipeline = this.kpis.totalPipeline || 0;
+        return pipeline > 0 ? this.formatCurrency(pipeline) : this.formatCurrency(0);
     }
     
     get quotaPercentage() {
         const rev = this.kpis.totalRevenue || 0;
-        const pct = Math.min(Math.round((rev / 1200000) * 100), 100);
-        return pct > 0 ? pct : 82; // fallback to 82% from design
+        const pipeline = this.kpis.totalPipeline || 0;
+        if (pipeline <= 0) return 0;
+        return Math.min(Math.round((rev / pipeline) * 100), 100);
     }
 
     get quotaBarStyle() {
@@ -59,22 +64,23 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
     }
 
     get pendingApprovalsCount() {
-        return this.pendingItems.length > 0 ? (this.pendingItems.length < 10 ? '0'+this.pendingItems.length : this.pendingItems.length) : '09';
+        const count = this.pendingItems.length;
+        if (count === 0) return '0';
+        return count < 10 ? '0' + count : String(count);
     }
 
     get activeQuotesCount() {
-        return this.kpis.activeQuotes || 42;
+        return this.kpis.activeQuotes || 0;
     }
 
     get pipelineValue() {
-        return this.formatCurrency(this.kpis.totalPipeline || 4800000);
+        return this.formatCurrency(this.kpis.totalPipeline || 0);
     }
 
     // --- Quotes Table ---
     get recentQuotes() {
         const quotes = this.dashboardData?.recentQuotes || [];
-        if (quotes.length === 0) return this.mockQuotes;
-        return quotes.map((q, index) => {
+        return quotes.map((q) => {
             const isDraft = q.Status__c === 'Draft';
             const isPending = q.Status__c === 'Pending Approval';
             const isNeedsSig = q.Status__c === 'Needs Signature';
@@ -85,10 +91,10 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
             return {
                 id: q.Id,
                 name: q.Name,
-                subtitle: `Q-${q.Id ? q.Id.substring(0,5) : index}`,
+                subtitle: q.Name,
                 client: q.Account__r?.Name || 'Unknown Client',
                 value: this.formatCurrency(q.Total_Amount__c || 0),
-                status: q.Status__c ? q.Status__c.toUpperCase() : 'PENDING',
+                status: q.Status__c ? q.Status__c.toUpperCase() : 'DRAFT',
                 badgeClass: badgeClass,
                 iconName: isDraft ? 'utility:edit' : (isPending ? 'utility:preview' : 'utility:send'),
                 isDraft
@@ -96,12 +102,8 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
         });
     }
 
-    get mockQuotes() {
-        return [
-            { id: '1', name: 'The Grand Library', subtitle: 'Q-50122-D', client: 'Civic Design Partners', value: '$84,200', status: 'DRAFT', badgeClass: 'status-badge pending', iconName: 'utility:edit' },
-            { id: '2', name: 'Harbor View Condos', subtitle: 'Q-49981-A', client: 'Waterfront Realty', value: '$312,500', status: 'PENDING REVIEW', badgeClass: 'status-badge pending', iconName: 'utility:preview' },
-            { id: '3', name: 'Skyline Tech Hub', subtitle: 'Q-49855-F', client: 'NexGen Office Corp', value: '$125,750', status: 'NEEDS SIGNATURE', badgeClass: 'status-badge needs-signature', iconName: 'utility:send' }
-        ];
+    get hasRecentQuotes() {
+        return this.recentQuotes.length > 0;
     }
 
     // --- Format Helpers ---
@@ -131,24 +133,21 @@ export default class CpqSalesRepDashboardApp extends NavigationMixin(LightningEl
 
     // --- Dynamic Modules ---
     get catalogDiscounts() {
-        if (this.dashboardData?.catalogDiscounts && this.dashboardData.catalogDiscounts.length > 0) {
-            return this.dashboardData.catalogDiscounts;
-        }
-        return [
-            { id: 'cd1', title: 'Solar Panels Gen 4', text: 'Quantity - 100-500', val: '-18%', icon: 'utility:sun' },
-            { id: 'cd2', title: 'Triple-Pane Low-E', text: 'Quantity - 50-200', val: '-12%', icon: 'utility:apps' }
-        ];
+        return this.dashboardData?.catalogDiscounts || [];
+    }
+
+    get hasCatalogDiscounts() {
+        return this.catalogDiscounts.length > 0;
     }
 
     get productFeeds() {
-        if (this.dashboardData?.productFeeds && this.dashboardData.productFeeds.length > 0) {
-            return this.dashboardData.productFeeds;
-        }
-        return [
-            { id: 'pf1', tag: 'New Release', tagClass: 'feed-tag blue', title: 'Ultra-Light Titanium Support Frames', desc: 'New Product Ultra-Light Titanium Support Frames added', icon: 'utility:favorite' },
-            { id: 'pf2', tag: 'Inventory', tagClass: 'feed-tag green', title: 'Smart Glass Backlog Cleared', desc: 'New Resource Role Smart Glass Backlog Cleared added', icon: 'utility:locker_service_api_viewer' }
-        ];
+        return this.dashboardData?.productFeeds || [];
     }
+
+    get hasProductFeeds() {
+        return this.productFeeds.length > 0;
+    }
+
     handleNavigate(event) {
         if (event.detail && event.detail.recordId) {
             this[NavigationMixin.Navigate]({

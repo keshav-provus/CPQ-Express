@@ -8,12 +8,7 @@ import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefa
 export default class CpqProductRecordPage extends LightningElement {
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    @api recordId;
+        @api recordId;
     
     @track searchTerm = '';
     
@@ -76,7 +71,12 @@ export default class CpqProductRecordPage extends LightningElement {
     }
     
     disconnectedCallback() {
+        this.fetchCurrency();
         window.removeEventListener('resize', this.handleResize.bind(this));
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
     }
 
     handleResize() {

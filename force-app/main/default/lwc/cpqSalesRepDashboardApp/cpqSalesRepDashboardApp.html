@@ -10,13 +10,15 @@
         <section class="metrics-grid">
             <!-- Quota -->
             <div class="metric-card">
-                <div class="metric-label">Quarterly Quota</div>
+                <div class="metric-label">Total Pipeline</div>
                 <div class="metric-value-row">
                     <span class="metric-value">{totalQuota}</span>
-                    <span class="metric-badge green">
-                        <lightning-icon icon-name="utility:trending" size="xx-small" variant="success"></lightning-icon>
-                        {quotaPercentage}%
-                    </span>
+                    <template lwc:if={quotaPercentage}>
+                        <span class="metric-badge green">
+                            <lightning-icon icon-name="utility:trending" size="xx-small" variant="success"></lightning-icon>
+                            {quotaPercentage}% booked
+                        </span>
+                    </template>
                 </div>
                 <div class="progress-track">
                     <div class="progress-fill" style={quotaBarStyle}></div>
@@ -28,12 +30,8 @@
                 <div class="metric-label">Booked Revenue</div>
                 <div class="metric-value-row">
                     <span class="metric-value">{bookedRevenue}</span>
-                    <span class="metric-subtext">+12.5% MoM</span>
                 </div>
-                <div style="margin-top: 0.75rem; display: flex; gap: 0.25rem;">
-                    <!-- placeholders for avatars using badges -->
-                    <span class="metric-badge" style="background:#e0e3e5; color:#434655;">+14</span>
-                </div>
+                <div class="metric-subtext" style="margin-top: 0.5rem;">From approved quotes</div>
             </div>
 
             <!-- Pending Approvals -->
@@ -41,12 +39,14 @@
                 <div class="metric-label">Pending Approvals</div>
                 <div class="metric-value-row">
                     <span class="metric-value">{pendingApprovalsCount}</span>
-                    <span class="metric-badge red">
-                        <lightning-icon icon-name="utility:clock" size="xx-small" variant="error"></lightning-icon>
-                        Priority
-                    </span>
+                    <template lwc:if={pendingItems.length}>
+                        <span class="metric-badge red">
+                            <lightning-icon icon-name="utility:clock" size="xx-small" variant="error"></lightning-icon>
+                            Needs action
+                        </span>
+                    </template>
                 </div>
-                <div class="metric-subtext">Avg. turnaround: 4.2 hours</div>
+                <div class="metric-subtext">Quotes awaiting review</div>
             </div>
 
             <!-- Active Quotes -->
@@ -82,22 +82,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template for:each={recentQuotes} for:item="quote">
-                                    <tr key={quote.id}>
-                                        <td class="td-project">
-                                            <span class="project-name">{quote.name}</span>
-                                            <span class="project-sub">{quote.subtitle}</span>
-                                        </td>
-                                        <td class="td-client">{quote.client}</td>
-                                        <td class="td-value">{quote.value}</td>
-                                        <td>
-                                            <span class={quote.badgeClass}>{quote.status}</span>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <button class="action-btn" data-id={quote.id} onclick={handleActionClick}>
-                                                <lightning-icon icon-name={quote.iconName} size="x-small"></lightning-icon>
-                                            </button>
-                                        </td>
+                                <template lwc:if={hasRecentQuotes}>
+                                    <template for:each={recentQuotes} for:item="quote">
+                                        <tr key={quote.id}>
+                                            <td class="td-project">
+                                                <span class="project-name">{quote.name}</span>
+                                                <span class="project-sub">{quote.subtitle}</span>
+                                            </td>
+                                            <td class="td-client">{quote.client}</td>
+                                            <td class="td-value">{quote.value}</td>
+                                            <td>
+                                                <span class={quote.badgeClass}>{quote.status}</span>
+                                            </td>
+                                            <td style="text-align:right;">
+                                                <button class="action-btn" data-id={quote.id} onclick={handleActionClick}>
+                                                    <lightning-icon icon-name={quote.iconName} size="x-small"></lightning-icon>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                                <template lwc:else>
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; padding:2rem; color:#94a3b8;">No quotes yet. Click the + button to create your first quote.</td>
                                     </tr>
                                 </template>
                             </tbody>

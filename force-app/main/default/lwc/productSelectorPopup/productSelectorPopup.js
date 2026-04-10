@@ -65,6 +65,14 @@ const PRODUCT_COLUMNS = [
 ];
 
 export default class ProductSelectorPopup extends LightningElement {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @api recordId;
 
     @track products = [];

@@ -5,15 +5,18 @@ import submitForApproval from '@salesforce/apex/QuoteController.submitForApprova
 import getDefaultCurrency from '@salesforce/apex/AdminSettingsController.getDefaultCurrency';
 
 export default class CpqPendingQuotes extends NavigationMixin(LightningElement) {
+    connectedCallback() {
+        this.fetchCurrency();
+    }
+
+    fetchCurrency() {
+        getDefaultCurrency().then(res => { this.currencyCode = res; }).catch(err => console.error(err));
+    }
+
     @track quotes = [];
     @track currencyCode = 'USD';
 
-    @wire(getDefaultCurrency)
-    wiredDefaultCurrency({ data }) {
-        if (data) this.currencyCode = data;
-    }
-
-    @wire(getPendingActionItems)
+        @wire(getPendingActionItems)
     wiredQuotes({ data, error }) {
         if (data) {
             const colors = ['bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-orange-100'];
