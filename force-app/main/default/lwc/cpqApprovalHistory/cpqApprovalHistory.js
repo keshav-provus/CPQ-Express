@@ -104,6 +104,36 @@ export default class CpqApprovalHistory extends LightningElement {
             });
         }
 
+        // Entry 7: Recalled (quote was submitted but then recalled back to Draft)
+        if (this.quote.Recalled_By__c) {
+            entries.push({
+                id:          'recalled',
+                icon:        '↩',
+                userName:    this.quote.Recalled_By__r
+                                 ? this.quote.Recalled_By__r.Name
+                                 : 'Unknown',
+                action:      'recalled this quote',
+                comment:     'Quote was recalled and reverted to Draft status.',
+                timeDisplay: this.formatTime(this.quote.Recalled_Date__c),
+                dotClass:    'entry-dot dot-orange',
+                badgeClass:  'action-badge badge-recalled'
+            });
+        }
+
+        // Fallback: If quote is Draft and was previously submitted (no Recalled fields), show a generic recall
+        if (!this.quote.Recalled_By__c && this.quote.Status__c === 'Draft' && this.quote.Submitted_By__c) {
+            entries.push({
+                id:          'recalled-fallback',
+                icon:        '↩',
+                userName:    '',
+                action:      'Quote was recalled to Draft',
+                comment:     'This quote was returned to Draft after being submitted for approval.',
+                timeDisplay: '',
+                dotClass:    'entry-dot dot-orange',
+                badgeClass:  'action-badge badge-recalled'
+            });
+        }
+
         return entries;
     }
 

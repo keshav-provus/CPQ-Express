@@ -79,6 +79,7 @@
     color: #0176d3;
     text-decoration: none;
     font-weight: 600;
+    cursor: pointer;
 }
 
 .detail-item .val a:hover {
@@ -415,6 +416,9 @@
 /* ── Cost Audit card ── */
 .cost-audit {
     padding: 18px;
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
 .audit-header {

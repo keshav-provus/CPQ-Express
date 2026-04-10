@@ -7,8 +7,8 @@
                     <h4 class="card-title">Quote Details</h4>
                 </div>
                 <div class="detail-grid">
-                    <div class="detail-item"><label>Opportunity</label><div class="val">{opportunityName}</div></div>
-                    <div class="detail-item"><label>Account</label><div class="val"><a href="#">{accountName}</a></div></div>
+                    <div class="detail-item"><label>Opportunity</label><div class="val"><a data-id={opportunityId} onclick={handleRecordNavigate}>{opportunityName}</a></div></div>
+                    <div class="detail-item"><label>Account</label><div class="val"><a data-id={accountId} onclick={handleRecordNavigate}>{accountName}</a></div></div>
                     <div class="detail-item"><label>Valid Until</label><div class="val">{validUntil}</div></div>
                     <div class="detail-item"><label>Quote Time Period</label><div class="val">{timePeriod}</div></div>
                     <div class="detail-item"><label>Created Date</label><div class="val">{createdDate}</div></div>

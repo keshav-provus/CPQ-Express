@@ -4,6 +4,9 @@
     border-radius: 12px;
     padding: 18px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    max-height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Header */
@@ -102,6 +105,9 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .history-entry {
@@ -137,6 +143,7 @@
 .dot-green { background: #10b981; }
 .dot-red   { background: #ef4444; }
 .dot-amber { background: #f59e0b; }
+.dot-orange { background: #f97316; }
 
 .entry-line {
     flex: 1;
@@ -204,3 +211,4 @@
 .badge-approved { background: #dcfce7; color: #166534; }
 .badge-rejected { background: #fee2e2; color: #991b1b; }
 .badge-pending { background: #fef3c7; color: #92400e; }
+.badge-recalled { background: #fff7ed; color: #c2410c; }

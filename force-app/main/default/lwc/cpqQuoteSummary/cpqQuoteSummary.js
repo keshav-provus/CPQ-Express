@@ -1,10 +1,11 @@
 import { LightningElement, api, wire, track } from 'lwc';
+import { NavigationMixin } from 'lightning/navigation';
 import getLineItemSummary from '@salesforce/apex/QuoteLineItemController.getLineItemSummary';
 import getLineItemsByPhase from '@salesforce/apex/QuoteLineItemController.getLineItemsByPhase';
 import getAuditLogs from '@salesforce/apex/QuoteLineItemController.getAuditLogs';
 import { refreshApex } from '@salesforce/apex';
 
-export default class CpqQuoteSummary extends LightningElement {
+export default class CpqQuoteSummary extends NavigationMixin(LightningElement) {
     @api currencyCode = 'USD';
 
     @api recordId;
@@ -74,7 +75,9 @@ export default class CpqQuoteSummary extends LightningElement {
 
     // ─── Detail getters ───
     get opportunityName() { return this.quoteData?.Opportunity__r?.Name || 'N/A'; }
+    get opportunityId() { return this.quoteData?.Opportunity__c || ''; }
     get accountName() { return this.quoteData?.Account__r?.Name || 'N/A'; }
+    get accountId() { return this.quoteData?.Account__c || ''; }
     get validUntil() { return this.quoteData?.Valid_Until__c ? new Date(this.quoteData.Valid_Until__c).toLocaleDateString() : '-'; }
     get timePeriod() { return this.quoteData?.Time_Period_Metric__c || 'Months'; }
     get createdDate() { return this.quoteData?.CreatedDate ? new Date(this.quoteData.CreatedDate).toLocaleDateString() : '-'; }
@@ -211,5 +214,18 @@ export default class CpqQuoteSummary extends LightningElement {
     handleBarClick(event) {
         const bar = event.currentTarget.dataset.bar;
         this.selectedBarGroup = this.selectedBarGroup === bar ? null : bar;
+    }
+
+    handleRecordNavigate(event) {
+        event.preventDefault();
+        const recordId = event.currentTarget.dataset.id;
+        if (!recordId) return;
+        this[NavigationMixin.Navigate]({
+            type: 'standard__recordPage',
+            attributes: {
+                recordId: recordId,
+                actionName: 'view'
+            }
+        });
     }
 }

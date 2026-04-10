@@ -7,7 +7,7 @@
             </button>
             <template if:true={isEditable}>
                 <button class="btn" onclick={handleAddPhase}>+ Add Phase</button>
-                <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled}>↺ Undo</button>
+                <button class={undoBtnClass} onclick={handleUndo} disabled={isUndoDisabled} style="display:none">↺ Undo</button>
                 <button class="btn btn-primary" data-phase="" onclick={handleOpenWizard}>+ Add Item</button>
                 <template if:true={hasSelected}>
                     <button class="btn btn-danger" onclick={handleDeleteSelected}>🗑 Delete Selected</button>
